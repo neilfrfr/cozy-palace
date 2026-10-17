@@ -16,7 +16,7 @@ Next.js Server Actions and server-only services stay in `frontend/` because they
 
 ## Run the interface
 
-Use Node 24 and npm:
+Use Node 24.16 or newer and npm:
 
 ```sh
 npm ci
@@ -51,6 +51,8 @@ For a supported Docker local setup, `npx supabase start` and `npx supabase db re
 ```sh
 npm run typecheck
 npm run lint
+npm run test:security
+npm audit
 npm test
 npm run test:integration
 npm run build
@@ -100,3 +102,9 @@ This increment accepts future check-in dates only. Same-day stays are rejected b
 ## Contributing
 
 Create a feature branch and open a pull request with a clear description and relevant verification results. Keep credentials, customer information, and private planning documents out of commits. Run the checks above before requesting review.
+
+### Lint dependency security
+
+The Next.js 16.4.2 ESLint plugin's `fast-glob` dependency is scoped to a local adapter in `tools/next-eslint-glob/` through the root npm override. It uses Node.js built-in globbing, without the vulnerable `braces` dependency or a new third-party glob library. The adapter supports only Next's directory-only `globSync` call, returns only matching directories, preserves absolute paths, and rejects excessive pattern nesting and brace-expansion work before parsing. Other fast-glob APIs are deliberately unsupported.
+
+Use `npm ci` from the repository root. Keep the shared lockfile and tooling workspace in deployments. Before changing the Next ESLint plugin version, review its glob API usage and rerun `npm run test:security`, `npm audit`, and lint from both the root and frontend workspace. The version-scoped override must be reviewed when the plugin changes.
