@@ -1,0 +1,39 @@
+import { randomUUID } from "node:crypto";
+import { requireIdentity } from "@/lib/auth/authorize";
+import { getRooms } from "@/lib/reservations/service";
+import { ReservationForm } from "@/components/reservation-form";
+import { WorkspaceNav } from "@/components/workspace-nav";
+export const dynamic = "force-dynamic";
+export default async function NewReservation({
+  searchParams,
+}: {
+  searchParams: Promise<{
+    room?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+  }>;
+}) {
+  const defaults = await searchParams;
+  const safe = Object.fromEntries(
+    Object.entries(defaults).filter(
+      (v): v is [string, string] => typeof v[1] === "string",
+    ),
+  );
+  await requireIdentity("/reservations/new?" + new URLSearchParams(safe));
+  const rooms = await getRooms();
+  return (
+    <>
+      <WorkspaceNav />
+      <h1>Plan your stay</h1>
+      <p className="intro">
+        Save a draft, review your details, then send your booking request.
+      </p>
+      <ReservationForm
+        rooms={rooms}
+        defaults={defaults}
+        requestKey={randomUUID()}
+      />
+    </>
+  );
+}
