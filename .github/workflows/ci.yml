@@ -2,7 +2,7 @@ name: Prototype verification
 on:
   pull_request:
   push:
-    branches: [main, "feat/**"]
+    branches: [main, "feat/**", "refactor/**"]
 permissions:
   contents: read
 jobs:

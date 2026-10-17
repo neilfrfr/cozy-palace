@@ -1,0 +1,17 @@
+{
+  "name": "@cozy-palace/backend",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "test": "vitest run tests/integration --maxWorkers=1",
+    "test:concurrency": "node scripts/verify-concurrency.mjs"
+  },
+  "devDependencies": {
+    "@electric-sql/pglite": "0.5.10",
+    "@types/pg": "8.23.1",
+    "pg": "8.23.1",
+    "supabase": "2.121.0",
+    "vitest": "5.0.5"
+  }
+}

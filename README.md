@@ -6,13 +6,21 @@ A hotel reservation prototype built with Next.js, TypeScript, Tailwind CSS, and 
 
 This is development software, not a live booking service. Dining, payment collection, purchase history, and financial report generation are not implemented. Do not use the fictional inventory for real reservations.
 
+## Repository structure
+
+- `frontend/`: Next.js pages, components, auth integration, Server Actions, and frontend tests.
+- `backend/`: Supabase configuration, migrations, seed data, database tests, and concurrency tooling.
+- Root: npm workspace commands, shared lockfile, and CI.
+
+Next.js Server Actions and server-only services stay in `frontend/` because they are compiled and deployed with Next.js. Supabase supplies the database backend; this repository does not run a separate API server.
+
 ## Run the interface
 
 Use Node 24 and npm:
 
 ```sh
 npm ci
-cp .env.example .env.local
+cp frontend/.env.example frontend/.env.local
 npm run dev
 ```
 
@@ -21,9 +29,9 @@ Without Supabase configuration the app shows a setup state and cannot save booki
 ## Connect an isolated Supabase development project
 
 1. Select a **new/empty development project** specifically for Cozy Palace. Do not run these migrations against an unrelated project.
-2. Authenticate the Supabase CLI, then link to the approved development project and apply the committed migrations using the supported CLI commands. Run `npx supabase --help` and `npx supabase db push --help` for current options. The SQL can also be reviewed and applied in that project's SQL editor.
-3. Apply `supabase/seed.sql`. All inventory and rates are fictional prototype fixtures.
-4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `.env.local`. These are the only browser-exposed configuration values; never expose a service-role key or database password.
+2. Run Supabase CLI commands from `backend/`. Authenticate the Supabase CLI, then link to the approved development project and apply the committed migrations using the supported CLI commands. Run `npx supabase --help` and `npx supabase db push --help` for current options. The SQL can also be reviewed and applied in that project's SQL editor.
+3. Apply `backend/supabase/seed.sql`. All inventory and rates are fictional prototype fixtures.
+4. Set `NEXT_PUBLIC_SUPABASE_URL` and `NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY` in `frontend/.env.local`. These are the only browser-exposed configuration values; never expose a service-role key or database password.
 5. Create two verified customer test users and a staff/admin test user through Supabase Auth. A signup trigger creates the associated profile.
 6. Assign a trusted employee role through the SQL editor, replacing the placeholder with that test user's actual UUID:
 
@@ -81,7 +89,7 @@ After setting real development Supabase configuration, provide `TEST_CUSTOMER_EM
 
 ## Vercel
 
-Import this repository and select the Next.js preset. Use `npm run build` and framework-managed output. Set the two public configuration values separately for Preview and Production, each pointing to its intended database. Set Auth redirect allowlists for the exact Preview/production URLs. No `dist`, static export or blanket SPA rewrite is needed.
+Import this repository, set the Vercel Root Directory to `frontend`, enable access to files outside the Root Directory for workspace dependencies, and select the Next.js preset. Use `npm run build` and framework-managed output. Set the two public configuration values separately for Preview and Production, each pointing to its intended database. Set Auth redirect allowlists for the exact Preview/production URLs. No `dist`, static export or blanket SPA rewrite is needed.
 
 This branch is not a deployed release. A configured Preview, hosted authentication tests, and native database concurrency checks are required before operational use.
 
