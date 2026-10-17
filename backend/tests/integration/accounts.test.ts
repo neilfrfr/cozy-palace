@@ -55,6 +55,7 @@ it("staff creation normalizes email, is admin-only and not publicly readable", a
   ).toHaveLength(0);
   const r = (await as(admin, "select * from public.staff_members")).rows[0];
   expect(r.email).toBe("worker@example.test");
+  expect(r.employee_code).toMatch(/^EMP-[0-9]{4,}$/);
   expect(r.state).toBe("pending");
   await expect(
     as(
