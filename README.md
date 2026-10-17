@@ -14,17 +14,107 @@ This is development software, not a live booking service. Dining, payment collec
 
 Next.js Server Actions and server-only services stay in `frontend/` because they are compiled and deployed with Next.js. Supabase supplies the database backend; this repository does not run a separate API server.
 
-## Run the interface
+## Developer setup on a local machine
 
-Use Node 24.16 or newer and npm:
+### Prerequisites
+
+Install [Git](https://git-scm.com/downloads), [Node.js 24 LTS](https://nodejs.org/en/download) **24.16.0 or newer within the 24.x line** (npm is included), and optionally [VS Code](https://code.visualstudio.com/). Restart the terminal after installing Node. Confirm:
 
 ```sh
+node --version
+npm --version
+git --version
+```
+
+Docker is optional when using the team's hosted Supabase development project. It is needed for the Docker-based local Supabase stack and the disposable native PostgreSQL concurrency test below. Python, a global Next.js installation, and a separate backend server are not required.
+
+### 1. Clone and install all project dependencies
+
+Run these commands in VS Code's terminal or your normal terminal:
+
+```sh
+git clone https://github.com/neilfrfr/Cozy-Palace-Hotel-and-Restaurant.git
+cd Cozy-Palace-Hotel-and-Restaurant
 npm ci
+```
+
+Run `npm ci` from the repository root. It installs **all three npm workspaces** from the committed lockfile; do not install frontend and backend dependencies separately. The installed tools include:
+
+| Workspace      | Dependencies supplied by `npm ci`                                                                                                 |
+| -------------- | --------------------------------------------------------------------------------------------------------------------------------- |
+| Frontend       | Next.js, React, TypeScript, Tailwind CSS, Zod, Lucide icons, Supabase JS and SSR clients, Vitest, Playwright, ESLint and Prettier |
+| Backend        | Supabase CLI, PGlite, PostgreSQL client and database test tools                                                                   |
+| Shared tooling | The local Next.js ESLint glob adapter and shared lint dependencies                                                                |
+
+Do not manually install different package versions or run `npm audit fix --force`. Keep `package-lock.json` committed and use a feature branch for dependency changes.
+
+### 2. Create each developer's environment file
+
+**Windows PowerShell:**
+
+```powershell
+Copy-Item frontend/.env.example frontend/.env.local
+```
+
+**macOS, Linux, or Git Bash:**
+
+```sh
 cp frontend/.env.example frontend/.env.local
+```
+
+Edit `frontend/.env.local`:
+
+```dotenv
+NEXT_PUBLIC_SUPABASE_URL=YOUR_DEVELOPMENT_SUPABASE_PROJECT_URL
+NEXT_PUBLIC_SUPABASE_PUBLISHABLE_KEY=YOUR_DEVELOPMENT_PUBLISHABLE_KEY
+SITE_URL=http://localhost:3000
+```
+
+Get the development project URL and publishable key from the team lead or the approved Supabase project's connection/API settings. Each developer keeps their own local file; it is ignored by Git. No root `.env` is needed. Never put a Supabase secret/service-role key or database password in this file's public variables.
+
+When using the **already configured shared development database**, do not rerun migrations or seed data on every computer. The database owner applies schema changes once. Register an individual test account; an administrator grants employee access separately. New isolated projects need the database setup in the next section.
+
+### 3. Start and open the prototype
+
+From the repository root:
+
+```sh
 npm run dev
 ```
 
-Without Supabase configuration the app shows a setup state and cannot save bookings. There is no localStorage or in-memory substitute for reservations.
+Open **http://localhost:3000**. Keep the terminal running and press `Ctrl+C` to stop it. Restart the server after editing environment values. If port 3000 is occupied, stop the other server or configure the selected port consistently in `SITE_URL` and Supabase's redirect allowlist.
+
+Useful routes are `/register`, `/login`, `/rooms`, `/reservations`, `/account`, `/staff/reservations`, `/admin/staff`, and `/admin/activity`. Staff/admin routes require the corresponding database role; knowing the URL does not grant access.
+
+Without Supabase configuration the app shows a setup state and cannot save bookings. There is no localStorage or in-memory substitute for reservations. The Next.js app runs the server actions; there is no second backend process to start.
+
+### 4. Checks and future updates
+
+```sh
+npm run typecheck
+npm run lint
+npm test
+npm run test:integration
+npm run build
+```
+
+The database integration tests use a disposable PGlite instance and do not need hosted Supabase credentials or Docker. To run browser tests, install Chromium once on each computer:
+
+```sh
+npx playwright install chromium
+npm run test:e2e
+```
+
+On Linux, Playwright may also require system packages; use `npx playwright install --with-deps chromium`. The public browser suite expects an unconfigured Supabase environment; run it in a clean checkout without `frontend/.env.local`. For a configured app, follow the connected-test section below with disposable test accounts. Browser binaries are separate from the npm packages and may need reinstalling after a Playwright upgrade.
+
+Before starting a new feature, commit or stash your work, update main, and create your branch:
+
+```sh
+git switch main
+git pull --ff-only origin main
+npm ci
+git switch -c feat/your-feature
+```
 
 ## Connect an isolated Supabase development project
 
