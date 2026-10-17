@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import { loginAction } from "@/app/login/actions";
 export function LoginForm({
   next,
@@ -23,16 +24,16 @@ export function LoginForm({
             maxLength={254}
           />
         </label>
-        <label className="full">
-          Password
-          <input
+        <div className="full">
+          <label htmlFor="password">Password</label>
+          <PasswordInput
+            id="password"
             name="password"
-            type="password"
             autoComplete="current-password"
             required
             maxLength={128}
           />
-        </label>
+        </div>
       </div>
       {state.message && (
         <p className="notice error" role="alert">

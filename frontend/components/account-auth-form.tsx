@@ -1,5 +1,6 @@
 "use client";
 import { useActionState } from "react";
+import { PasswordInput } from "@/components/password-input";
 import {
   registerAction,
   emailAction,
@@ -54,30 +55,31 @@ export function AccountAuthForm({
         )}
         {(mode === "register" || mode === "password") && (
           <>
-            <label className="full">
-              Password
-              <input
+            <div className="full">
+              <label htmlFor="password">Password</label>
+              <PasswordInput
+                id="password"
                 name="password"
-                type="password"
                 autoComplete="new-password"
                 required
-                minLength={12}
+                minLength={8}
                 maxLength={128}
               />
-            </label>
-            <label className="full">
-              Confirm password
-              <input
+            </div>
+            <div className="full">
+              <label htmlFor="confirmPassword">Confirm password</label>
+              <PasswordInput
+                id="confirmPassword"
                 name="confirmPassword"
-                type="password"
+                visibilityLabel="confirm password"
                 autoComplete="new-password"
                 required
-                minLength={12}
+                minLength={8}
                 maxLength={128}
               />
-            </label>
+            </div>
             <p className="subtle full">
-              Use 12–128 characters. A long, unique passphrase works well.
+              Use 8–128 characters. A long, unique passphrase works well.
             </p>
           </>
         )}

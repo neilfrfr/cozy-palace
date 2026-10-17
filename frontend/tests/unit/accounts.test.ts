@@ -45,3 +45,21 @@ it("staff and profile inputs reject blank names and overlong fields", () => {
       .success,
   ).toBe(false);
 });
+
+it("accepts eight characters and rejects seven for signup and password edits", () => {
+  for (const length of [7, 8, 128, 129]) {
+    const passwords = {
+      password: "x".repeat(length),
+      confirmPassword: "x".repeat(length),
+    };
+    const valid = length >= 8 && length <= 128;
+    expect(passwordSchema.safeParse(passwords).success).toBe(valid);
+    expect(
+      signupSchema.safeParse({
+        fullName: "Guest",
+        email: "guest@example.test",
+        ...passwords,
+      }).success,
+    ).toBe(valid);
+  }
+});

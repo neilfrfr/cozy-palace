@@ -66,3 +66,46 @@ test("registration and recovery have clear accessible fields", async ({
     fullPage: true,
   });
 });
+
+test("password fields accept eight characters and toggle visibility independently", async ({
+  page,
+}) => {
+  await page.goto("/register");
+  await page.waitForLoadState("networkidle");
+  const password = page.getByLabel("Password", { exact: true });
+  const confirmation = page.getByLabel("Confirm password", { exact: true });
+  await password.fill("1234567");
+  expect(
+    await password.evaluate(
+      (input: HTMLInputElement) => input.validity.tooShort,
+    ),
+  ).toBe(true);
+  await password.fill("12345678");
+  expect(
+    await password.evaluate((input: HTMLInputElement) => input.checkValidity()),
+  ).toBe(true);
+  await expect(confirmation).toHaveAttribute("minlength", "8");
+  await expect(password).toHaveAttribute("type", "password");
+  await page
+    .getByRole("button", { name: "Show password", exact: true })
+    .click();
+  await expect(password).toHaveAttribute("type", "text");
+  await expect(password).toHaveValue("12345678");
+  await expect(confirmation).toHaveAttribute("type", "password");
+  await page
+    .getByRole("button", { name: "Hide password", exact: true })
+    .click();
+  await expect(password).toHaveAttribute("type", "password");
+  await page
+    .getByRole("button", { name: "Show confirm password", exact: true })
+    .click();
+  await expect(confirmation).toHaveAttribute("type", "text");
+  await page.goto("/login");
+  await page
+    .getByRole("button", { name: "Show password", exact: true })
+    .click();
+  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+    "type",
+    "text",
+  );
+});
