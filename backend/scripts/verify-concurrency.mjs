@@ -19,7 +19,7 @@ try {
       "Refusing to modify a database containing reservations. Use a fresh disposable database.",
     );
   await setup.query(
-    "create role anon nologin;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;",
+    "create role anon nologin;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;",
   );
   for (const f of readdirSync("supabase/migrations").sort())
     await setup.query(readFileSync("supabase/migrations/" + f, "utf8"));
@@ -155,6 +155,60 @@ try {
     await transition.query("reset role");
     transition.release();
   }
+  // An invitation cannot resurrect employee privileges when deletion races acceptance.
+  const manager = "a0000000-0000-4000-8000-000000000004";
+  await setup.query(
+    "insert into auth.users(id,email,email_confirmed_at) values($1,'manager@example.test',now())",
+    [manager],
+  );
+  await setup.query(
+    "insert into staff_roles(user_id,role) values($1,'admin')",
+    [manager],
+  );
+  await setup.query(
+    "update auth.users set email_confirmed_at=now() where id=$1",
+    [b],
+  );
+  const invitation = (
+    await actor(manager, (c) =>
+      c.query(
+        "select create_staff_member('bob@example.test','Bob','Desk') as record",
+      ),
+    )
+  ).rows[0].record;
+  const staffRace = await Promise.allSettled([
+    actor(b, (c) => c.query("select accept_staff_invitation()")),
+    actor(manager, (c) =>
+      c.query(
+        "select delete_staff_member($1,(select version from staff_members where id=$1))",
+        [invitation.id],
+      ),
+    ),
+  ]);
+  if (staffRace[0].status === "rejected") throw staffRace[0].reason;
+  if (staffRace[1].status === "rejected") {
+    assert.equal(staffRace[1].reason.message, "VERSION_CONFLICT");
+    await actor(manager, (c) =>
+      c.query(
+        "select delete_staff_member($1,(select version from staff_members where id=$1))",
+        [invitation.id],
+      ),
+    );
+  }
+  assert.equal(
+    (await setup.query("select 1 from staff_roles where user_id=$1", [b]))
+      .rowCount,
+    0,
+    "Revoked employee privileges must stay revoked after concurrent acceptance",
+  );
+  assert.equal(
+    (
+      await setup.query("select 1 from staff_members where id=$1", [
+        invitation.id,
+      ])
+    ).rowCount,
+    0,
+  );
   console.log(
     "PASS: two independent PostgreSQL sessions, exactly one active booking; other request rejected with AVAILABILITY_CONFLICT.",
   );

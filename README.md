@@ -42,7 +42,7 @@ values ('ACTUAL_AUTH_USER_UUID', 'admin');
 
 Do not add a self-service role assignment endpoint. Customers cannot promote themselves.
 
-7. Allow the local app URL and `/auth/confirm` callback in Auth settings. Configure the confirmation template to supply `token_hash` and `type=email` if using the included confirmation route. The prototype signs in pre-created test accounts; public signup and password recovery are tracked for launch.
+7. Allow the local app URL and `/auth/confirm` callback in Auth settings. Configure the confirmation template to supply `token_hash` and `type=email` if using the included confirmation route. Public signup, email confirmation/resend, password recovery, profile editing, and admin-managed staff onboarding are available.
 
 For a supported Docker local setup, `npx supabase start` and `npx supabase db reset` apply the migrations/seed to that local stack. Review CLI help first. A native Supabase runtime may also be available for your platform; do not assume it is installed.
 
@@ -108,3 +108,17 @@ Create a feature branch and open a pull request with a clear description and rel
 The Next.js 16.4.2 ESLint plugin's `fast-glob` dependency is scoped to a local adapter in `tools/next-eslint-glob/` through the root npm override. It uses Node.js built-in globbing, without the vulnerable `braces` dependency or a new third-party glob library. The adapter supports only Next's directory-only `globSync` call, returns only matching directories, preserves absolute paths, and rejects excessive pattern nesting and brace-expansion work before parsing. Other fast-glob APIs are deliberately unsupported.
 
 Use `npm ci` from the repository root. Keep the shared lockfile and tooling workspace in deployments. Before changing the Next ESLint plugin version, review its glob API usage and rerun `npm run test:security`, `npm audit`, and lint from both the root and frontend workspace. The version-scoped override must be reviewed when the plugin changes.
+
+## Accounts and staff onboarding
+
+Apply `backend/supabase/migrations/20261017134808_account_staff_onboarding.sql` after the core migration. Existing installations need only this new migration; do not rerun the seed or core migration. Set `SITE_URL=http://localhost:3000` in `frontend/.env.local` locally, or the exact HTTPS deployment origin on Vercel. Add the corresponding `/auth/confirm` URL to Supabase Auth redirect allowlists and enable email/password signup with email confirmation.
+
+The callback accepts PKCE `code` links and token-hash links. For a token-hash confirmation template, use `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`; for password recovery use `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`. These templates assume the app supplies a RedirectTo URL containing `?next=`. Keep the URL placeholders intact. Test actual email delivery and cookie handling with disposable accounts before using real customer details. Supabase email rate limits and delivery configuration still apply.
+
+Create the first administrator using a verified Auth account and the trusted SQL role assignment shown above. Then sign in at `/login` and open `/admin/staff`. Create a staff record with the employee's exact email, full name, and job title. This screen does not send invitations: share the `/register` URL separately. Employees register, confirm their email, then sign in; only a matching verified email can activate the pre-approved staff record. Public signup has no role selector. Existing staff can activate on their next sign-in.
+
+Staff CRUD includes creating/listing onboarding records, updating names and job titles, and deleting records to revoke employee privileges immediately. Email addresses are immutable; remove a pending record and create a new one to correct an address. Administrator roles cannot be demoted through this interface. Removing staff access does not delete the person's Auth account, customer bookings, or append-only audit history. Customer `/account` supports viewing/editing their own profile and changing their password; customer Auth-account deletion is not implemented.
+
+Hotel reservation create/read/update/delete remains under `/reservations` (deletion is limited to unpaid drafts). Staff process reservation status at `/staff/reservations`; administrators review account/staff/reservation events at `/admin/activity`. Dining, payment posting, and financial reports remain outside this increment.
+
+Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` and `TEST_ONBOARD_EMAIL` / `TEST_ONBOARD_PASSWORD`. The onboarding account must be verified, disposable, and have no existing staff-directory record. `npm run test:e2e:connected` then checks staff create/read/update/delete, email-verified activation, and rejection of a still-signed-in staff session after revocation. Use only isolated test accounts. This test is skipped without those variables; hosted signup/email delivery must also be verified manually.
