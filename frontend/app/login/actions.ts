@@ -17,7 +17,19 @@ export async function loginAction(_state: { message: string }, form: FormData) {
     return {
       message: "We could not sign you in. Check your email and password.",
     };
-  redirect(safeRedirect(String(form.get("next") || "")));
+  await db.rpc("accept_staff_invitation");
+  const next = safeRedirect(String(form.get("next") || ""));
+  if (next === "/reservations") {
+    const { data: identity } = await db.auth.getUser();
+    const { data: role } = await db
+      .from("staff_roles")
+      .select("role")
+      .eq("user_id", identity.user?.id || "")
+      .maybeSingle();
+    if (role?.role === "admin") redirect("/admin/staff");
+    if (role?.role === "staff") redirect("/staff/reservations");
+  }
+  redirect(next);
 }
 export async function logoutAction() {
   if (isConfigured()) {

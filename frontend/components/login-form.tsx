@@ -45,8 +45,15 @@ export function LoginForm({
         </button>
       </div>
       <p className="subtle">
-        For this prototype, use a test account supplied by the project team.
-        Public registration and recovery are scheduled for the launch release.
+        New here?{" "}
+        <a href={"/register?next=" + encodeURIComponent(next)}>
+          Create an account
+        </a>
+        . Team members use the email approved by their administrator.
+      </p>
+      <p>
+        <a href="/forgot-password">Forgot password?</a> ·{" "}
+        <a href="/forgot-password?mode=resend">Resend confirmation</a>
       </p>
     </form>
   );

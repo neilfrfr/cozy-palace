@@ -28,6 +28,7 @@ export default function RootLayout({
               <Link href="/rooms">Rooms</Link>
               <Link href="/reservations">My reservations</Link>
               <Link href="/login">Sign in</Link>
+              <Link href="/register">Register</Link>
             </div>
           </nav>
         </header>

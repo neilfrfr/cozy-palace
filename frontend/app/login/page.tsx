@@ -15,8 +15,8 @@ export default async function Login({
       {!isConfigured() && <SetupNotice />}
       {p.notice === "invalid-link" && (
         <div className="notice error" role="alert">
-          This link is invalid or expired. Please sign in with your test
-          account.
+          This link is invalid or expired. Request a fresh confirmation or
+          recovery link.
         </div>
       )}
       <LoginForm next={safeRedirect(p.next)} configured={isConfigured()} />

@@ -15,8 +15,8 @@ export default async function Activity({
       <WorkspaceNav />
       <h1>Activity log</h1>
       <p className="intro">
-        A record of who changed each reservation. Customer and system activity
-        are identified separately from employee actions.
+        A record of reservation, account, and staffing changes. Customer and
+        system activity are identified separately from employee actions.
       </p>
       <div className="table-wrap">
         <table>
