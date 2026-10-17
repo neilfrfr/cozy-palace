@@ -26,6 +26,8 @@ jobs:
           node-version: 24
           cache: npm
       - run: npm ci
+      - run: npm audit
+      - run: npm run test:security
       - run: npm run lint
       - run: npm run typecheck
       - run: npm test
@@ -36,3 +38,16 @@ jobs:
       - run: npm run build
       - run: npx playwright install --with-deps chromium
       - run: npm run test:e2e
+
+  security-windows:
+    runs-on: windows-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 24
+          cache: npm
+      - run: npm ci --ignore-scripts
+      - run: npm run test:security
+      - run: npm run lint
+      - run: npm run lint --workspace=@cozy-palace/frontend

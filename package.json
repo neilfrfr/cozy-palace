@@ -4,10 +4,11 @@
   "private": true,
   "workspaces": [
     "frontend",
-    "backend"
+    "backend",
+    "tools/next-eslint-glob"
   ],
   "engines": {
-    "node": ">=22"
+    "node": ">=24.16.0"
   },
   "scripts": {
     "dev": "npm run dev --workspace=@cozy-palace/frontend",
@@ -19,10 +20,16 @@
     "test:integration": "npm test --workspace=@cozy-palace/backend",
     "test:concurrency": "npm run test:concurrency --workspace=@cozy-palace/backend",
     "test:e2e": "npm run test:e2e --workspace=@cozy-palace/frontend",
-    "test:e2e:connected": "npm run test:e2e:connected --workspace=@cozy-palace/frontend"
+    "test:e2e:connected": "npm run test:e2e:connected --workspace=@cozy-palace/frontend",
+    "test:security": "node --test tools/next-eslint-glob/test/*.test.cjs"
   },
   "devDependencies": {
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.2"
+  },
+  "overrides": {
+    "@next/eslint-plugin-next@16.4.2": {
+      "fast-glob": "file:tools/next-eslint-glob"
+    }
   }
 }
