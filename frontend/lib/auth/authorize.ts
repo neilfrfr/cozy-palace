@@ -28,13 +28,35 @@ export async function requireStaff(adminOnly = false) {
   return { ...identity, role: data.role as "staff" | "admin" };
 }
 
-export async function readRole(db: Awaited<ReturnType<typeof createClient>>, userId:string) {
- const {data,error}=await db.from("staff_roles").select("role").eq("user_id",userId).maybeSingle();
- if(error)throw new Error("Account permissions could not be verified. Please try again.");
- return data?.role==="admin"?"admin" as const:data?.role==="staff"?"staff" as const:"customer" as const;
+export async function readRole(
+  db: Awaited<ReturnType<typeof createClient>>,
+  userId: string,
+) {
+  const { data, error } = await db
+    .from("staff_roles")
+    .select("role")
+    .eq("user_id", userId)
+    .maybeSingle();
+  if (error)
+    throw new Error(
+      "Account permissions could not be verified. Please try again.",
+    );
+  return data?.role === "admin"
+    ? ("admin" as const)
+    : data?.role === "staff"
+      ? ("staff" as const)
+      : ("customer" as const);
 }
-export function roleHome(role:string){return role==="admin"?"/admin":role==="staff"?"/staff":"/reservations";}
-export async function requireCustomer(next="/reservations"){
- const identity=await requireIdentity(next);const role=await readRole(identity.db,identity.userId);
- if(role!=="customer")redirect(roleHome(role));return identity;
+export function roleHome(role: string) {
+  return role === "admin"
+    ? "/admin"
+    : role === "staff"
+      ? "/staff"
+      : "/reservations";
+}
+export async function requireCustomer(next = "/reservations") {
+  const identity = await requireIdentity(next);
+  const role = await readRole(identity.db, identity.userId);
+  if (role !== "customer") redirect(roleHome(role));
+  return identity;
 }

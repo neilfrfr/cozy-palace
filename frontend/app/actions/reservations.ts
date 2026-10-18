@@ -1,7 +1,7 @@
 "use server";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
-import {readRole} from "@/lib/auth/authorize";
+import { readRole } from "@/lib/auth/authorize";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import {
@@ -19,8 +19,13 @@ async function invoke(
   const db = await createClient();
   const { data: user, error: identityError } = await db.auth.getUser();
   if (identityError || !user.user) return { ok: false, code: "UNAUTHORIZED" };
-  const role=await readRole(db,user.user.id);
-  if(name==="transition_reservation"?role==="customer":role!=="customer")return {ok:false,code:"FORBIDDEN"};
+  const role = await readRole(db, user.user.id);
+  if (
+    name === "transition_reservation"
+      ? role === "customer"
+      : role !== "customer"
+  )
+    return { ok: false, code: "FORBIDDEN" };
   const { data, error } = await db.rpc(name, args);
   if (error) return { ok: false, code: publicError(error) };
   for (const path of [

@@ -45,6 +45,10 @@ begin
  -- Lock all affected resources before locking reservation rows, including deletion.
  -- A concurrently changed allocation increments version; re-read and reject it after locks.
  perform 1 from public.rooms where id in(p_room,allocation.room_id) order by id for update;
+ if private.is_staff() then
+  perform 1 from public.staff_roles where user_id=u and role in('staff','admin') for share;
+  if not found then raise exception 'FORBIDDEN';end if;
+ end if;
  if p_op<>'create' then
   select * into r from public.reservations where id=p_id for update;
   if not found then raise exception 'NOT_FOUND';end if;
@@ -116,6 +120,7 @@ begin
  if p_id is null then
   if p_key is null then raise exception 'INVALID_INPUT';end if;
   perform pg_advisory_xact_lock(hashtextextended(u::text||p_key::text,0));
+  if not private.is_staff() then raise exception 'FORBIDDEN';end if;
   payload:=jsonb_build_object('room',p_room,'start',p_start,'end',p_end,'guests',p_guests,'name',p_name,'email',p_email,'phone',p_phone);
   select * into r from public.reservations where created_by=u and booking_source='staff_guest' and idempotency_key=p_key;
   if found then
@@ -124,6 +129,8 @@ begin
   end if;
   if p_start is null or p_end is null or p_start<(now() at time zone 'Asia/Manila')::date or p_end<=p_start or p_end-p_start>365 or p_guests is null or p_guests not between 1 and 20 then raise exception 'INVALID_INPUT';end if;
   perform 1 from public.rooms where id=p_room for update;
+  perform 1 from public.staff_roles where user_id=u and role in('staff','admin') for share;
+  if not found then raise exception 'FORBIDDEN';end if;
   with expired as (
    update public.reservations x set status='expired',version=x.version+1 where x.status='pending' and x.hold_expires_at<=now() and exists(select 1 from public.room_bookings b where b.reservation_id=x.id and b.room_id=p_room) returning x.id
   ), released as (

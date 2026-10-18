@@ -12,9 +12,9 @@ export async function WorkspaceNav() {
   const admin = data?.role === "admin";
   return (
     <nav className="workspace-nav" aria-label="Account navigation">
-      <Link href="/reservations">My reservations</Link>
+      {!staff && <Link href="/reservations">My reservations</Link>}
       <Link href="/account">My profile</Link>
-      {staff && <Link href="/staff/reservations">Staff workspace</Link>}
+      {staff && <Link href="/staff">Staff workspace</Link>}
       {admin && (
         <>
           <Link href="/admin">Dashboard</Link>

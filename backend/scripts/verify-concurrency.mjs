@@ -209,8 +209,104 @@ try {
     ).rowCount,
     0,
   );
+  // Online submission and an employee guest booking share the same room lock.
+  const online = await actor(
+    b,
+    async (c) =>
+      (
+        await c.query(
+          "select create_reservation('10000000-0000-4000-8000-000000000001','2029-10-01','2029-10-03',2,'b0000000-0000-4000-8000-000000000010') as r",
+        )
+      ).rows[0].r,
+  );
+  const mixed = await Promise.allSettled([
+    actor(b, (c) => c.query("select submit_reservation($1,1)", [online.id])),
+    actor(manager, (c) =>
+      c.query(
+        "select create_guest_reservation('10000000-0000-4000-8000-000000000001','2029-10-01','2029-10-03',2,'Concurrency Guest',null,null,'b0000000-0000-4000-8000-000000000011')",
+      ),
+    ),
+  ]);
+  assert.equal(mixed.filter((r) => r.status === "fulfilled").length, 1);
+  assert.equal(
+    mixed.filter((r) => r.status === "rejected" && r.reason.code === "23P01")
+      .length,
+    1,
+  );
+  assert.equal(
+    (
+      await setup.query(
+        "select 1 from room_bookings where check_in='2029-10-01' and blocks_inventory",
+      )
+    ).rowCount,
+    1,
+  );
+
+  // Revocation committed during a room-lock wait must prevent creation and missing audits.
+  const revoked = "a0000000-0000-4000-8000-000000000005";
+  await setup.query(
+    "insert into auth.users(id,email) values($1,'revoked@example.test')",
+    [revoked],
+  );
+  await setup.query(
+    "insert into staff_roles(user_id,role) values($1,'staff')",
+    [revoked],
+  );
+  const blocker = await pool.connect();
+  try {
+    await blocker.query("begin");
+    await blocker.query(
+      "select id from rooms where id='10000000-0000-4000-8000-000000000001' for update",
+    );
+    const booking = actor(revoked, async (c) => {
+      await c.query("set application_name='cozy-role-revocation'");
+      return c.query(
+        "select create_guest_reservation('10000000-0000-4000-8000-000000000001','2029-11-01','2029-11-03',2,'Revoked Guest',null,null,'b0000000-0000-4000-8000-000000000012')",
+      );
+    }).then(
+      () => "CREATED",
+      (error) => error.message,
+    );
+    let waiting = false;
+    for (let i = 0; i < 100; i++) {
+      if (
+        (
+          await setup.query(
+            "select 1 from pg_stat_activity where application_name='cozy-role-revocation' and wait_event_type='Lock'",
+          )
+        ).rowCount
+      ) {
+        waiting = true;
+        break;
+      }
+      await new Promise((resolve) => setTimeout(resolve, 20));
+    }
+    assert.equal(
+      waiting,
+      true,
+      "Guest request must be waiting on the room lock",
+    );
+    await setup.query("delete from staff_roles where user_id=$1", [revoked]);
+    await blocker.query("commit");
+    assert.equal(
+      await booking,
+      "FORBIDDEN",
+      "Revoked employee must not create after a lock wait",
+    );
+    assert.equal(
+      (
+        await setup.query(
+          "select 1 from reservations where idempotency_key='b0000000-0000-4000-8000-000000000012'",
+        )
+      ).rowCount,
+      0,
+    );
+  } finally {
+    await blocker.query("rollback");
+    blocker.release();
+  }
   console.log(
-    "PASS: two independent PostgreSQL sessions, exactly one active booking; other request rejected with AVAILABILITY_CONFLICT.",
+    "PASS: customer/customer and customer/guest races, hold cleanup, staff acceptance/revocation, and blocked guest revocation.",
   );
 } finally {
   setup.release();

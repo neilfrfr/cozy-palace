@@ -3,7 +3,7 @@ import { AccountAuthForm } from "@/components/account-auth-form";
 import { SetupNotice } from "@/components/setup-notice";
 import { isConfigured } from "@/lib/supabase/config";
 
-const next = "/staff/reservations";
+const next = "/staff";
 const signInUrl = "/login?next=" + encodeURIComponent(next);
 
 export const metadata = { title: "Staff registration | Cozy Palace" };

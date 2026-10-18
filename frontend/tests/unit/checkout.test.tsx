@@ -70,8 +70,9 @@ it("checkout presents actual booking data and never offers a working payment or 
   }
 });
 it("checkout refuses invalid IDs and missing or foreign owned-query results", async () => {
-  const { default: Page } =
-    await import("@/app/reservations/[id]/checkout/page");
+  const { default: Page } = await import(
+    "@/app/reservations/[id]/checkout/page"
+  );
   await expect(
     Page({ params: Promise.resolve({ id: "invalid" }) }),
   ).rejects.toThrow("NOT_FOUND");
@@ -83,8 +84,9 @@ it("checkout refuses invalid IDs and missing or foreign owned-query results", as
   expect(mocks.getRoom).not.toHaveBeenCalled();
 });
 it("checkout requires identity with a safe return destination", async () => {
-  const { default: Page } =
-    await import("@/app/reservations/[id]/checkout/page");
+  const { default: Page } = await import(
+    "@/app/reservations/[id]/checkout/page"
+  );
   await Page({ params: Promise.resolve({ id: reservation.id }) });
   expect(mocks.requireCustomer).toHaveBeenCalledWith(
     `/reservations/${reservation.id}/checkout`,

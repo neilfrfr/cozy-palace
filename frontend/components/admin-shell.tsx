@@ -3,7 +3,7 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/login/actions";
 const links = [
-  ["/admin", "Dashboard"],
+  ["/admin", "Management overview"],
   ["/staff/reservations", "Reservations"],
   ["/admin/rooms", "Rooms"],
   ["/admin/tables", "Restaurant tables"],
