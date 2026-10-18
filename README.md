@@ -84,7 +84,7 @@ npm run dev
 
 Open **http://localhost:3000**. Keep the terminal running and press `Ctrl+C` to stop it. Restart the server after editing environment values. If port 3000 is occupied, stop the other server or configure the selected port consistently in `SITE_URL` and Supabase's redirect allowlist.
 
-Useful routes are `/register`, `/login`, `/rooms`, `/reservations`, `/account`, `/staff/reservations`, `/admin/staff`, and `/admin/activity`. Staff/admin routes require the corresponding database role; knowing the URL does not grant access.
+Useful routes are `/register`, `/staff/register`, `/login`, `/rooms`, `/reservations`, `/account`, `/staff/reservations`, `/admin/staff`, and `/admin/activity`. Staff/admin routes require the corresponding database role; knowing the URL does not grant access.
 
 Without Supabase configuration the app shows a setup state and cannot save bookings. There is no localStorage or in-memory substitute for reservations. The Next.js app runs the server actions; there is no second backend process to start.
 
@@ -205,7 +205,7 @@ Apply `backend/supabase/migrations/20261017134808_account_staff_onboarding.sql` 
 
 The callback accepts PKCE `code` links and token-hash links. For a token-hash confirmation template, use `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=email`; for password recovery use `{{ .RedirectTo }}&token_hash={{ .TokenHash }}&type=recovery`. These templates assume the app supplies a RedirectTo URL containing `?next=`. Keep the URL placeholders intact. Test actual email delivery and cookie handling with disposable accounts before using real customer details. Supabase email rate limits and delivery configuration still apply.
 
-Create the first administrator using a verified Auth account and the trusted SQL role assignment shown above. Then sign in at `/login` and open `/admin/staff`. Create a staff record with the employee's exact email, full name, and job title. This screen does not send invitations: share the `/register` URL separately. Employees register, confirm their email, then sign in; only a matching verified email can activate the pre-approved staff record. Public signup has no role selector. Existing staff can activate on their next sign-in.
+Create the first administrator using a verified Auth account and the trusted SQL role assignment shown above. Then sign in at `/login` and open `/admin/staff`. Create a staff record with the employee's exact email, full name, and job title. This screen does not send invitations: share the `/staff/register` URL separately (also linked from login and customer registration). Employees register, confirm their email, then sign in; only a matching verified email can activate the pre-approved staff record. Public signup has no role selector. Existing staff can activate on their next sign-in.
 
 Staff CRUD includes creating/listing onboarding records, updating names and job titles, and deleting records to revoke employee privileges immediately. Email addresses are immutable; remove a pending record and create a new one to correct an address. Administrator roles cannot be demoted through this interface. Removing staff access does not delete the person's Auth account, customer bookings, or append-only audit history. Customer `/account` supports viewing/editing their own profile and changing their password; customer Auth-account deletion is not implemented.
 

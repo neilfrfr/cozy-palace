@@ -97,7 +97,7 @@ export async function staffAction(
   return {
     message:
       operation === "create"
-        ? "Staff record created. Ask the employee to register with this email, verify it, and sign in."
+        ? "Staff record created. Share /staff/register with the employee. They must use this approved email, verify it, and sign in."
         : operation === "delete"
           ? "Staff record removed and employee access revoked."
           : "Staff details updated.",
