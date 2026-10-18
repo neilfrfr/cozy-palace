@@ -50,7 +50,8 @@ export function LoginForm({
         <a href={"/register?next=" + encodeURIComponent(next)}>
           Create an account
         </a>
-        . Team members use the email approved by their administrator.
+        . Team members: <a href="/staff/register">Staff registration</a> using
+        the email approved by your administrator.
       </p>
       <p>
         <a href="/forgot-password">Forgot password?</a> ·{" "}

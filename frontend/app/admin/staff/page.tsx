@@ -1,4 +1,5 @@
 export const dynamic = "force-dynamic";
+import Link from "next/link";
 import { requireStaff } from "@/lib/auth/authorize";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { StaffEditor, type StaffMember } from "@/components/staff-manager";
@@ -31,7 +32,8 @@ export default async function StaffDirectory({
         </p>
       </div>
       <div className="notice">
-        Employees register at /register with the approved email, confirm it,
+        Share the <Link href="/staff/register">Staff registration portal</Link>
+        {" "}with employees. They register with the approved email, confirm it,
         then sign in. No email invitation is sent by this screen. Removing a
         record revokes staff access; customer reservations and audit history
         remain.

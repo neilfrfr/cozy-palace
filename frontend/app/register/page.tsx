@@ -26,9 +26,8 @@ export default async function Register({
         Already registered? <Link href="/login">Sign in</Link>
       </p>
       <p className="subtle">
-        Joining the team? Register with the exact email approved by your
-        administrator, verify your email, then sign in. Registration alone does
-        not grant staff access.
+        Joining the team? <Link href="/staff/register">Staff registration</Link>
+        {" "}uses the email approved by your administrator.
       </p>
       <Link href="/forgot-password?mode=resend">
         Resend a confirmation link

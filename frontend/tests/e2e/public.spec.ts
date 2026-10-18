@@ -175,3 +175,23 @@ test("database headings and dashboard cards fit at 360px", async ({ page }) => {
   });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });
+
+test("staff onboarding has a discoverable registration portal", async ({ page }) => {
+  await page.goto("/login");
+  await page.getByRole("link", { name: "Staff registration", exact: true }).click();
+  await expect(page).toHaveURL(/\/staff\/register$/);
+  await expect(page.getByRole("heading", { name: "Create your staff account", exact: true })).toBeVisible();
+  await expect(page.getByText(/exact email approved by your administrator/)).toBeVisible();
+  await expect(page.getByText(/Registration alone does not grant staff access/)).toBeVisible();
+  await expect(page.getByLabel("Full name", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("minlength", "8");
+  await expect(page.getByRole("button", { name: "Create account", exact: true })).toBeDisabled();
+  await expect(page.locator("select[name=role], input[name=role]")).toHaveCount(0);
+  await page.getByRole("link", { name: "Sign in", exact: true }).last().click();
+  await expect(page).toHaveURL(/\/login\?next=%2Fstaff%2Freservations$/);
+  await page.goto("/register");
+  await page.getByRole("link", { name: "Staff registration", exact: true }).click();
+  await expect(page).toHaveURL(/\/staff\/register$/);
+  await page.setViewportSize({ width: 360, height: 800 });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+});
