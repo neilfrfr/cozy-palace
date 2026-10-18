@@ -17,6 +17,7 @@ export async function WorkspaceNav() {
       {staff && <Link href="/staff/reservations">Staff workspace</Link>}
       {admin && (
         <>
+          <Link href="/admin">Dashboard</Link>
           <Link href="/admin/staff">Staff directory</Link>
           <Link href="/admin/activity">Admin activity</Link>
         </>

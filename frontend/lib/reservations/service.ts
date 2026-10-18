@@ -23,7 +23,9 @@ export async function getRooms(filter?: {
   }
   let query = db
     .from("rooms")
-    .select("id,room_number,room_types(name,description,capacity,nightly_rate)")
+    .select(
+      "id,room_number,room_types(id,code,name,description,capacity,nightly_rate)",
+    )
     .eq("operational_state", "available")
     .order("room_number");
   if (ids) query = query.in("id", ids);

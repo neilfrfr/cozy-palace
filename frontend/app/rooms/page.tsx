@@ -1,4 +1,5 @@
-import Link from "next/link";
+import { RoomCard } from "@/components/room-card";
+import { AvailabilitySearch } from "@/components/availability-search";
 import { isConfigured } from "@/lib/supabase/config";
 import { getRooms } from "@/lib/reservations/service";
 import { SetupNotice } from "@/components/setup-notice";
@@ -36,35 +37,7 @@ export default async function Rooms({
         again when you submit your request.
       </p>
       {!configured && <SetupNotice />}
-      <form className="search" action="/rooms">
-        <label>
-          Check-in
-          <input type="date" name="checkIn" required defaultValue={p.checkIn} />
-        </label>
-        <label>
-          Check-out
-          <input
-            type="date"
-            name="checkOut"
-            required
-            defaultValue={p.checkOut}
-          />
-        </label>
-        <label>
-          Guests
-          <input
-            type="number"
-            name="guests"
-            min="1"
-            max="20"
-            defaultValue={p.guests || "2"}
-            required
-          />
-        </label>
-        <button className="primary" type="submit" disabled={!configured}>
-          Check availability
-        </button>
-      </form>
+      <AvailabilitySearch configured={configured} defaults={p} />
       {configured && p.checkIn && !filters.success && (
         <div className="notice error" role="alert">
           Choose valid dates with check-out after check-in, and a whole number
@@ -84,37 +57,19 @@ export default async function Rooms({
       )}
       <div className="grid">
         {rooms.map((room) => (
-          <article className="room" key={room.id}>
-            <div className="room-number">
-              Room {room.room_number} · Up to {room.room_types.capacity} guests
-            </div>
-            <h2>{room.room_types.name}</h2>
-            <p>{room.room_types.description}</p>
-            <div className="price">
-              ₱{Number(room.room_types.nightly_rate).toLocaleString("en-PH")}{" "}
-              <small>/ night</small>
-            </div>
-            <div className="room-bottom">
-              <Link
-                className="button secondary"
-                href={
-                  "/reservations/new?" +
-                  new URLSearchParams({
-                    room: room.id,
-                    ...(filters.success
-                      ? {
-                          checkIn: filters.data.checkIn,
-                          checkOut: filters.data.checkOut,
-                          guests: String(filters.data.guests),
-                        }
-                      : {}),
-                  })
-                }
-              >
-                Choose room
-              </Link>
-            </div>
-          </article>
+          <RoomCard
+            key={room.id}
+            room={room}
+            query={
+              filters.success
+                ? new URLSearchParams({
+                    checkIn: filters.data.checkIn,
+                    checkOut: filters.data.checkOut,
+                    guests: String(filters.data.guests),
+                  }).toString()
+                : ""
+            }
+          />
         ))}
       </div>
       {configured && !error && rooms.length === 0 && (

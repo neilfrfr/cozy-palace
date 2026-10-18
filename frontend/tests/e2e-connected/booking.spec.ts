@@ -21,6 +21,17 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await expect(
     page.getByRole("heading", { name: /Reservation CP-/ }),
   ).toBeVisible();
+  const reservationUrl = page.url();
+  const reference = await page.getByRole("heading", { name: /Reservation CP-/ }).innerText();
+  await page.goto(`${reservationUrl}/checkout`);
+  await expect(page.getByText(reference.replace("Reservation ", ""), { exact: true })).toBeVisible();
+  await expect(page.getByRole("button", { name: "Payment unavailable" })).toBeDisabled();
+  await expect(page.locator("input")).toHaveCount(0);
+  for (const id of ["invalid-id", "ffffffff-ffff-4fff-8fff-ffffffffffff", process.env.TEST_FOREIGN_RESERVATION_ID].filter(Boolean)) {
+    const response = await page.goto(`/reservations/${id}/checkout`);
+    expect(response?.status()).toBe(404);
+  }
+  await page.goto(reservationUrl);
   await page.reload();
   await expect(page.getByLabel("Guests", { exact: true })).toHaveValue("2");
   await page.getByLabel("Guests", { exact: true }).fill("1");

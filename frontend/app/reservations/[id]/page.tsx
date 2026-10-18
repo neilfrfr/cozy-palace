@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { notFound } from "next/navigation";
 import { z } from "zod";
@@ -52,6 +53,14 @@ export default async function Details({
         </div>
       )}
       <ReservationControls reservation={r} />
+      <div className="actions">
+        <Link
+          className="button secondary"
+          href={`/reservations/${r.id}/checkout`}
+        >
+          E-wallet checkout
+        </Link>
+      </div>
       {["draft", "pending", "confirmed"].includes(r.status) && (
         <section className="section">
           <h2>Update your details</h2>
