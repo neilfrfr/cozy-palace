@@ -10,6 +10,8 @@ export type Room = {
   id: string;
   room_number: string;
   room_types: {
+    id?: string;
+    code?: string;
     name: string;
     description: string;
     capacity: number;

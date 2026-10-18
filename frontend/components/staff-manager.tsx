@@ -3,6 +3,7 @@ import { useActionState } from "react";
 import { staffAction } from "@/app/admin/staff/actions";
 export type StaffMember = {
   id: string;
+  employee_code: string;
   email: string;
   full_name: string;
   job_title: string;
@@ -21,6 +22,12 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
           <input type="hidden" name="id" value={member.id} />
           <input type="hidden" name="version" value={member.version} />
         </>
+      )}
+      {member && (
+        <div className="staff-code">
+          <strong>{member.employee_code}</strong>
+          <span className={"status " + member.state}>{member.state}</span>
+        </div>
       )}
       <div className="form-grid">
         <label>

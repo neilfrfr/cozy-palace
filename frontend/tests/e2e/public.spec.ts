@@ -1,14 +1,18 @@
 import { test, expect } from "@playwright/test";
 test("public home and unconfigured booking state", async ({ page }) => {
   await page.goto("/");
-  await page.screenshot({ path: ".superpowers/desktop.png", fullPage: true });
+  await page.screenshot({
+    caret: "initial",
+    path: ".superpowers/desktop.png",
+    fullPage: true,
+  });
   await expect(
     page.getByRole("heading", {
-      name: "Cozy Palace Hotel and Restaurant",
+      name: "Stay a little. Savour a lot.",
       exact: true,
     }),
   ).toBeVisible();
-  await page.getByRole("link", { name: "Explore rooms", exact: true }).click();
+  await page.getByRole("link", { name: "Book a Stay", exact: true }).click();
   await expect(
     page.getByRole("heading", { name: "Find your place to unwind" }),
   ).toBeVisible();
@@ -22,7 +26,14 @@ test("public home and unconfigured booking state", async ({ page }) => {
 test("mobile navigation stays within viewport", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
-  await page.screenshot({ path: ".superpowers/mobile.png", fullPage: true });
+  const brand = await page.locator(".site-header .brand").boundingBox();
+  const account = await page.locator(".site-header .nav-account").boundingBox();
+  expect(Math.abs(brand!.y - account!.y)).toBeLessThan(10);
+  await page.screenshot({
+    caret: "initial",
+    path: ".superpowers/mobile.png",
+    fullPage: true,
+  });
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= window.innerWidth,
@@ -62,6 +73,7 @@ test("registration and recovery have clear accessible fields", async ({
     ),
   ).toBe(true);
   await page.screenshot({
+    caret: "initial",
     path: ".superpowers/registration-mobile.png",
     fullPage: true,
   });
@@ -108,4 +120,58 @@ test("password fields accept eight characters and toggle visibility independentl
     "type",
     "text",
   );
+});
+
+for (const width of [360, 390, 1366, 1440]) {
+  test(`public Figma routes work without invented content at ${width}px`, async ({
+    page,
+  }) => {
+    await page.setViewportSize({ width, height: 900 });
+    for (const path of [
+      "/",
+      "/rooms",
+      "/dining",
+      "/about",
+      "/contact",
+      "/register",
+    ]) {
+      const response = await page.goto(path);
+      expect(response?.status()).toBe(200);
+      await expect(page.locator("body")).not.toContainText("Application error");
+      expect(
+        await page.evaluate(
+          () => document.documentElement.scrollWidth <= innerWidth,
+        ),
+      ).toBe(true);
+      await expect(
+        page
+          .getByRole("navigation", { name: "Main navigation" })
+          .getByRole("link", { name: "Contact", exact: true }),
+      ).toBeVisible();
+    }
+    await page.goto("/contact");
+    await expect(
+      page.getByText("Contact details are not available yet.", { exact: true }),
+    ).toBeVisible();
+    await expect(
+      page.getByRole("button", { name: /send message/i }),
+    ).toHaveCount(0);
+    await page.goto(
+      "/reservations/10000000-0000-4000-8000-000000000001/checkout",
+    );
+    await expect(page).toHaveURL(/\/setup|\/login/);
+    await page.goto("/admin");
+    await expect(page).toHaveURL(/\/setup|\/login/);
+  });
+}
+
+
+test("database headings and dashboard cards fit at 360px", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/rooms");
+  await page.evaluate(() => {
+    const main = document.querySelector("main")!;
+    main.innerHTML = '<h1>' + 'R'.repeat(120) + '</h1><article class="room"><h2>' + 'R'.repeat(120) + '</h2></article><div class="dashboard-grid"><section class="panel"><h2>Restaurant tables</h2></section><section class="panel"><h2>Reservations</h2></section></div>';
+  });
+  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
 });

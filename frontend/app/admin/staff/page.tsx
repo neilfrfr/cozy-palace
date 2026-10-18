@@ -12,7 +12,9 @@ export default async function StaffDirectory({
   const page = Math.max(1, Math.min(10000, Number(p.page) || 1));
   const { data, error, count } = await db
     .from("staff_members")
-    .select("id,email,full_name,job_title,state,version", { count: "exact" })
+    .select("id,employee_code,email,full_name,job_title,state,version", {
+      count: "exact",
+    })
     .order("created_at", { ascending: false })
     .range((page - 1) * 20, page * 20 - 1);
   return (

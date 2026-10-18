@@ -212,3 +212,9 @@ Staff CRUD includes creating/listing onboarding records, updating names and job 
 Hotel reservation create/read/update/delete remains under `/reservations` (deletion is limited to unpaid drafts). Staff process reservation status at `/staff/reservations`; administrators review account/staff/reservation events at `/admin/activity`. Dining, payment posting, and financial reports remain outside this increment.
 
 Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` and `TEST_ONBOARD_EMAIL` / `TEST_ONBOARD_PASSWORD`. The onboarding account must be verified, disposable, and have no existing staff-directory record. `npm run test:e2e:connected` then checks staff create/read/update/delete, email-verified activation, and rejection of a still-signed-in staff session after revocation. Use only isolated test accounts. This test is skipped without those variables; hosted signup/email delivery must also be verified manually.
+
+### Public pages and checkout
+
+The public home, room search/details, dining, about and contact pages follow the Figma design. Rooms, prices, capacities and table states come from Supabase. Administrators can view live counts and inventory at `/admin`, `/admin/rooms` and `/admin/tables`, and manage employees at `/admin/staff`.
+
+Customers can open checkout from their own reservation. It displays the stored reservation total; e-wallet payment is disabled until a payment provider and merchant configuration are integrated. Inventory screens are read-only. Contact details and room photographs are omitted until verified information is available. Original Figma photographs and licensed local fonts are bundled with the frontend.
