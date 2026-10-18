@@ -21,7 +21,13 @@ export type Room = {
 export type Reservation = {
   id: string;
   reference: string;
-  customer_id: string;
+  customer_id: string | null;
+  booking_source?: "customer_online" | "staff_guest";
+  created_by?: string;
+  guest_full_name?: string | null;
+  guest_email?: string | null;
+  guest_phone?: string | null;
+  hold_expires_at?: string | null;
   status: ReservationStatus;
   guests: number;
   total: number;

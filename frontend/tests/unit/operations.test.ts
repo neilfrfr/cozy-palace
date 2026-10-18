@@ -1,0 +1,6 @@
+import {expect,it} from 'vitest';
+import {guestSchema,parseOperationsFilter,businessDate} from '@/lib/operations/schema';
+const valid={roomId:'10000000-0000-4000-8000-000000000001',checkIn:'2027-05-01',checkOut:'2027-05-03',guests:2,idempotencyKey:'20000000-0000-4000-8000-000000000001',guestFullName:' Guest ',guestEmail:'',guestPhone:''};
+it('guest input validates identity/contact and refuses authority injection',()=>{expect(guestSchema.parse(valid)).toMatchObject({guestFullName:'Guest',guestEmail:undefined});for(const patch of [{guestFullName:''},{guestEmail:'bad'},{guestPhone:'x'.repeat(33)},{customerId:'staff'},{total:1},{checkIn:'2027-02-30'}])expect(guestSchema.safeParse({...valid,...patch}).success).toBe(false);});
+it('filters are literal, bounded and cannot request private drafts',()=>{expect(parseOperationsFilter({q:' A,(B)% ',page:'2',date:'2027-05-01'})).toMatchObject({q:'A,(B)%',page:2,date:'2027-05-01'});expect(parseOperationsFilter({page:'Infinity',status:'draft',date:'2027-02-30'})).toMatchObject({page:1,status:undefined,date:undefined});});
+it('business date is based on Manila midnight',()=>{expect(businessDate(new Date('2026-10-18T16:01:00Z'))).toBe('2026-10-19');});

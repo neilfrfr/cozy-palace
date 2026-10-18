@@ -1,7 +1,7 @@
 import { normalizeReservation } from "./normalize";
 import "server-only";
 import { createClient } from "@/lib/supabase/server";
-import { requireIdentity, requireStaff } from "@/lib/auth/authorize";
+import { requireCustomer, requireStaff } from "@/lib/auth/authorize";
 import type { Room, Reservation } from "./types";
 export async function getRooms(filter?: {
   checkIn: string;
@@ -34,7 +34,7 @@ export async function getRooms(filter?: {
   return data as unknown as Room[];
 }
 export async function getReservations(staff = false): Promise<Reservation[]> {
-  const { db, userId } = staff ? await requireStaff() : await requireIdentity();
+  const { db, userId } = staff ? await requireStaff() : await requireCustomer();
   let query = db
     .from("reservations")
     .select("*,room_bookings(*)")
@@ -47,7 +47,7 @@ export async function getReservations(staff = false): Promise<Reservation[]> {
   return (data ?? []).map(normalizeReservation);
 }
 export async function getReservation(id: string): Promise<Reservation | null> {
-  const { db, userId } = await requireIdentity();
+  const { db, userId } = await requireCustomer();
   const { data, error } = await db
     .from("reservations")
     .select("*,room_bookings(*)")

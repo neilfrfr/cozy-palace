@@ -26,8 +26,8 @@ export async function loginAction(_state: { message: string }, form: FormData) {
       .select("role")
       .eq("user_id", identity.user?.id || "")
       .maybeSingle();
-    if (role?.role === "admin") redirect("/admin/staff");
-    if (role?.role === "staff") redirect("/staff/reservations");
+    if (role?.role === "admin") redirect("/admin");
+    if (role?.role === "staff") redirect("/staff");
   }
   redirect(next);
 }
