@@ -1,0 +1,83 @@
+import Link from "next/link";
+import type { OperationalReservation } from "@/lib/operations/service";
+export function OperationalReservationList({
+  rows,
+}: {
+  rows: OperationalReservation[];
+}) {
+  if (!rows.length)
+    return (
+      <section className="operations-empty">
+        <h2>No matching reservations</h2>
+        <p>
+          Try another filter, or create a booking for a guest visiting the
+          hotel.
+        </p>
+        <Link className="button gold" href="/staff/reservations/new">
+          New guest booking
+        </Link>
+      </section>
+    );
+  return (
+    <div className="table-wrap operations-table">
+      <table>
+        <caption className="hidden-label">
+          Operational hotel reservations
+        </caption>
+        <thead>
+          <tr>
+            <th>Reference and guest</th>
+            <th>Stay</th>
+            <th>Room</th>
+            <th>Source</th>
+            <th>Status</th>
+            <th>Action</th>
+          </tr>
+        </thead>
+        <tbody>
+          {rows.map((r) => (
+            <tr key={r.id}>
+              <td>
+                <strong>{r.reference}</strong>
+                <br />
+                <span>
+                  {r.guest_full_name ?? r.customer_name ?? "Name unavailable"}
+                </span>
+              </td>
+              <td>
+                {r.room_bookings[0]?.check_in}
+                <br />
+                {r.room_bookings[0]?.check_out}
+                <br />
+                <small>{r.guests} guests</small>
+              </td>
+              <td>
+                {r.room_type_name}
+                <br />
+                Room {r.room_number}
+              </td>
+              <td>
+                {r.booking_source === "staff_guest"
+                  ? "Staff-entered guest"
+                  : "Customer online"}
+              </td>
+              <td>
+                <span className={"status " + r.status}>
+                  {r.status.replaceAll("_", " ")}
+                </span>
+              </td>
+              <td>
+                <Link
+                  className="text-link"
+                  href={"/staff/reservations/" + r.id}
+                >
+                  Open<span className="hidden-label"> {r.reference}</span>
+                </Link>
+              </td>
+            </tr>
+          ))}
+        </tbody>
+      </table>
+    </div>
+  );
+}

@@ -218,3 +218,18 @@ Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASS
 The public home, room search/details, dining, about and contact pages follow the Figma design. Rooms, prices, capacities and table states come from Supabase. Administrators can view live counts and inventory at `/admin`, `/admin/rooms` and `/admin/tables`, and manage employees at `/admin/staff`.
 
 Customers can open checkout from their own reservation. It displays the stored reservation total; e-wallet payment is disabled until a payment provider and merchant configuration are integrated. Inventory screens are read-only. Contact details and room photographs are omitted until verified information is available. Original Figma photographs and licensed local fonts are bundled with the frontend.
+
+### Staff operations and management dashboards
+
+Staff sign in to `/staff`; administrators sign in to `/admin`. Employees use the operational reservation queue at `/staff/reservations` and create guest bookings at `/staff/reservations/new`. Customers keep their own booking flow at `/reservations`. Employee accounts cannot create personal customer bookings, including through direct customer RPC calls.
+
+Apply the new migrations in filename order after the existing three migrations:
+
+1. `backend/supabase/migrations/20261018150337_role_guest_bookings.sql`
+2. `backend/supabase/migrations/20261018150421_operational_queue.sql`
+
+These migrations preserve existing reservation owners/references and add staff-entered guest snapshots and employee attribution to the same reservation ledger. A staff guest booking has no customer Auth account and no employee customer ownership. Confirming it atomically blocks the room and records the employee; customer online bookings and guest bookings share conflict protection. Guest name is required; email/phone are optional. Same-day staff arrivals are supported. Confirmation is not a payment record.
+
+Demo: sign in as staff, open New guest booking, enter guest/stay details, review the server quote and confirm. Reload its CP-reference detail, edit a permitted future/current booking, then cancel or progress through check-in and completion as allowed. A future reservation cannot be checked in early. Use disposable guest data. Administrators review the source, employee actor and resulting activity without using customer checkout.
+
+The dashboard shows actual pending confirmations, arrivals, checked-in stays, status totals, staff records and inventory counts. The hotel queue is shared; it does not claim individual task assignment. Inventory lists remain read-only. Payments, financial reports and restaurant booking operations remain outside this increment. Migrations must be installed before using these screens.

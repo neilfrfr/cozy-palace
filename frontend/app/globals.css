@@ -1344,5 +1344,342 @@ body:has(.admin-layout) .footer {
 }
 
 /* Inventory labels can contain long database values. */
-.room h2, main h1 { overflow-wrap: anywhere; }
-@media (max-width: 480px) { .dashboard-grid { grid-template-columns: 1fr; } }
+.room h2,
+main h1 {
+  overflow-wrap: anywhere;
+}
+@media (max-width: 480px) {
+  .dashboard-grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* Task-first employee workspaces inherit the Cozy Palace identity. */
+main:has(.staff-layout) {
+  max-width: none;
+  padding: 0;
+}
+body:has(.staff-layout) .site-header,
+body:has(.staff-layout) .footer {
+  display: none;
+}
+.staff-layout {
+  display: grid;
+  grid-template-columns: 240px minmax(0, 1fr);
+  min-height: 100vh;
+}
+.operations-content {
+  min-width: 0;
+  max-width: none;
+  padding: 40px 44px 64px;
+}
+.operations-content h1,
+.operations-content h2,
+.operations-content h3 {
+  font-family: Inter, sans-serif;
+  letter-spacing: -0.025em;
+  overflow-wrap: anywhere;
+}
+.operations-content h1 {
+  font-size: 32px;
+  line-height: 1.2;
+  margin: 0 0 10px;
+}
+.operations-content h2 {
+  font-size: 21px;
+  line-height: 1.35;
+  margin: 0 0 16px;
+}
+.operations-content p {
+  max-width: 72ch;
+}
+.operations-heading {
+  display: flex;
+  justify-content: space-between;
+  align-items: flex-start;
+  gap: 24px;
+  margin-bottom: 32px;
+}
+.operations-heading p {
+  color: var(--muted);
+  margin: 0;
+}
+.operations-heading > .button {
+  flex-shrink: 0;
+}
+.sidebar-note {
+  font-size: 12px;
+  line-height: 1.7;
+  color: #d8dfe8;
+  padding: 24px 20px;
+}
+.operations-board {
+  border-top: 1px solid var(--line);
+  border-bottom: 1px solid var(--line);
+  background: var(--surface);
+}
+.priority-row {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) 72px 112px;
+  align-items: center;
+  padding: 24px;
+  gap: 20px;
+  color: var(--green);
+  text-decoration: none;
+  border-bottom: 1px solid var(--line);
+}
+.priority-row:last-child {
+  border: 0;
+}
+.priority-row:hover,
+.priority-row:focus-visible {
+  background: #f4f0e7;
+}
+.priority-row strong {
+  font-size: 30px;
+  font-variant-numeric: tabular-nums;
+  text-align: right;
+}
+.priority-row > span:first-child {
+  font-size: 18px;
+  font-weight: 600;
+}
+.priority-row .text-link {
+  font-size: 13px;
+  text-align: right;
+}
+.operations-section {
+  margin-top: 36px;
+  padding-top: 24px;
+  border-top: 1px solid var(--line);
+}
+.work-links {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+}
+.work-links a {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  color: var(--green);
+  text-decoration: none;
+  padding-bottom: 20px;
+}
+.work-links a:hover strong {
+  text-decoration: underline;
+}
+.work-links span {
+  color: var(--muted);
+  font-size: 14px;
+  line-height: 1.6;
+}
+.management-summary {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  background: var(--green);
+  color: white;
+  padding: 24px;
+  gap: 24px;
+}
+.management-summary > div {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+.management-summary span {
+  font-size: 13px;
+  color: #e0e6ef;
+}
+.management-summary strong {
+  font-size: 28px;
+  font-variant-numeric: tabular-nums;
+}
+.management-columns {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 40px;
+}
+.status-ledger {
+  margin-bottom: 20px;
+}
+.status-ledger a {
+  display: flex;
+  justify-content: space-between;
+  padding: 12px 0;
+  border-bottom: 1px solid var(--line);
+  text-transform: capitalize;
+  color: var(--green);
+  text-decoration: none;
+}
+.status-ledger a:hover {
+  text-decoration: underline;
+}
+.access-count strong {
+  font-size: 24px;
+  font-variant-numeric: tabular-nums;
+}
+.operations-content .section-subheading {
+  margin-top: 32px;
+}
+.operations-filters {
+  display: grid;
+  grid-template-columns: repeat(4, minmax(0, 1fr));
+  gap: 16px;
+  padding: 24px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.operations-filters label {
+  min-width: 0;
+}
+.operations-filters .filter-checkbox {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  grid-column: span 2;
+  font-weight: 400;
+}
+.filter-checkbox input {
+  width: auto;
+}
+.operations-filters .actions {
+  grid-column: span 2;
+  justify-content: flex-end;
+  align-items: center;
+  margin: 0;
+}
+.queue-caption {
+  display: flex;
+  justify-content: space-between;
+  color: var(--muted);
+  font-size: 13px;
+  padding-top: 16px;
+}
+.operations-table table {
+  min-width: 780px;
+}
+.operations-table td:first-child {
+  overflow-wrap: anywhere;
+  max-width: 260px;
+}
+.operations-empty {
+  padding: 40px 0;
+}
+.operational-details {
+  overflow-wrap: anywhere;
+}
+.guest-workflow {
+  max-width: 880px;
+}
+.guest-workflow fieldset {
+  border: 0;
+  padding: 0;
+  margin: 0;
+  min-width: 0;
+}
+.guest-workflow legend {
+  font-weight: 600;
+  font-size: 18px;
+  margin-bottom: 24px;
+}
+.booking-review {
+  padding: 24px;
+  margin: 24px 0;
+  background: white;
+  border: 1px solid var(--line);
+}
+.operations-content .back-link {
+  display: inline-block;
+  margin-bottom: 24px;
+}
+.operations-content :focus-visible {
+  outline: 3px solid #856422;
+  outline-offset: 4px;
+}
+.operations-content input {
+  caret-color: var(--green);
+}
+.operations-content ::selection {
+  background: #e8d5a5;
+  color: var(--green);
+}
+.operations-content th,
+.operations-content td {
+  font-variant-numeric: tabular-nums;
+}
+@media (max-width: 1000px) {
+  .operations-content {
+    padding: 32px 24px;
+  }
+  .operations-filters {
+    grid-template-columns: 1fr 1fr;
+  }
+  .work-links {
+    grid-template-columns: 1fr;
+    gap: 12px;
+  }
+}
+@media (max-width: 760px) {
+  .staff-layout {
+    grid-template-columns: 1fr;
+  }
+  .sidebar-note {
+    display: none;
+  }
+  .operations-content {
+    padding: 28px 18px 48px;
+  }
+  .operations-heading {
+    flex-direction: column;
+    gap: 18px;
+  }
+  .management-columns {
+    grid-template-columns: 1fr;
+    gap: 0;
+  }
+  .management-summary {
+    grid-template-columns: 1fr 1fr;
+    padding: 20px;
+  }
+  .priority-row {
+    padding: 20px 16px;
+    grid-template-columns: minmax(0, 1fr) 48px;
+    gap: 12px;
+  }
+  .priority-row .text-link {
+    grid-column: 1/-1;
+    text-align: left;
+  }
+  .operations-content h1 {
+    font-size: 28px;
+  }
+}
+@media (max-width: 480px) {
+  .operations-filters {
+    grid-template-columns: 1fr;
+    padding: 16px;
+  }
+  .operations-filters .filter-checkbox,
+  .operations-filters .actions {
+    grid-column: auto;
+  }
+  .operations-filters .actions {
+    justify-content: flex-start;
+  }
+  .management-summary {
+    gap: 24px 12px;
+  }
+  .management-summary span {
+    overflow-wrap: anywhere;
+  }
+  .operations-content .section-head {
+    align-items: flex-start;
+    flex-direction: column;
+    gap: 14px;
+  }
+}
+/* Contain positioned screen-reader labels inside horizontally scrolling tables. */
+.operations-content .table-wrap {
+  position: relative;
+}

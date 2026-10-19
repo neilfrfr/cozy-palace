@@ -1,5 +1,5 @@
 import { randomUUID } from "node:crypto";
-import { requireIdentity } from "@/lib/auth/authorize";
+import { requireCustomer } from "@/lib/auth/authorize";
 import { getRooms } from "@/lib/reservations/service";
 import { ReservationForm } from "@/components/reservation-form";
 import { WorkspaceNav } from "@/components/workspace-nav";
@@ -20,7 +20,7 @@ export default async function NewReservation({
       (v): v is [string, string] => typeof v[1] === "string",
     ),
   );
-  await requireIdentity("/reservations/new?" + new URLSearchParams(safe));
+  await requireCustomer("/reservations/new?" + new URLSearchParams(safe));
   const rooms = await getRooms();
   return (
     <>

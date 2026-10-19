@@ -12,9 +12,16 @@ export function ReservationList({
     return (
       <section className="empty">
         <h2>No reservations yet.</h2>
-        <p>Start with a room and save your first draft.</p>
-        <Link className="button" href="/rooms">
-          Explore rooms
+        <p>
+          {staff
+            ? "Create a reservation on behalf of a hotel guest."
+            : "Start with a room and save your first draft."}
+        </p>
+        <Link
+          className="button"
+          href={staff ? "/staff/reservations/new" : "/rooms"}
+        >
+          {staff ? "New guest booking" : "Explore rooms"}
         </Link>
       </section>
     );

@@ -1,6 +1,6 @@
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { requireIdentity } from "@/lib/auth/authorize";
+import { requireCustomer } from "@/lib/auth/authorize";
 import { getReservation } from "@/lib/reservations/service";
 import { getRoom } from "@/lib/inventory/service";
 import { CheckoutSummary } from "@/components/checkout-summary";
@@ -12,7 +12,7 @@ export default async function Checkout({
 }) {
   const { id } = await params;
   if (!z.uuid().safeParse(id).success) notFound();
-  await requireIdentity(`/reservations/${id}/checkout`);
+  await requireCustomer(`/reservations/${id}/checkout`);
   const reservation = await getReservation(id);
   if (!reservation) notFound();
   const allocation = reservation.room_bookings[0];

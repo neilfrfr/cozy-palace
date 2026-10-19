@@ -4,7 +4,7 @@ import { expect, it, vi, beforeEach } from "vitest";
 const mocks = vi.hoisted(() => ({
   getReservation: vi.fn(),
   getRoom: vi.fn(),
-  requireIdentity: vi.fn(),
+  requireCustomer: vi.fn(),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/reservations/service", () => ({
@@ -12,7 +12,7 @@ vi.mock("@/lib/reservations/service", () => ({
 }));
 vi.mock("@/lib/inventory/service", () => ({ getRoom: mocks.getRoom }));
 vi.mock("@/lib/auth/authorize", () => ({
-  requireIdentity: mocks.requireIdentity,
+  requireCustomer: mocks.requireCustomer,
 }));
 vi.mock("next/navigation", () => ({
   notFound: () => {
@@ -40,7 +40,7 @@ const reservation = {
 };
 beforeEach(() => {
   vi.clearAllMocks();
-  mocks.requireIdentity.mockResolvedValue({});
+  mocks.requireCustomer.mockResolvedValue({});
   mocks.getReservation.mockResolvedValue(reservation);
   mocks.getRoom.mockResolvedValue(null);
 });
@@ -70,8 +70,9 @@ it("checkout presents actual booking data and never offers a working payment or 
   }
 });
 it("checkout refuses invalid IDs and missing or foreign owned-query results", async () => {
-  const { default: Page } =
-    await import("@/app/reservations/[id]/checkout/page");
+  const { default: Page } = await import(
+    "@/app/reservations/[id]/checkout/page"
+  );
   await expect(
     Page({ params: Promise.resolve({ id: "invalid" }) }),
   ).rejects.toThrow("NOT_FOUND");
@@ -83,10 +84,11 @@ it("checkout refuses invalid IDs and missing or foreign owned-query results", as
   expect(mocks.getRoom).not.toHaveBeenCalled();
 });
 it("checkout requires identity with a safe return destination", async () => {
-  const { default: Page } =
-    await import("@/app/reservations/[id]/checkout/page");
+  const { default: Page } = await import(
+    "@/app/reservations/[id]/checkout/page"
+  );
   await Page({ params: Promise.resolve({ id: reservation.id }) });
-  expect(mocks.requireIdentity).toHaveBeenCalledWith(
+  expect(mocks.requireCustomer).toHaveBeenCalledWith(
     `/reservations/${reservation.id}/checkout`,
   );
 });

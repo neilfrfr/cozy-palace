@@ -165,33 +165,77 @@ for (const width of [360, 390, 1366, 1440]) {
   });
 }
 
-
 test("database headings and dashboard cards fit at 360px", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/rooms");
   await page.evaluate(() => {
     const main = document.querySelector("main")!;
-    main.innerHTML = '<h1>' + 'R'.repeat(120) + '</h1><article class="room"><h2>' + 'R'.repeat(120) + '</h2></article><div class="dashboard-grid"><section class="panel"><h2>Restaurant tables</h2></section><section class="panel"><h2>Reservations</h2></section></div>';
+    main.innerHTML =
+      "<h1>" +
+      "R".repeat(120) +
+      '</h1><article class="room"><h2>' +
+      "R".repeat(120) +
+      '</h2></article><div class="dashboard-grid"><section class="panel"><h2>Restaurant tables</h2></section><section class="panel"><h2>Reservations</h2></section></div>';
   });
-  expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
 });
 
-test("staff onboarding has a discoverable registration portal", async ({ page }) => {
+test("staff onboarding has a discoverable registration portal", async ({
+  page,
+}) => {
   await page.goto("/login");
-  await page.getByRole("link", { name: "Staff registration", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Staff registration", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/staff\/register$/);
-  await expect(page.getByRole("heading", { name: "Create your staff account", exact: true })).toBeVisible();
-  await expect(page.getByText(/exact email approved by your administrator/)).toBeVisible();
-  await expect(page.getByText(/Registration alone does not grant staff access/)).toBeVisible();
+  await expect(
+    page.getByRole("heading", {
+      name: "Create your staff account",
+      exact: true,
+    }),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/exact email approved by your administrator/),
+  ).toBeVisible();
+  await expect(
+    page.getByText(/Registration alone does not grant staff access/),
+  ).toBeVisible();
   await expect(page.getByLabel("Full name", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute("minlength", "8");
-  await expect(page.getByRole("button", { name: "Create account", exact: true })).toBeDisabled();
-  await expect(page.locator("select[name=role], input[name=role]")).toHaveCount(0);
+  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
+    "minlength",
+    "8",
+  );
+  await expect(
+    page.getByRole("button", { name: "Create account", exact: true }),
+  ).toBeDisabled();
+  await expect(page.locator("select[name=role], input[name=role]")).toHaveCount(
+    0,
+  );
   await page.getByRole("link", { name: "Sign in", exact: true }).last().click();
-  await expect(page).toHaveURL(/\/login\?next=%2Fstaff%2Freservations$/);
+  await expect(page).toHaveURL(/\/login\?next=%2Fstaff$/);
   await page.goto("/register");
-  await page.getByRole("link", { name: "Staff registration", exact: true }).click();
+  await page
+    .getByRole("link", { name: "Staff registration", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/staff\/register$/);
   await page.setViewportSize({ width: 360, height: 800 });
+  expect(
+    await page.evaluate(
+      () => document.documentElement.scrollWidth <= innerWidth,
+    ),
+  ).toBe(true);
+});
+
+test("operational tables scroll locally without widening mobile pages", async ({ page }) => {
+  await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/");
+  await page.locator("main").evaluate((main) => {
+    main.innerHTML = '<div class="staff-layout"><aside></aside><div class="admin-content operations-content"><div class="table-wrap operations-table"><table><caption class="hidden-label">Test queue</caption><tbody><tr><td>Guest test fixture</td><td>2027-06-01</td><td>Room 101</td><td>Staff-entered guest</td><td>Confirmed</td><td><a href="#">Open<span class="hidden-label"> CP-TEST-FIXTURE</span></a></td></tr></tbody></table></div></div></div>';
+  });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
+  expect(await page.locator(".operations-table").evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
 });

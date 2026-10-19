@@ -3,13 +3,16 @@ import { expect, it, vi } from "vitest";
 const gate = vi.hoisted(() => vi.fn());
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/authorize", () => ({ requireStaff: gate }));
-vi.mock("@/lib/inventory/service", () => ({
-  getAdminCounts: async () => [
-    { name: "rooms", count: 17 },
-    { name: "restaurant_tables", count: 9 },
-    { name: "staff_members", count: 4 },
-    { name: "reservations", count: 23 },
-  ],
+vi.mock("@/lib/operations/service", () => ({
+  getManagementDashboard: async () => ({
+    counts: [
+      { name: "rooms", count: 17 },
+      { name: "reservations", count: 23 },
+    ],
+    pendingStaff: 2,
+    statuses: [{ status: "confirmed", count: 7 }],
+    recent: [],
+  }),
 }));
 it("admin summary uses actual queried counts without invented financial metrics", async () => {
   const { default: Page } = await import("@/app/admin/page");

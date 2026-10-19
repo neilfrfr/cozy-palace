@@ -11,9 +11,11 @@ import type { Reservation } from "@/lib/reservations/types";
 export function ReservationControls({
   reservation: r,
   staff = false,
+  businessDay,
 }: {
   reservation: Reservation;
   staff?: boolean;
+  businessDay?: string;
 }) {
   const [pending, start] = useTransition(),
     [error, setError] = useState("");
@@ -49,7 +51,7 @@ export function ReservationControls({
         </div>
       )}
       <div className="actions">
-        {r.status === "draft" && (
+        {!staff && r.status === "draft" && (
           <>
             <button
               type="button"
@@ -78,15 +80,19 @@ export function ReservationControls({
             Confirm booking
           </button>
         )}
-        {staff && r.status === "confirmed" && (
-          <button
-            className="primary"
-            disabled={pending}
-            onClick={() => act("checked_in")}
-          >
-            Check in
-          </button>
-        )}
+        {staff &&
+          r.status === "confirmed" &&
+          (!businessDay ||
+            (r.room_bookings[0]?.check_in <= businessDay &&
+              r.room_bookings[0]?.check_out > businessDay)) && (
+            <button
+              className="primary"
+              disabled={pending}
+              onClick={() => act("checked_in")}
+            >
+              Check in
+            </button>
+          )}
         {staff && r.status === "checked_in" && (
           <button
             className="primary"
