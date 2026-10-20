@@ -1,13 +1,14 @@
+import { PageBanner } from "@/components/page-banner";
 import Link from "next/link";
 export default function About() {
   return (
-    <>
-      <p className="eyebrow">COZY PALACE</p>
-      <h1>Your Stay, in One Place.</h1>
-      <p className="intro">
-        Manage your hotel reservations and find information about dining at
-        Cozy Palace Hotel and Restaurant.
-      </p>
+    <div className="public-page">
+      <PageBanner
+        eyebrow="About"
+        title="Your Stay, in One Place."
+        intro="Manage your hotel reservations and find information about dining at Cozy Palace Hotel and Restaurant."
+        position="center 65%"
+      />
       <div className="grid">
         <section className="panel">
           <h2>Plan your stay</h2>
@@ -30,6 +31,6 @@ export default function About() {
         This is a development prototype with fictional inventory. It is not
         accepting real commercial bookings.
       </p>
-    </>
+    </div>
   );
 }

@@ -1,12 +1,18 @@
 export function AvailabilitySearch({
   configured,
   defaults = {},
+  variant,
 }: {
   configured: boolean;
   defaults?: { checkIn?: string; checkOut?: string; guests?: string };
+  /** "bar" renders the dark booking bar that overlaps a hero photo. */
+  variant?: "bar";
 }) {
   return (
-    <form className="search" action="/rooms">
+    <form
+      className={variant === "bar" ? "search booking-bar" : "search"}
+      action="/rooms"
+    >
       <label>
         Check-in
         <input

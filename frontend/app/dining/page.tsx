@@ -1,4 +1,4 @@
-import Image from "next/image";
+import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
@@ -7,19 +7,13 @@ export default async function Dining() {
   const configured = isConfigured();
   const tables = configured ? await getDiningTables() : [];
   return (
-    <>
-      <p className="eyebrow">COZY PALACE · DINING</p>
-      <h1>A Place to Gather.</h1>
-      <p className="intro">Explore our current restaurant seating.</p>
-      <div className="dining-banner">
-        <Image
-          src="/design/dining.jpg"
-          alt="Dining interior from the supplied design"
-          fill
-          loading="eager"
-          sizes="100vw"
-        />
-      </div>
+    <div className="public-page">
+      <PageBanner
+        eyebrow="Dining"
+        title="A Place to Gather."
+        intro="Explore our current restaurant seating."
+        image="/design/dining.jpg"
+      />
       <section className="section">
         <h2>Restaurant Tables</h2>
         <p className="notice">
@@ -47,6 +41,6 @@ export default async function Dining() {
           not been published.
         </p>
       </section>
-    </>
+    </div>
   );
 }

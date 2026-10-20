@@ -1,3 +1,4 @@
+import { PageBanner } from "@/components/page-banner";
 import { RoomCard } from "@/components/room-card";
 import { AvailabilitySearch } from "@/components/availability-search";
 import { isConfigured } from "@/lib/supabase/config";
@@ -30,14 +31,15 @@ export default async function Rooms({
     }
   }
   return (
-    <>
-      <h1>Find Your Place to Unwind</h1>
-      <p className="intro">
-        Choose your dates and who is joining you. We’ll check availability
-        again when you submit your reservation request.
-      </p>
+    <div className="public-page">
+      <PageBanner
+        eyebrow="Rooms and suites"
+        title="Find Your Place to Unwind"
+        intro="Choose your dates and who is joining you. We’ll check availability again when you submit your reservation request."
+        position="center 40%"
+      />
+      <AvailabilitySearch configured={configured} defaults={p} variant="bar" />
       {!configured && <SetupNotice />}
-      <AvailabilitySearch configured={configured} defaults={p} />
       {configured && p.checkIn && !filters.success && (
         <div className="notice error" role="alert">
           Choose valid dates with check-out after check-in, and a whole number
@@ -78,6 +80,6 @@ export default async function Rooms({
           <p>Try different dates or a smaller guest count.</p>
         </div>
       )}
-    </>
+    </div>
   );
 }

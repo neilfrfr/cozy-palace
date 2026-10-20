@@ -14,7 +14,7 @@ test("public home and unconfigured booking state", async ({ page }) => {
   ).toBeVisible();
   await page.getByRole("link", { name: "Book a Stay", exact: true }).click();
   await expect(
-    page.getByRole("heading", { name: "Find your place to unwind" }),
+    page.getByRole("heading", { name: "Find Your Place to Unwind" }),
   ).toBeVisible();
   await expect(page.getByText("Booking is not connected yet.")).toBeVisible();
   await page.goto("/login");
@@ -40,7 +40,7 @@ test("mobile navigation stays within viewport", async ({ page }) => {
     ),
   ).toBe(true);
   await expect(
-    page.getByRole("link", { name: "My reservations", exact: true }),
+    page.getByRole("link", { name: "My Reservations", exact: true }),
   ).toBeVisible();
 });
 
