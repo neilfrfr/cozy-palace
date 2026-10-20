@@ -5,6 +5,7 @@ import {
   operationalStatuses,
 } from "@/lib/operations/schema";
 import { OperationalReservationList } from "@/components/operational-reservation-list";
+import { formatLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export default async function OperationsQueue({
   searchParams,
@@ -50,7 +51,7 @@ export default async function OperationsQueue({
             <option value="">All statuses</option>
             {operationalStatuses.map((s) => (
               <option key={s} value={s}>
-                {s.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
+                {formatLabel(s)}
               </option>
             ))}
           </select>

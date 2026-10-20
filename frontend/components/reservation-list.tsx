@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Reservation } from "@/lib/reservations/types";
 import { ReservationControls } from "./reservation-controls";
+import { formatLabel } from "@/lib/format";
 export function ReservationList({
   rows,
   staff = false,
@@ -54,7 +55,7 @@ export function ReservationList({
               <td>₱{Number(r.total).toLocaleString("en-PH")}</td>
               <td>
                 <span className={"status " + r.status}>
-                  {r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
+                  {formatLabel(r.status)}
                 </span>
               </td>
               <td>

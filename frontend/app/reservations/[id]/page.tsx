@@ -6,6 +6,7 @@ import { getReservation, getRooms } from "@/lib/reservations/service";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
+import { formatLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export default async function Details({
   params,
@@ -21,7 +22,7 @@ export default async function Details({
     <>
       <WorkspaceNav />
       <h1 className="details-title">Reservation {r.reference}</h1>
-      <span className={"status " + r.status}>{r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</span>
+      <span className={"status " + r.status}>{formatLabel(r.status)}</span>
       <dl className="details">
         <div>
           <dt>Check-in</dt>

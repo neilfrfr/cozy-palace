@@ -1,5 +1,6 @@
 import Link from "next/link";
 import { getManagementDashboard } from "@/lib/operations/service";
+import { formatLabel } from "@/lib/format";
 const labels: Record<string, string> = {
   rooms: "Rooms",
   restaurant_tables: "Restaurant Tables",
@@ -42,7 +43,7 @@ export default async function ManagementDashboard() {
                 key={item.status}
                 href={"/staff/reservations?status=" + item.status}
               >
-                <span>{item.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</span>
+                <span>{formatLabel(item.status)}</span>
                 <strong>{item.count}</strong>
               </Link>
             ))}
@@ -106,9 +107,9 @@ export default async function ManagementDashboard() {
                     <td>
                       {r.actor_name}
                       <br />
-                      <small>{r.actor_role.replace(/^./, (c) => c.toUpperCase())}</small>
+                      <small>{formatLabel(r.actor_role)}</small>
                     </td>
-                    <td>{r.action.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</td>
+                    <td>{formatLabel(r.action)}</td>
                     <td>{r.reference ?? r.record_id}</td>
                     <td>
                       {new Intl.DateTimeFormat("en-PH", {

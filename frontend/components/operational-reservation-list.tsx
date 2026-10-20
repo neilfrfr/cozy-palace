@@ -1,5 +1,6 @@
 import Link from "next/link";
 import type { OperationalReservation } from "@/lib/operations/service";
+import { formatLabel } from "@/lib/format";
 export function OperationalReservationList({
   rows,
 }: {
@@ -63,7 +64,7 @@ export function OperationalReservationList({
               </td>
               <td>
                 <span className={"status " + r.status}>
-                  {r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
+                  {formatLabel(r.status)}
                 </span>
               </td>
               <td>

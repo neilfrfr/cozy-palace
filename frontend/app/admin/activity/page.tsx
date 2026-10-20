@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { getActivity } from "@/lib/reservations/service";
 import { WorkspaceNav } from "@/components/workspace-nav";
+import { formatLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export default async function Activity({
   searchParams,
@@ -47,8 +48,8 @@ export default async function Activity({
                   <br />
                   <small>{r.actor_id || "System"}</small>
                 </td>
-                <td>{r.actor_role.replace(/^./, (c) => c.toUpperCase())}</td>
-                <td>{r.action.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</td>
+                <td>{formatLabel(r.actor_role)}</td>
+                <td>{formatLabel(r.action)}</td>
                 <td>{r.record_id}</td>
               </tr>
             ))}
