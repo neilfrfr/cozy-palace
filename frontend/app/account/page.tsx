@@ -13,8 +13,8 @@ export default async function Account() {
   return (
     <section className="section">
       <WorkspaceNav />
-      <div className="login">
-        <h1>Your account</h1>
+      <div className="login account-page">
+        <h1>Your Account</h1>
         <p className="intro">{email}</p>
         {error ? (
           <p role="alert" className="notice error">

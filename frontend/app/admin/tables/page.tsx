@@ -6,7 +6,7 @@ export default async function TableInventory() {
   return (
     <>
       <p className="eyebrow">INVENTORY</p>
-      <h1>Restaurant tables</h1>
+      <h1>Restaurant Tables</h1>
       <p className="intro">Seating capacity and operational states.</p>
       <div className="table-wrap">
         <table>

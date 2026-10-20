@@ -14,7 +14,7 @@ export function OperationalReservationList({
           hotel.
         </p>
         <Link className="button gold" href="/staff/reservations/new">
-          New guest booking
+          New Guest Booking
         </Link>
       </section>
     );
@@ -63,7 +63,7 @@ export function OperationalReservationList({
               </td>
               <td>
                 <span className={"status " + r.status}>
-                  {r.status.replaceAll("_", " ")}
+                  {r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
                 </span>
               </td>
               <td>

@@ -9,7 +9,7 @@ export default async function NewGuestBooking() {
     <>
       <header className="operations-heading">
         <div>
-          <h1>New guest booking</h1>
+          <h1>New Guest Booking</h1>
           <p>
             Create a hotel reservation on behalf of a guest. Same-day arrivals
             are welcome.

@@ -21,7 +21,7 @@ export default async function Recover({
         mode={resend ? "resend" : "recover"}
         configured={isConfigured()}
       />
-      <Link href="/login">Back to sign in</Link>
+      <Link className="back-link" href="/login">Back to sign in</Link>
     </div>
   );
 }

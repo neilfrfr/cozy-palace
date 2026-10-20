@@ -21,7 +21,7 @@ export function ReservationList({
           className="button"
           href={staff ? "/staff/reservations/new" : "/rooms"}
         >
-          {staff ? "New guest booking" : "Explore rooms"}
+          {staff ? "New Guest Booking" : "Explore rooms"}
         </Link>
       </section>
     );
@@ -54,7 +54,7 @@ export function ReservationList({
               <td>₱{Number(r.total).toLocaleString("en-PH")}</td>
               <td>
                 <span className={"status " + r.status}>
-                  {r.status.replace("_", " ")}
+                  {r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
                 </span>
               </td>
               <td>

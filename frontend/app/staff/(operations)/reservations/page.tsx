@@ -32,7 +32,7 @@ export default async function OperationsQueue({
           </p>
         </div>
         <Link className="button gold" href="/staff/reservations/new">
-          New guest booking
+          New Guest Booking
         </Link>
       </header>
       <form className="operations-filters" action="/staff/reservations">
@@ -50,7 +50,7 @@ export default async function OperationsQueue({
             <option value="">All statuses</option>
             {operationalStatuses.map((s) => (
               <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
+                {s.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}
               </option>
             ))}
           </select>

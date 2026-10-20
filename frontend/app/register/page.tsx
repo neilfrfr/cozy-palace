@@ -22,16 +22,16 @@ export default async function Register({
         configured={isConfigured()}
         next={safeRedirect(p.next)}
       />
-      <p>
-        Already registered? <Link href="/login">Sign in</Link>
-      </p>
-      <p className="subtle">
-        Joining the team? <Link href="/staff/register">Staff registration</Link>
-        {" "}uses the email approved by your administrator.
-      </p>
       <Link href="/forgot-password?mode=resend">
         Resend a confirmation link
       </Link>
+      <p>
+        Already registered? <Link href="/login">Sign In</Link>
+      </p>
+      <p className="subtle">
+        Joining the team? Staff registration uses the email approved by your
+        administrator. <Link href="/staff/register">Staff Registration</Link>
+      </p>
     </div>
   );
 }

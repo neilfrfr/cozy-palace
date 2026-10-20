@@ -31,10 +31,10 @@ export default async function Rooms({
   }
   return (
     <>
-      <h1>Find your place to unwind</h1>
+      <h1>Find Your Place to Unwind</h1>
       <p className="intro">
-        Choose your dates and the people joining you. Availability is checked
-        again when you submit your request.
+        Choose your dates and who is joining you. We’ll check availability
+        again when you submit your reservation request.
       </p>
       {!configured && <SetupNotice />}
       <AvailabilitySearch configured={configured} defaults={p} />

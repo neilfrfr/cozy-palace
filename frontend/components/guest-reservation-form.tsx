@@ -23,6 +23,23 @@ type Input = {
   id?: string;
   version?: number;
 };
+const phoneCountries = [
+  { name: "Philippines", code: "+63", digits: 10 },
+  { name: "Singapore", code: "+65", digits: 8 },
+  { name: "United States / Canada", code: "+1", digits: 10 },
+  { name: "United Kingdom", code: "+44", digits: 10 },
+  { name: "Australia", code: "+61", digits: 9 },
+  { name: "India", code: "+91", digits: 10 },
+];
+function splitPhoneNumber(value: string) {
+  const country = [...phoneCountries]
+    .sort((a, b) => b.code.length - a.code.length)
+    .find((candidate) => value.startsWith(candidate.code));
+  return {
+    countryCode: country?.code ?? "+63",
+    digits: value.slice(country?.code.length ?? 0).replace(/\D/g, ""),
+  };
+}
 export function GuestReservationForm({
   rooms,
   requestKey,
@@ -36,6 +53,12 @@ export function GuestReservationForm({
 }) {
   const [pending, start] = useTransition(),
     [error, setError] = useState(""),
+    [phoneCountry, setPhoneCountry] = useState(() => {
+      return splitPhoneNumber(existing?.guest_phone ?? "").countryCode;
+    }),
+    [phoneDigits, setPhoneDigits] = useState(() => {
+      return splitPhoneNumber(existing?.guest_phone ?? "").digits;
+    }),
     [review, setReview] = useState<{
       input: Input;
       quote: { total: number; nights: number; rate: number; room: string };
@@ -43,6 +66,7 @@ export function GuestReservationForm({
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
   const online = existing?.booking_source === "customer_online";
+  const maxPhoneDigits = phoneCountries.find((c) => c.code === phoneCountry)?.digits ?? 15;
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const f = new FormData(event.currentTarget);
@@ -55,7 +79,9 @@ export function GuestReservationForm({
         f.get("guestFullName") ?? existing?.customer_name ?? "",
       ),
       guestEmail: String(f.get("guestEmail") ?? ""),
-      guestPhone: String(f.get("guestPhone") ?? ""),
+      guestPhone: String(f.get("phoneDigits") ?? "")
+        ? `${String(f.get("phoneCountry") ?? phoneCountry)}${String(f.get("phoneDigits") ?? "")}`
+        : "",
     };
     if (existing) {
       input.id = existing.id;
@@ -104,8 +130,8 @@ export function GuestReservationForm({
     <div className="guest-workflow">
       <form
         className="form-panel"
+        hidden={!!review}
         onSubmit={prepare}
-        onChange={() => setReview(null)}
       >
         <fieldset disabled={pending}>
           <legend>
@@ -132,15 +158,34 @@ export function GuestReservationForm({
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
-                <label>
-                  Guest phone (optional)
-                  <input
-                    name="guestPhone"
-                    type="tel"
-                    maxLength={32}
-                    defaultValue={existing?.guest_phone ?? ""}
-                  />
-                </label>
+                <div className="phone-field">
+                  <label htmlFor="guestPhoneDigits">Guest phone (optional)</label>
+                  <div className="phone-input-row">
+                    <select
+                      name="phoneCountry"
+                      aria-label="Phone country code"
+                      value={phoneCountry}
+                      onChange={(event) => {
+                        setPhoneCountry(event.target.value);
+                        setPhoneDigits((digits) => digits.replace(/\D/g, "").slice(0, phoneCountries.find((c) => c.code === event.target.value)?.digits ?? 15));
+                      }}
+                    >
+                      {phoneCountries.map((country) => <option key={country.code} value={country.code}>{country.name} ({country.code})</option>)}
+                    </select>
+                    <input
+                      id="guestPhoneDigits"
+                      name="phoneDigits"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={maxPhoneDigits}
+                      value={phoneDigits}
+                      onChange={(event) => setPhoneDigits(event.target.value.replace(/\D/g, "").slice(0, maxPhoneDigits))}
+                      placeholder="Digits only"
+                      autoComplete="tel-national"
+                    />
+                  </div>
+                </div>
               </>
             )}
             <label className="full">

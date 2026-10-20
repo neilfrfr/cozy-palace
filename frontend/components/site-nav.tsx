@@ -31,7 +31,7 @@ export async function SiteNav() {
           <Link href="/rooms">Rooms</Link>
           <Link href="/dining">Dining</Link>
           <Link href={home}>
-            {employee ? "Work dashboard" : "My reservations"}
+            {employee ? "Work dashboard" : "My Reservations"}
           </Link>
           <Link href="/about">About</Link>
           <Link href="/contact">Contact</Link>

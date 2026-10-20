@@ -45,12 +45,14 @@ export function LoginForm({
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </div>
-      <p className="subtle">
+      <p className="subtle login-register-link">
         New here?{" "}
         <a href={"/register?next=" + encodeURIComponent(next)}>
-          Create an account
+          Create an Account
         </a>
-        . Team members: <a href="/staff/register">Staff registration</a> using
+      </p>
+      <p className="subtle login-staff-note">
+        Team members: <a href="/staff/register">Staff Registration</a> using
         the email approved by your administrator.
       </p>
       <p>

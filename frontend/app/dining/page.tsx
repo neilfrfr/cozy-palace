@@ -9,7 +9,7 @@ export default async function Dining() {
   return (
     <>
       <p className="eyebrow">COZY PALACE · DINING</p>
-      <h1>A place to gather.</h1>
+      <h1>A Place to Gather.</h1>
       <p className="intro">Explore our current restaurant seating.</p>
       <div className="dining-banner">
         <Image
@@ -21,7 +21,7 @@ export default async function Dining() {
         />
       </div>
       <section className="section">
-        <h2>Restaurant tables</h2>
+        <h2>Restaurant Tables</h2>
         <p className="notice">
           Online table reservations are not available yet. The operational state
           below does not indicate availability for a particular date or time.

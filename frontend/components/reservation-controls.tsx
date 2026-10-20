@@ -111,7 +111,7 @@ export function ReservationControls({
             Cancel booking
           </button>
         )}
-        {pending && <span role="status">Saving changes…</span>}
+        {pending && <span className="saving-status" role="status">Saving changes…</span>}
       </div>
     </>
   );

@@ -6,7 +6,7 @@ export default function Contact() {
       <h1>Get in touch.</h1>
       <p className="intro">Questions about your reservation?</p>
       <section className="panel">
-        <h2>Contact information</h2>
+        <h2>Contact Information</h2>
         <p>Contact details are not available yet.</p>
         <p className="subtle">
           A verified phone number, email address, business address and opening
@@ -14,7 +14,7 @@ export default function Contact() {
         </p>
         <div className="actions">
           <Link className="button" href="/reservations">
-            View my reservations
+            View My Reservations
           </Link>
           <Link className="button secondary" href="/rooms">
             Explore rooms

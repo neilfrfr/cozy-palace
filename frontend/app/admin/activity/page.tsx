@@ -13,10 +13,10 @@ export default async function Activity({
   return (
     <>
       <WorkspaceNav />
-      <h1>Activity log</h1>
+      <h1>Activity Log</h1>
       <p className="intro">
-        A record of reservation, account, and staffing changes. Customer and
-        system activity are identified separately from employee actions.
+        Review reservation, account, and staffing changes. Customer and system
+        activity are listed separately from employee actions.
       </p>
       <div className="table-wrap">
         <table>
@@ -47,8 +47,8 @@ export default async function Activity({
                   <br />
                   <small>{r.actor_id || "System"}</small>
                 </td>
-                <td>{r.actor_role}</td>
-                <td>{r.action}</td>
+                <td>{r.actor_role.replace(/^./, (c) => c.toUpperCase())}</td>
+                <td>{r.action.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</td>
                 <td>{r.record_id}</td>
               </tr>
             ))}

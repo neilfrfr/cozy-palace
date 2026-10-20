@@ -21,7 +21,7 @@ export default async function Details({
     <>
       <WorkspaceNav />
       <h1 className="details-title">Reservation {r.reference}</h1>
-      <span className={"status " + r.status}>{r.status.replace("_", " ")}</span>
+      <span className={"status " + r.status}>{r.status.replaceAll("_", " ").replace(/^./, (c) => c.toUpperCase())}</span>
       <dl className="details">
         <div>
           <dt>Check-in</dt>
@@ -62,7 +62,7 @@ export default async function Details({
         </Link>
       </div>
       {["draft", "pending", "confirmed"].includes(r.status) && (
-        <section className="section">
+        <section className="section reservation-update">
           <h2>Update your details</h2>
           <ReservationForm
             rooms={await getRooms()}
