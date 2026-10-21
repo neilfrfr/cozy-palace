@@ -2,7 +2,12 @@ import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { notFound } from "next/navigation";
 import { z } from "zod";
-import { getReservation, getRooms } from "@/lib/reservations/service";
+import {
+  getBookedNightsByRoom,
+  getReservation,
+  getRooms,
+} from "@/lib/reservations/service";
+import { businessDate } from "@/lib/operations/schema";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
@@ -18,6 +23,9 @@ export default async function Details({
   const r = await getReservation(id);
   if (!r) notFound();
   const allocation = r.room_bookings[0];
+  const rooms = ["draft", "pending", "confirmed"].includes(r.status)
+    ? await getRooms()
+    : [];
   return (
     <>
       <WorkspaceNav />
@@ -66,9 +74,11 @@ export default async function Details({
         <section className="section reservation-update">
           <h2>Update your details</h2>
           <ReservationForm
-            rooms={await getRooms()}
+            rooms={rooms}
             existing={r}
             requestKey={randomUUID()}
+            bookedNights={await getBookedNightsByRoom(rooms, r.id)}
+            today={businessDate()}
           />
         </section>
       )}

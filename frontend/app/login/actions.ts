@@ -11,6 +11,8 @@ export async function loginAction(_state: { message: string }, form: FormData) {
     .object({ email: z.email().max(254), password: z.string().min(1).max(128) })
     .safeParse({ email: form.get("email"), password: form.get("password") });
   if (!p.success) return { message: "Enter a valid email and password." };
+  if (form.get("acceptTerms") !== "on")
+    return { message: "Agree to the Terms and Conditions to sign in." };
   const db = await createClient();
   const { error } = await db.auth.signInWithPassword(p.data);
   if (error)

@@ -18,6 +18,7 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await a.goto("/login");
     await a.getByLabel("Email address").fill(adminEmail!);
     await a.getByLabel("Password", { exact: true }).fill(adminPassword!);
+    await a.getByLabel("I agree to the Terms and Conditions").check();
     await a.getByRole("button", { name: "Sign in", exact: true }).click();
     await a.goto("/admin/staff");
     const create = a.locator("form.staff-editor").filter({
@@ -49,6 +50,7 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await w.goto("/login");
     await w.getByLabel("Email address").fill(workerEmail!);
     await w.getByLabel("Password", { exact: true }).fill(workerPassword!);
+    await w.getByLabel("I agree to the Terms and Conditions").check();
     await w.getByRole("button", { name: "Sign in", exact: true }).click();
     await expect(w).toHaveURL(/\/staff$/);
     await a.reload();
@@ -94,8 +96,9 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
         await c
           .getByLabel("Password", { exact: true })
           .fill(process.env.TEST_CUSTOMER_PASSWORD);
+        await c.getByLabel("I agree to the Terms and Conditions").check();
         await c.getByRole("button", { name: "Sign in", exact: true }).click();
-        await expect(c).toHaveURL(/\/reservations$/);
+        await expect(c).toHaveURL(/^https?:\/\/[^/]+\/$/);
         await c.goto(guestUrl);
         await expect(c).toHaveURL(/\/reservations\?notice=forbidden$/);
         await expect(c.getByText(guestName, { exact: true })).toHaveCount(0);

@@ -1,7 +1,9 @@
+import Image from "next/image";
 import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
+import { menu } from "@/lib/menu";
 export const dynamic = "force-dynamic";
 export default async function Dining() {
   const configured = isConfigured();
@@ -11,11 +13,61 @@ export default async function Dining() {
       <PageBanner
         eyebrow="Dining"
         title="A Place to Gather."
-        intro="Explore our current restaurant seating."
+        intro="Explore our menu and restaurant seating."
         image="/design/dining.jpg"
       />
-      <section className="section">
-        <h2>Restaurant Tables</h2>
+      <section className="section dining-menu" aria-labelledby="menu-title">
+        <p className="eyebrow">Menu</p>
+        <h2 id="menu-title">From Our Kitchen</h2>
+        {menu.map((section) => (
+          <div className="menu-section" key={section.title}>
+            <h3>{section.title}</h3>
+            <ul className="menu-grid">
+              {section.items.map((dish) => (
+                <li className="menu-card" key={dish.name}>
+                  <div className="menu-photo">
+                    <Image
+                      src={dish.image}
+                      alt={dish.name}
+                      fill
+                      sizes="(max-width: 760px) 50vw, 25vw"
+                    />
+                  </div>
+                  <p>{dish.name}</p>
+                </li>
+              ))}
+            </ul>
+          </div>
+        ))}
+      </section>
+      <section className="section" aria-labelledby="seating-title">
+        <p className="eyebrow">Table reservations</p>
+        <h2 id="seating-title">Restaurant Seating</h2>
+        <div className="floor-plans">
+          <figure>
+            <Image
+              src="/design/dining/floor-plan.jpg"
+              alt="Restaurant floor plan with the bar, booth tables, round tables and an outdoor patio"
+              width={1024}
+              height={683}
+              sizes="(max-width: 760px) 100vw, 50vw"
+            />
+            <figcaption>Restaurant layout</figcaption>
+          </figure>
+          <figure>
+            <Image
+              src="/design/dining/floor-plan-annotated.jpg"
+              alt="Seating plan showing 40 indoor seats and 18 patio seats"
+              width={735}
+              height={490}
+              sizes="(max-width: 760px) 100vw, 50vw"
+            />
+            <figcaption>
+              Seating plan: 40 indoor seats and 18 on the patio, 58 in total.
+            </figcaption>
+          </figure>
+        </div>
+        <h3 className="tables-title">Restaurant Tables</h3>
         <p className="notice">
           Online table reservations are not available yet. The operational state
           below does not indicate availability for a particular date or time.
@@ -37,8 +89,8 @@ export default async function Dining() {
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
         <p className="subtle">
-          Prototype seating records are fictional. Menu and opening hours have
-          not been published.
+          Prototype seating records are fictional. Opening hours have not been
+          published.
         </p>
       </section>
     </div>

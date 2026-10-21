@@ -187,9 +187,9 @@
 }
 @media (hover: hover) and (pointer: fine) {
   .button.outline-light:hover {
-    background: white;
-    border-color: white;
-    color: var(--navy);
+    background: var(--navy);
+    border-color: var(--navy);
+    color: white;
   }
   :is(.site-header, .homepage, .public-page) .button.gold:hover {
     background: var(--gold-soft);
@@ -914,4 +914,84 @@ main:has(.rooms-skeleton) {
 
 body {
   overflow-x: clip;
+}
+
+/* ---------- Dining: menu and seating ---------- */
+.dining-menu h2 {
+  margin-bottom: 8px;
+}
+.menu-section h3 {
+  margin: 40px 0 18px;
+  padding-bottom: 10px;
+  border-bottom: 1px solid var(--line);
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--navy);
+}
+.menu-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 24px;
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.menu-card p {
+  margin: 12px 0 0;
+  font-family: var(--display);
+  font-size: 19px;
+  color: var(--navy);
+}
+.menu-photo {
+  position: relative;
+  aspect-ratio: 4 / 3;
+  overflow: hidden;
+  background: var(--stone);
+}
+.menu-photo img {
+  object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+@media (hover: hover) and (pointer: fine) {
+  .menu-card:hover .menu-photo img {
+    transform: scale(1.04);
+  }
+}
+.floor-plans {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 24px;
+  margin: 24px 0 40px;
+}
+.floor-plans figure {
+  margin: 0;
+}
+.floor-plans img {
+  display: block;
+  width: 100%;
+  height: auto;
+  background: #fff;
+  border: 1px solid var(--line);
+}
+.floor-plans figcaption {
+  margin-top: 10px;
+  font-size: 13px;
+  color: var(--muted);
+}
+.tables-title {
+  font-family: var(--display);
+  font-size: 26px;
+  color: var(--navy);
+}
+@media (max-width: 760px) {
+  .menu-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 16px;
+  }
+  .menu-card p {
+    font-size: 16px;
+  }
+  .floor-plans {
+    grid-template-columns: 1fr;
+  }
 }

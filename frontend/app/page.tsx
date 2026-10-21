@@ -1,7 +1,7 @@
 import Image from "next/image";
 import Link from "next/link";
 import { isConfigured } from "@/lib/supabase/config";
-import { getRooms } from "@/lib/reservations/service";
+import { getFullyBookedNights, getRooms } from "@/lib/reservations/service";
 import { RoomTile } from "@/components/room-tile";
 import { AvailabilitySearch } from "@/components/availability-search";
 import { SetupNotice } from "@/components/setup-notice";
@@ -10,12 +10,14 @@ export default async function Home() {
   const configured = isConfigured();
   let rooms: Awaited<ReturnType<typeof getRooms>> = [];
   let failed = false;
+  let bookedNights: string[] = [];
   if (configured) {
     try {
       rooms = await getRooms();
     } catch {
       failed = true;
     }
+    bookedNights = await getFullyBookedNights();
   }
   return (
     <div className="homepage">
@@ -50,7 +52,11 @@ export default async function Home() {
       </section>
 
       <section className="home-booking" aria-label="Check room availability">
-        <AvailabilitySearch configured={configured} variant="bar" />
+        <AvailabilitySearch
+          configured={configured}
+          variant="bar"
+          bookedNights={bookedNights}
+        />
       </section>
 
       <section className="home-intro">

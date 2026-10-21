@@ -6,6 +6,7 @@ import {
 } from "@/lib/operations/schema";
 import { OperationalReservationList } from "@/components/operational-reservation-list";
 import { formatLabel } from "@/lib/format";
+import { DatePicker } from "@/components/date-picker";
 export const dynamic = "force-dynamic";
 export default async function OperationsQueue({
   searchParams,
@@ -41,10 +42,11 @@ export default async function OperationsQueue({
           Reference or guest
           <input name="q" defaultValue={filter.q} maxLength={100} />
         </label>
-        <label>
-          Arrival date
-          <input name="date" type="date" defaultValue={filter.date} />
-        </label>
+        <DatePicker
+          name="date"
+          label="Arrival date"
+          defaultValue={filter.date}
+        />
         <label>
           Status
           <select name="status" defaultValue={filter.status ?? ""}>

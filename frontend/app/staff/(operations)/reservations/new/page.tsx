@@ -1,10 +1,11 @@
 import { randomUUID } from "node:crypto";
-import { getRooms } from "@/lib/reservations/service";
+import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
 import { businessDate } from "@/lib/operations/schema";
 import { GuestReservationForm } from "@/components/guest-reservation-form";
 export const dynamic = "force-dynamic";
 export default async function NewGuestBooking() {
   const rooms = await getRooms();
+  const bookedNights = await getBookedNightsByRoom(rooms);
   return (
     <>
       <header className="operations-heading">
@@ -21,6 +22,7 @@ export default async function NewGuestBooking() {
           rooms={rooms}
           requestKey={randomUUID()}
           today={businessDate()}
+          bookedNights={bookedNights}
         />
       ) : (
         <p className="notice">

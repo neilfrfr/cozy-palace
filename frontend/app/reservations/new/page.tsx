@@ -1,6 +1,7 @@
 import { randomUUID } from "node:crypto";
 import { requireCustomer } from "@/lib/auth/authorize";
-import { getRooms } from "@/lib/reservations/service";
+import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
+import { businessDate } from "@/lib/operations/schema";
 import { ReservationForm } from "@/components/reservation-form";
 import { WorkspaceNav } from "@/components/workspace-nav";
 export const dynamic = "force-dynamic";
@@ -22,6 +23,7 @@ export default async function NewReservation({
   );
   await requireCustomer("/reservations/new?" + new URLSearchParams(safe));
   const rooms = await getRooms();
+  const bookedNights = await getBookedNightsByRoom(rooms);
   return (
     <>
       <WorkspaceNav />
@@ -33,6 +35,8 @@ export default async function NewReservation({
         rooms={rooms}
         defaults={defaults}
         requestKey={randomUUID()}
+        bookedNights={bookedNights}
+        today={businessDate()}
       />
     </>
   );

@@ -8,14 +8,22 @@ import {
 } from "@/app/actions/reservations";
 import { errorMessages } from "@/lib/reservations/errors";
 import type { Room, Reservation } from "@/lib/reservations/types";
+import { addDays } from "@/lib/reservations/availability";
+import { StayDates } from "@/components/stay-dates";
 export function ReservationForm({
   rooms,
   existing,
   defaults = {},
   requestKey,
+  bookedNights,
+  today,
 }: {
   rooms: Room[];
   existing?: Reservation;
+  /** Booked nights per room id, greyed out in the calendars. */
+  bookedNights: Record<string, string[]>;
+  /** Today in the hotel's time zone (YYYY-MM-DD). */
+  today: string;
   defaults?: {
     room?: string;
     checkIn?: string;
@@ -28,6 +36,9 @@ export function ReservationForm({
   const [pending, start] = useTransition();
   const [error, setError] = useState("");
   const initial = existing?.room_bookings[0];
+  const [roomId, setRoomId] = useState(
+    initial?.room_id || defaults.room || rooms[0]?.id || "",
+  );
   function submit(form: FormData) {
     setError("");
     const input = {
@@ -65,7 +76,8 @@ export function ReservationForm({
           Your room
           <select
             name="roomId"
-            defaultValue={initial?.room_id || defaults.room || rooms[0]?.id}
+            value={roomId}
+            onChange={(event) => setRoomId(event.target.value)}
             required
           >
             {rooms.map((room) => (
@@ -78,24 +90,16 @@ export function ReservationForm({
             ))}
           </select>
         </label>
-        <label>
-          Check-in
-          <input
-            type="date"
-            name="checkIn"
-            defaultValue={initial?.check_in || defaults.checkIn}
-            required
-          />
-        </label>
-        <label>
-          Check-out
-          <input
-            type="date"
-            name="checkOut"
-            defaultValue={initial?.check_out || defaults.checkOut}
-            required
-          />
-        </label>
+        <StayDates
+          bookedNights={bookedNights[roomId] ?? []}
+          min={
+            initial?.check_in && initial.check_in < addDays(today, 1)
+              ? initial.check_in
+              : addDays(today, 1)
+          }
+          defaultCheckIn={initial?.check_in || defaults.checkIn}
+          defaultCheckOut={initial?.check_out || defaults.checkOut}
+        />
         <label>
           Guests
           <input

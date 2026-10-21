@@ -1,9 +1,10 @@
 import Image from "next/image";
 import Link from "next/link";
 import type { Room } from "@/lib/reservations/types";
+import { roomPhoto } from "@/lib/room-photos";
 
-// Only one property photo exists until room photography is supplied, so each
-// tile zooms into a different part of it.
+// Room types without their own photo zoom into a different part of the
+// property photo, so neighbouring tiles don't look identical.
 const framing = [
   { scale: 1.15, origin: "30% 70%" },
   { scale: 1.6, origin: "85% 20%" },
@@ -13,19 +14,21 @@ const framing = [
 
 /** Full-bleed photo tile used for the room showcase on the home page. */
 export function RoomTile({ room, index }: { room: Room; index: number }) {
+  const photo = roomPhoto(room.room_types.name);
+  const crop = photo ? { scale: 1, origin: "center" } : framing[index % framing.length];
   return (
     <article className="room-tile">
       <div
         className="room-tile-media"
         style={
           {
-            "--crop-scale": framing[index % framing.length].scale,
-            "--crop-origin": framing[index % framing.length].origin,
+            "--crop-scale": crop.scale,
+            "--crop-origin": crop.origin,
           } as React.CSSProperties
         }
       >
         <Image
-          src="/design/hotel-hero.jpg"
+          src={photo ?? "/design/hotel-hero.jpg"}
           alt=""
           fill
           sizes="(max-width: 760px) 100vw, 50vw"

@@ -2,7 +2,7 @@ import { PageBanner } from "@/components/page-banner";
 import { RoomCard } from "@/components/room-card";
 import { AvailabilitySearch } from "@/components/availability-search";
 import { isConfigured } from "@/lib/supabase/config";
-import { getRooms } from "@/lib/reservations/service";
+import { getFullyBookedNights, getRooms } from "@/lib/reservations/service";
 import { SetupNotice } from "@/components/setup-notice";
 import { z } from "zod";
 export const dynamic = "force-dynamic";
@@ -23,12 +23,14 @@ export default async function Rooms({
     })
     .refine((v) => v.checkOut > v.checkIn)
     .safeParse(p);
+  let bookedNights: string[] = [];
   if (configured) {
     try {
       rooms = await getRooms(filters.success ? filters.data : undefined);
     } catch {
       error = "We could not load the rooms. Please refresh and try again.";
     }
+    bookedNights = await getFullyBookedNights();
   }
   return (
     <div className="public-page">
@@ -38,7 +40,12 @@ export default async function Rooms({
         intro="Choose your dates and who is joining you. We’ll check availability again when you submit your reservation request."
         position="center 40%"
       />
-      <AvailabilitySearch configured={configured} defaults={p} variant="bar" />
+      <AvailabilitySearch
+        configured={configured}
+        defaults={p}
+        variant="bar"
+        bookedNights={bookedNights}
+      />
       {!configured && <SetupNotice />}
       {configured && p.checkIn && !filters.success && (
         <div className="notice error" role="alert">

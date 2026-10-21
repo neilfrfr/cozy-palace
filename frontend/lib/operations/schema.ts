@@ -1,5 +1,6 @@
 import { z } from "zod";
 import { reservationSchema, updateSchema } from "@/lib/reservations/schema";
+import { isValidPhone } from "@/lib/phone";
 const optional = <T extends z.ZodType<string>>(schema: T) =>
   z.preprocess(
     (v) => (typeof v === "string" && !v.trim() ? undefined : v),
@@ -8,7 +9,7 @@ const optional = <T extends z.ZodType<string>>(schema: T) =>
 const fields = {
   guestFullName: z.string().trim().min(1).max(100),
   guestEmail: optional(z.email().trim().max(254)),
-  guestPhone: optional(z.string().trim().max(32)),
+  guestPhone: optional(z.string().trim().max(32).refine(isValidPhone)),
 };
 export const guestSchema = reservationSchema.extend(fields);
 export const guestUpdateSchema = updateSchema.extend(fields);

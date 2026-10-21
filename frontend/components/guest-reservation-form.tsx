@@ -8,7 +8,15 @@ import {
   updateOperationalBookingAction,
   quoteGuestBookingAction,
 } from "@/app/staff/reservations/actions";
+import * as Flags from "country-flag-icons/react/3x2";
+import { StayDates } from "@/components/stay-dates";
 import { errorMessages } from "@/lib/reservations/errors";
+import {
+  phoneCountries,
+  phoneCountry as findPhoneCountry,
+  phoneError,
+  splitPhoneNumber,
+} from "@/lib/phone";
 import type { Room } from "@/lib/reservations/types";
 import type { OperationalReservation } from "@/lib/operations/service";
 type Input = {
@@ -23,33 +31,19 @@ type Input = {
   id?: string;
   version?: number;
 };
-const phoneCountries = [
-  { name: "Philippines", code: "+63", digits: 10 },
-  { name: "Singapore", code: "+65", digits: 8 },
-  { name: "United States / Canada", code: "+1", digits: 10 },
-  { name: "United Kingdom", code: "+44", digits: 10 },
-  { name: "Australia", code: "+61", digits: 9 },
-  { name: "India", code: "+91", digits: 10 },
-];
-function splitPhoneNumber(value: string) {
-  const country = [...phoneCountries]
-    .sort((a, b) => b.code.length - a.code.length)
-    .find((candidate) => value.startsWith(candidate.code));
-  return {
-    countryCode: country?.code ?? "+63",
-    digits: value.slice(country?.code.length ?? 0).replace(/\D/g, ""),
-  };
-}
 export function GuestReservationForm({
   rooms,
   requestKey,
   today,
   existing,
+  bookedNights,
 }: {
   rooms: Room[];
   requestKey: string;
   today: string;
   existing?: OperationalReservation;
+  /** Booked nights per room id, greyed out in the calendars. */
+  bookedNights: Record<string, string[]>;
 }) {
   const [pending, start] = useTransition(),
     [error, setError] = useState(""),
@@ -65,10 +59,18 @@ export function GuestReservationForm({
     } | null>(null);
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
+  const [roomId, setRoomId] = useState(allocation?.room_id ?? rooms[0]?.id ?? "");
   const online = existing?.booking_source === "customer_online";
-  const maxPhoneDigits = phoneCountries.find((c) => c.code === phoneCountry)?.digits ?? 15;
+  const selectedCountry = findPhoneCountry(phoneCountry);
+  const maxPhoneDigits = selectedCountry?.digits ?? 15;
+  const Flag = selectedCountry ? Flags[selectedCountry.iso] : undefined;
+  const phoneProblem = phoneDigits ? phoneError(phoneCountry, phoneDigits) : "";
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (phoneProblem) {
+      setError(phoneProblem);
+      return;
+    }
     const f = new FormData(event.currentTarget);
     const input: Input = {
       roomId: String(f.get("roomId")),
@@ -162,14 +164,17 @@ export function GuestReservationForm({
                   <label htmlFor="guestPhoneDigits">Guest phone (optional)</label>
                   <div className="phone-input-row">
                     <div className="phone-country">
-                    <span className="phone-country-code" aria-hidden="true">{phoneCountry}</span>
+                    <span className="phone-country-code" aria-hidden="true">
+                      {Flag && <Flag className="phone-flag" />}
+                      {phoneCountry}
+                    </span>
                     <select
                       name="phoneCountry"
                       aria-label="Phone country code"
                       value={phoneCountry}
                       onChange={(event) => {
                         setPhoneCountry(event.target.value);
-                        setPhoneDigits((digits) => digits.replace(/\D/g, "").slice(0, phoneCountries.find((c) => c.code === event.target.value)?.digits ?? 15));
+                        setPhoneDigits((digits) => digits.replace(/\D/g, "").slice(0, findPhoneCountry(event.target.value)?.digits ?? 15));
                       }}
                     >
                       {phoneCountries.map((country) => <option key={country.code} value={country.code}>{country.name} ({country.code})</option>)}
@@ -186,8 +191,20 @@ export function GuestReservationForm({
                       onChange={(event) => setPhoneDigits(event.target.value.replace(/\D/g, "").slice(0, maxPhoneDigits))}
                       placeholder="Digits only"
                       autoComplete="tel-national"
+                      aria-invalid={phoneProblem && phoneDigits.length >= maxPhoneDigits ? true : undefined}
+                      aria-describedby="guestPhoneRule"
                     />
                   </div>
+                  <p
+                    id="guestPhoneRule"
+                    className={
+                      phoneProblem && phoneDigits.length >= maxPhoneDigits
+                        ? "field-hint error"
+                        : "field-hint"
+                    }
+                  >
+                    {selectedCountry?.rule}
+                  </p>
                 </div>
               </>
             )}
@@ -196,7 +213,8 @@ export function GuestReservationForm({
               <select
                 name="roomId"
                 required
-                defaultValue={allocation?.room_id ?? rooms[0]?.id}
+                value={roomId}
+                onChange={(event) => setRoomId(event.target.value)}
               >
                 {rooms.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -206,26 +224,16 @@ export function GuestReservationForm({
                 ))}
               </select>
             </label>
-            <label>
-              Check-in
-              <input
-                name="checkIn"
-                type="date"
-                min={today}
-                required
-                defaultValue={allocation?.check_in ?? today}
-              />
-            </label>
-            <label>
-              Check-out
-              <input
-                name="checkOut"
-                type="date"
-                min={today}
-                required
-                defaultValue={allocation?.check_out}
-              />
-            </label>
+            <StayDates
+              bookedNights={bookedNights[roomId] ?? []}
+              min={
+                allocation?.check_in && allocation.check_in < today
+                  ? allocation.check_in
+                  : today
+              }
+              defaultCheckIn={allocation?.check_in ?? today}
+              defaultCheckOut={allocation?.check_out}
+            />
             <label>
               Guests
               <input
