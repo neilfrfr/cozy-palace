@@ -40,7 +40,9 @@ test("mobile navigation stays within viewport", async ({ page }) => {
     ),
   ).toBe(true);
   await expect(
-    page.getByRole("link", { name: "My Reservations", exact: true }),
+    page
+      .getByRole("navigation", { name: "Main navigation" })
+      .getByRole("link", { name: "My Reservations", exact: true }),
   ).toBeVisible();
 });
 
@@ -189,7 +191,7 @@ test("staff onboarding has a discoverable registration portal", async ({
 }) => {
   await page.goto("/login");
   await page
-    .getByRole("link", { name: "Staff registration", exact: true })
+    .getByRole("link", { name: "Staff Registration", exact: true })
     .click();
   await expect(page).toHaveURL(/\/staff\/register$/);
   await expect(
@@ -215,11 +217,15 @@ test("staff onboarding has a discoverable registration portal", async ({
   await expect(page.locator("select[name=role], input[name=role]")).toHaveCount(
     0,
   );
-  await page.getByRole("link", { name: "Sign in", exact: true }).last().click();
+  await page
+    .getByRole("main")
+    .getByRole("link", { name: "Sign In", exact: true })
+    .click();
   await expect(page).toHaveURL(/\/login\?next=%2Fstaff$/);
   await page.goto("/register");
   await page
-    .getByRole("link", { name: "Staff registration", exact: true })
+    .getByRole("main")
+    .getByRole("link", { name: "Staff Registration", exact: true })
     .click();
   await expect(page).toHaveURL(/\/staff\/register$/);
   await page.setViewportSize({ width: 360, height: 800 });
