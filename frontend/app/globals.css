@@ -1513,7 +1513,7 @@ body:has(.staff-layout) .footer {
   text-decoration: none;
 }
 .status-ledger a:hover {
-  text-decoration: underline;
+  text-decoration: none;
 }
 .access-count strong {
   font-size: 24px;
@@ -1697,10 +1697,20 @@ button.primary:hover {
 .back-link:hover,
 .login a:not(.button):hover,
 .workspace-nav a:hover,
-.admin-sidebar nav a:hover,
+.workspace-nav .plain:hover,
 .staff-removal button:hover {
   background: rgba(21, 34, 56, 0.08);
   color: var(--navy);
+  text-decoration: underline;
+  text-underline-offset: 3px;
+}
+.workspace-nav .plain {
+  cursor: pointer;
+  border-radius: 4px;
+}
+.admin-sidebar nav a:hover {
+  background: rgba(255, 255, 255, 0.1);
+  color: #fff;
   text-decoration: underline;
   text-underline-offset: 3px;
 }
@@ -1823,10 +1833,6 @@ button.primary:hover {
 .pending-registrations strong {
   color: var(--navy);
 }
-.inventory-heading {
-  padding-top: 26px;
-  border-top: 1px solid var(--line);
-}
 .admin-sidebar {
   display: flex;
   flex-direction: column;
@@ -1941,6 +1947,24 @@ button.primary:hover {
 .phone-input-row select,
 .phone-input-row input {
   margin-top: 7px;
+}
+.phone-country {
+  position: relative;
+}
+.phone-country select {
+  color: transparent;
+}
+.phone-country option {
+  color: var(--ink);
+}
+.phone-country-code {
+  position: absolute;
+  inset: 7px auto 0 0;
+  display: flex;
+  align-items: center;
+  padding: 0 13px;
+  color: var(--ink);
+  pointer-events: none;
 }
 .profile-placeholder {
   max-width: 720px;

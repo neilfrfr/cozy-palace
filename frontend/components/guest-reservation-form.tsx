@@ -161,6 +161,8 @@ export function GuestReservationForm({
                 <div className="phone-field">
                   <label htmlFor="guestPhoneDigits">Guest phone (optional)</label>
                   <div className="phone-input-row">
+                    <div className="phone-country">
+                    <span className="phone-country-code" aria-hidden="true">{phoneCountry}</span>
                     <select
                       name="phoneCountry"
                       aria-label="Phone country code"
@@ -172,6 +174,7 @@ export function GuestReservationForm({
                     >
                       {phoneCountries.map((country) => <option key={country.code} value={country.code}>{country.name} ({country.code})</option>)}
                     </select>
+                    </div>
                     <input
                       id="guestPhoneDigits"
                       name="phoneDigits"

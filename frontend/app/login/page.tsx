@@ -38,7 +38,7 @@ export default async function Login({
             recovery link.
           </div>
         )}
-        <LoginForm next={safeRedirect(p.next)} configured={isConfigured()} />
+        <LoginForm next={p.next ? safeRedirect(p.next) : ""} configured={isConfigured()} />
         <details className="terms-panel">
           <summary>Terms and Conditions</summary>
           <p>Please review these terms before creating your account.</p>

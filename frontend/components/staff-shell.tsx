@@ -25,13 +25,13 @@ export function StaffSidebar() {
           </Link>
         ))}
       </nav>
+      <form action={logoutAction} className="sidebar-signout-form">
+        <button className="plain sidebar-signout">Sign out</button>
+      </form>
       <div className="sidebar-note">
         Guest bookings and hotel service. Management controls are available to
         administrators.
       </div>
-      <form action={logoutAction} className="sidebar-signout-form">
-        <button className="plain sidebar-signout">Sign out</button>
-      </form>
     </aside>
   );
 }

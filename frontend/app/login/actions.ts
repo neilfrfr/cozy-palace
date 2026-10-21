@@ -18,8 +18,9 @@ export async function loginAction(_state: { message: string }, form: FormData) {
       message: "We could not sign you in. Check your email and password.",
     };
   await db.rpc("accept_staff_invitation");
-  const next = safeRedirect(String(form.get("next") || ""));
-  if (next === "/reservations") {
+  const requested = String(form.get("next") || "");
+  const next = requested ? safeRedirect(requested) : "/";
+  if (next === "/" || next === "/reservations") {
     const { data: identity } = await db.auth.getUser();
     const { data: role } = await db
       .from("staff_roles")

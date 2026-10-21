@@ -30,7 +30,7 @@ export function AdminSidebar() {
           </Link>
         ))}
       </nav>
-      <form action={logoutAction}>
+      <form action={logoutAction} className="sidebar-signout-form">
         <button className="plain sidebar-signout">Sign out</button>
       </form>
     </aside>
