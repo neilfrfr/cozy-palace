@@ -4,6 +4,7 @@ import { z } from "zod";
 import { isConfigured } from "@/lib/supabase/config";
 import { getRoom } from "@/lib/inventory/service";
 import { SetupNotice } from "@/components/setup-notice";
+import { RoomPhoto } from "@/components/room-photo";
 export const dynamic = "force-dynamic";
 export default async function RoomDetails({
   params,
@@ -40,6 +41,7 @@ export default async function RoomDetails({
       </p>
       <h1>{room.room_types.name}</h1>
       <p className="intro">{room.room_types.description}</p>
+      <RoomPhoto name={room.room_types.name} />
       <div className="panel">
         <dl className="details">
           <div>

@@ -38,7 +38,7 @@ export default async function Login({
             recovery link.
           </div>
         )}
-        <LoginForm next={safeRedirect(p.next)} configured={isConfigured()} />
+        <LoginForm next={p.next ? safeRedirect(p.next) : ""} configured={isConfigured()} />
       </div>
     </div>
   );

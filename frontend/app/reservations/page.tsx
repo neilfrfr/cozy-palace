@@ -14,14 +14,13 @@ export default async function Reservations({
     <>
       <WorkspaceNav />
       <div className="section-head">
-        <h1>My reservations</h1>
+        <h1>Your Reservations</h1>
         <Link className="button" href="/rooms">
           Plan a stay
         </Link>
       </div>
       <p className="intro">
-        Your drafts, upcoming stays and booking progress. Showing your latest 50
-        reservations.
+        Review your saved drafts, upcoming stays, and booking progress. This list shows your latest 50 reservations.
       </p>
       {p.notice === "forbidden" && (
         <div className="notice error" role="alert">

@@ -1,8 +1,9 @@
 import Link from "next/link";
 import { getManagementDashboard } from "@/lib/operations/service";
+import { formatLabel } from "@/lib/format";
 const labels: Record<string, string> = {
   rooms: "Rooms",
-  restaurant_tables: "Restaurant tables",
+  restaurant_tables: "Restaurant Tables",
   staff_members: "Staff records",
   reservations: "Reservation records",
 };
@@ -12,11 +13,11 @@ export default async function ManagementDashboard() {
     <>
       <header className="operations-heading">
         <div>
-          <h1>Management overview</h1>
+          <h1>Management Overview</h1>
           <p>People, inventory and accountable hotel operations.</p>
         </div>
-        <Link className="button gold" href="/admin/staff">
-          Manage staff
+        <Link className="button gold manage-staff-button" href="/admin/staff">
+          Manage Staff
         </Link>
       </header>
       <section
@@ -42,7 +43,7 @@ export default async function ManagementDashboard() {
                 key={item.status}
                 href={"/staff/reservations?status=" + item.status}
               >
-                <span>{item.status.replaceAll("_", " ")}</span>
+                <span>{formatLabel(item.status)}</span>
                 <strong>{item.count}</strong>
               </Link>
             ))}
@@ -53,7 +54,7 @@ export default async function ManagementDashboard() {
         </section>
         <section className="operations-section">
           <h2>Staff access</h2>
-          <p className="access-count">
+          <p className="access-count pending-registrations">
             <strong>{data.pendingStaff}</strong> pending registrations
           </p>
           <p>
@@ -62,20 +63,20 @@ export default async function ManagementDashboard() {
           </p>
           <div className="actions">
             <Link className="button secondary" href="/admin/staff">
-              Staff directory
+              Staff Directory
             </Link>
-            <Link className="text-link" href="/staff/register">
-              Registration portal
+            <Link className="button secondary" href="/staff/register">
+            Registration Portal
             </Link>
           </div>
-          <h2 className="section-subheading">Inventory</h2>
+          <h2 className="section-subheading inventory-heading">Inventory</h2>
           <p>
             Review live rooms and restaurant tables. Inventory lists are
             read-only in this increment.
           </p>
           <div className="actions">
-            <Link href="/admin/rooms">Rooms</Link>
-            <Link href="/admin/tables">Restaurant tables</Link>
+            <Link className="button secondary" href="/admin/rooms">Rooms</Link>
+            <Link className="button secondary" href="/admin/tables">Restaurant Tables</Link>
           </div>
         </section>
       </div>
@@ -106,9 +107,9 @@ export default async function ManagementDashboard() {
                     <td>
                       {r.actor_name}
                       <br />
-                      <small>{r.actor_role}</small>
+                      <small>{formatLabel(r.actor_role)}</small>
                     </td>
-                    <td>{r.action.replaceAll("_", " ")}</td>
+                    <td>{formatLabel(r.action)}</td>
                     <td>{r.reference ?? r.record_id}</td>
                     <td>
                       {new Intl.DateTimeFormat("en-PH", {

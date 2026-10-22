@@ -24,15 +24,14 @@ export default async function StaffDirectory({
       <div className="section-heading">
         <div>
           <p className="eyebrow">Administration</p>
-          <h1>Staff directory</h1>
+          <h1>Staff Directory</h1>
+          <p className="subtle staff-directory-description">
+            Create onboarding records, update employee details, and revoke staff access.
+          </p>
         </div>
-        <p className="subtle">
-          Create onboarding records, update employee details, and revoke staff
-          access.
-        </p>
       </div>
       <div className="notice">
-        Share the <Link href="/staff/register">Staff registration portal</Link>
+        Share the <Link href="/staff/register">Staff Registration Portal</Link>
         {" "}with employees. They register with the approved email, confirm it,
         then sign in. No email invitation is sent by this screen. Removing a
         record revokes staff access; customer reservations and audit history

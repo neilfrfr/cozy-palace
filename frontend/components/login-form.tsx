@@ -1,5 +1,6 @@
 "use client";
-import { useActionState } from "react";
+import Link from "next/link";
+import { useActionState, useState } from "react";
 import { PasswordInput } from "@/components/password-input";
 import { loginAction } from "@/app/login/actions";
 export function LoginForm({
@@ -10,6 +11,7 @@ export function LoginForm({
   configured: boolean;
 }) {
   const [state, action, pending] = useActionState(loginAction, { message: "" });
+  const [accepted, setAccepted] = useState(false);
   return (
     <form action={action} className="form-panel">
       <input type="hidden" name="next" value={next} />
@@ -35,22 +37,35 @@ export function LoginForm({
           />
         </div>
       </div>
+      <label className="terms-check">
+        <input
+          type="checkbox"
+          name="acceptTerms"
+          checked={accepted}
+          onChange={(event) => setAccepted(event.target.checked)}
+        />
+        <span>
+          I agree to the <Link href="/terms">Terms and Conditions</Link>
+        </span>
+      </label>
       {state.message && (
         <p className="notice error" role="alert">
           {state.message}
         </p>
       )}
       <div className="actions">
-        <button className="primary" disabled={pending || !configured}>
+        <button className="primary" disabled={pending || !configured || !accepted}>
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </div>
-      <p className="subtle">
+      <p className="subtle login-register-link">
         New here?{" "}
         <a href={"/register?next=" + encodeURIComponent(next)}>
-          Create an account
+          Create an Account
         </a>
-        . Team members: <a href="/staff/register">Staff registration</a> using
+      </p>
+      <p className="subtle login-staff-note">
+        Team members: <a href="/staff/register">Staff Registration</a> using
         the email approved by your administrator.
       </p>
       <p>

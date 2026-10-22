@@ -1,12 +1,16 @@
+import { PageBanner } from "@/components/page-banner";
 import Link from "next/link";
 export default function Contact() {
   return (
-    <>
-      <p className="eyebrow">COZY PALACE</p>
-      <h1>Get in touch.</h1>
-      <p className="intro">Questions about your reservation?</p>
+    <div className="public-page">
+      <PageBanner
+        eyebrow="Contact"
+        title="Get in touch."
+        intro="Questions about your reservation?"
+        position="center 25%"
+      />
       <section className="panel">
-        <h2>Contact information</h2>
+        <h2>Contact Information</h2>
         <p>Contact details are not available yet.</p>
         <p className="subtle">
           A verified phone number, email address, business address and opening
@@ -14,13 +18,13 @@ export default function Contact() {
         </p>
         <div className="actions">
           <Link className="button" href="/reservations">
-            View my reservations
+            View My Reservations
           </Link>
           <Link className="button secondary" href="/rooms">
             Explore rooms
           </Link>
         </div>
       </section>
-    </>
+    </div>
   );
 }

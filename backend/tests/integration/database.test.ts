@@ -204,6 +204,42 @@ it("releases expired pending holds before a new allocation", async () => {
       .rows[0],
   ).toEqual({ status: "expired" });
 });
+it("shows visitors booked date ranges without disclosing who booked them", async () => {
+  await db.exec("set role anon");
+  try {
+    const result = await db.query<Record<string, string>>(
+      "select room_id,check_in::text as check_in,check_out::text as check_out from room_booked_ranges('2026-12-01','2026-12-10')",
+    );
+    expect(result.fields.map((f) => f.name)).toEqual([
+      "room_id",
+      "check_in",
+      "check_out",
+    ]);
+    expect(result.rows).toEqual(
+      expect.arrayContaining([
+        { room_id: room, check_in: "2026-12-01", check_out: "2026-12-03" },
+        { room_id: room, check_in: "2026-12-03", check_out: "2026-12-04" },
+      ]),
+    );
+    expect(result.rows).not.toContainEqual(
+      expect.objectContaining({ check_in: "2026-12-02" }),
+    );
+    await expect(
+      db.query("select * from room_booked_ranges('2026-12-10','2026-12-01')"),
+    ).rejects.toThrow("INVALID_INPUT");
+  } finally {
+    await db.exec("reset role");
+  }
+  const own = await db.query<{ id: string }>(
+    "select r.id from reservations r join room_bookings b on b.reservation_id=r.id where b.check_in='2026-12-01' and b.blocks_inventory",
+  );
+  const excluded = await as(
+    a,
+    "select check_in::text as check_in from room_booked_ranges('2026-12-01','2026-12-10',$1)",
+    [own.rows[0].id],
+  );
+  expect(excluded.rows).not.toContainEqual({ check_in: "2026-12-01" });
+});
 it("shows conflict-free availability to a visitor without disclosing bookings", async () => {
   await db.exec("set role anon");
   try {

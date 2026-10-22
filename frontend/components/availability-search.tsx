@@ -1,30 +1,29 @@
+import { StayDates } from "@/components/stay-dates";
+import { businessDate } from "@/lib/operations/schema";
 export function AvailabilitySearch({
   configured,
   defaults = {},
+  variant,
+  bookedNights = [],
 }: {
   configured: boolean;
   defaults?: { checkIn?: string; checkOut?: string; guests?: string };
+  /** "bar" renders the dark booking bar that overlaps a hero photo. */
+  variant?: "bar";
+  /** Nights with no room left, greyed out in the calendars. */
+  bookedNights?: string[];
 }) {
   return (
-    <form className="search" action="/rooms">
-      <label>
-        Check-in
-        <input
-          type="date"
-          name="checkIn"
-          required
-          defaultValue={defaults.checkIn}
-        />
-      </label>
-      <label>
-        Check-out
-        <input
-          type="date"
-          name="checkOut"
-          required
-          defaultValue={defaults.checkOut}
-        />
-      </label>
+    <form
+      className={variant === "bar" ? "search booking-bar" : "search"}
+      action="/rooms"
+    >
+      <StayDates
+        bookedNights={bookedNights}
+        min={businessDate()}
+        defaultCheckIn={defaults.checkIn}
+        defaultCheckOut={defaults.checkOut}
+      />
       <label>
         Guests
         <input

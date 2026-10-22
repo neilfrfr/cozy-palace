@@ -1,6 +1,7 @@
 import Link from "next/link";
 import type { Reservation } from "@/lib/reservations/types";
 import { ReservationControls } from "./reservation-controls";
+import { formatLabel } from "@/lib/format";
 export function ReservationList({
   rows,
   staff = false,
@@ -21,7 +22,7 @@ export function ReservationList({
           className="button"
           href={staff ? "/staff/reservations/new" : "/rooms"}
         >
-          {staff ? "New guest booking" : "Explore rooms"}
+          {staff ? "New Guest Booking" : "Explore rooms"}
         </Link>
       </section>
     );
@@ -54,7 +55,7 @@ export function ReservationList({
               <td>₱{Number(r.total).toLocaleString("en-PH")}</td>
               <td>
                 <span className={"status " + r.status}>
-                  {r.status.replace("_", " ")}
+                  {formatLabel(r.status)}
                 </span>
               </td>
               <td>

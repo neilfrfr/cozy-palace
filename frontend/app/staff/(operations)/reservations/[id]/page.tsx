@@ -3,7 +3,7 @@ import { notFound } from "next/navigation";
 import { z } from "zod";
 import Link from "next/link";
 import { getOperationalReservation } from "@/lib/operations/service";
-import { getRooms } from "@/lib/reservations/service";
+import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
 import { businessDate } from "@/lib/operations/schema";
 import { GuestReservationForm } from "@/components/guest-reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
@@ -18,6 +18,9 @@ export default async function OperationalDetail({
   const r = await getOperationalReservation(id);
   if (!r) notFound();
   const a = r.room_bookings[0];
+  const rooms = ["pending", "confirmed"].includes(r.status)
+    ? await getRooms()
+    : [];
   return (
     <>
       <Link className="back-link" href="/staff/reservations">
@@ -76,10 +79,11 @@ export default async function OperationalDetail({
         <section className="operations-section">
           <h2>Update booking</h2>
           <GuestReservationForm
-            rooms={await getRooms()}
+            rooms={rooms}
             existing={r}
             requestKey={randomUUID()}
             today={businessDate()}
+            bookedNights={await getBookedNightsByRoom(rooms, r.id)}
           />
         </section>
       )}

@@ -5,6 +5,8 @@ import {
   operationalStatuses,
 } from "@/lib/operations/schema";
 import { OperationalReservationList } from "@/components/operational-reservation-list";
+import { formatLabel } from "@/lib/format";
+import { DatePicker } from "@/components/date-picker";
 export const dynamic = "force-dynamic";
 export default async function OperationsQueue({
   searchParams,
@@ -32,7 +34,7 @@ export default async function OperationsQueue({
           </p>
         </div>
         <Link className="button gold" href="/staff/reservations/new">
-          New guest booking
+          New Guest Booking
         </Link>
       </header>
       <form className="operations-filters" action="/staff/reservations">
@@ -40,17 +42,18 @@ export default async function OperationsQueue({
           Reference or guest
           <input name="q" defaultValue={filter.q} maxLength={100} />
         </label>
-        <label>
-          Arrival date
-          <input name="date" type="date" defaultValue={filter.date} />
-        </label>
+        <DatePicker
+          name="date"
+          label="Arrival date"
+          defaultValue={filter.date}
+        />
         <label>
           Status
           <select name="status" defaultValue={filter.status ?? ""}>
             <option value="">All statuses</option>
             {operationalStatuses.map((s) => (
               <option key={s} value={s}>
-                {s.replaceAll("_", " ")}
+                {formatLabel(s)}
               </option>
             ))}
           </select>

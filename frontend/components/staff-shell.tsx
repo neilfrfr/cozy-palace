@@ -13,8 +13,8 @@ export function StaffSidebar() {
         {[
           ["/staff", "Work overview"],
           ["/staff/reservations", "Reservations"],
-          ["/staff/reservations/new", "New guest booking"],
-          ["/account", "My profile"],
+          ["/staff/reservations/new", "New Guest Booking"],
+          ["/staff/profile", "My Profile"],
         ].map(([href, label]) => (
           <Link
             key={href}
@@ -25,13 +25,13 @@ export function StaffSidebar() {
           </Link>
         ))}
       </nav>
+      <form action={logoutAction} className="sidebar-signout-form">
+        <button className="plain sidebar-signout">Sign out</button>
+      </form>
       <div className="sidebar-note">
         Guest bookings and hotel service. Management controls are available to
         administrators.
       </div>
-      <form action={logoutAction}>
-        <button className="plain">Sign out</button>
-      </form>
     </aside>
   );
 }

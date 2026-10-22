@@ -10,6 +10,17 @@ export type StaffMember = {
   state: "pending" | "active";
   version: number;
 };
+const jobTitles = [
+  "Hotel Receptionist",
+  "Hotel Reservation Agent",
+  "Hotel Bell Attendant",
+  "Hotel Room Attendant",
+  "Hotel Maintenance Technician",
+  "Restaurant Waiter",
+  "Restaurant Bartender",
+  "Restaurant Chef",
+  "Room Service Attendant",
+];
 export function StaffEditor({ member }: { member?: StaffMember }) {
   const [state, submit, pending] = useActionState(staffAction, {
     message: "",
@@ -41,12 +52,13 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
         </label>
         <label>
           Job title
-          <input
-            name="jobTitle"
-            defaultValue={member?.job_title}
-            maxLength={100}
-            required
-          />
+          <select name="jobTitle" defaultValue={member?.job_title ?? ""} required>
+            {!member && <option value="" disabled>Select a job title</option>}
+            {member && !jobTitles.includes(member.job_title) && (
+              <option value={member.job_title}>{member.job_title}</option>
+            )}
+            {jobTitles.map((title) => <option key={title} value={title}>{title}</option>)}
+          </select>
         </label>
         {member ? (
           <p className="full">

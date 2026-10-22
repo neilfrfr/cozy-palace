@@ -3,6 +3,7 @@ import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/config", () => ({ isConfigured: () => true }));
 vi.mock("@/lib/reservations/service", () => ({
+  getFullyBookedNights: async () => [],
   getRooms: async () => [
     {
       id: "10000000-0000-4000-8000-000000000001",

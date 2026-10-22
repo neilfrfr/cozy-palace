@@ -6,7 +6,7 @@ import { isConfigured } from "@/lib/supabase/config";
 const next = "/staff";
 const signInUrl = "/login?next=" + encodeURIComponent(next);
 
-export const metadata = { title: "Staff registration | Cozy Palace" };
+export const metadata = { title: "Staff Registration | Cozy Palace" };
 
 export default function StaffRegister() {
   const configured = isConfigured();
@@ -16,7 +16,7 @@ export default function StaffRegister() {
       <h1>Create your staff account</h1>
       <p className="intro">
         Use the exact email approved by your administrator. Create your account,
-        confirm your email, then sign in to open the staff workspace.
+        confirm your email, then <Link href={signInUrl}>sign in with your approved email</Link> to open the staff workspace.
       </p>
       <p className="notice">
         Ask your administrator to add you to the staff directory first.
@@ -26,7 +26,7 @@ export default function StaffRegister() {
       {!configured && <SetupNotice />}
       <AccountAuthForm mode="register" configured={configured} next={next} />
       <p>
-        Already have an account? <Link href={signInUrl}>Sign in</Link> with your
+        Already have an account? <Link href={signInUrl}>Sign In</Link> with your
         approved email; you do not need to register again.
       </p>
       <p>
@@ -35,7 +35,7 @@ export default function StaffRegister() {
         </Link>
       </p>
       <p className="subtle">
-        Booking a stay? <Link href="/register">Customer registration</Link>
+        Booking a stay? <Link href="/register">Customer Registration</Link>
       </p>
     </div>
   );

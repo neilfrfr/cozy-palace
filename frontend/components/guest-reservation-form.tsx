@@ -8,7 +8,15 @@ import {
   updateOperationalBookingAction,
   quoteGuestBookingAction,
 } from "@/app/staff/reservations/actions";
+import * as Flags from "country-flag-icons/react/3x2";
+import { StayDates } from "@/components/stay-dates";
 import { errorMessages } from "@/lib/reservations/errors";
+import {
+  phoneCountries,
+  phoneCountry as findPhoneCountry,
+  phoneError,
+  splitPhoneNumber,
+} from "@/lib/phone";
 import type { Room } from "@/lib/reservations/types";
 import type { OperationalReservation } from "@/lib/operations/service";
 type Input = {
@@ -28,23 +36,41 @@ export function GuestReservationForm({
   requestKey,
   today,
   existing,
+  bookedNights,
 }: {
   rooms: Room[];
   requestKey: string;
   today: string;
   existing?: OperationalReservation;
+  /** Booked nights per room id, greyed out in the calendars. */
+  bookedNights: Record<string, string[]>;
 }) {
   const [pending, start] = useTransition(),
     [error, setError] = useState(""),
+    [phoneCountry, setPhoneCountry] = useState(() => {
+      return splitPhoneNumber(existing?.guest_phone ?? "").countryCode;
+    }),
+    [phoneDigits, setPhoneDigits] = useState(() => {
+      return splitPhoneNumber(existing?.guest_phone ?? "").digits;
+    }),
     [review, setReview] = useState<{
       input: Input;
       quote: { total: number; nights: number; rate: number; room: string };
     } | null>(null);
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
+  const [roomId, setRoomId] = useState(allocation?.room_id ?? rooms[0]?.id ?? "");
   const online = existing?.booking_source === "customer_online";
+  const selectedCountry = findPhoneCountry(phoneCountry);
+  const maxPhoneDigits = selectedCountry?.digits ?? 15;
+  const Flag = selectedCountry ? Flags[selectedCountry.iso] : undefined;
+  const phoneProblem = phoneDigits ? phoneError(phoneCountry, phoneDigits) : "";
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
+    if (phoneProblem) {
+      setError(phoneProblem);
+      return;
+    }
     const f = new FormData(event.currentTarget);
     const input: Input = {
       roomId: String(f.get("roomId")),
@@ -55,7 +81,9 @@ export function GuestReservationForm({
         f.get("guestFullName") ?? existing?.customer_name ?? "",
       ),
       guestEmail: String(f.get("guestEmail") ?? ""),
-      guestPhone: String(f.get("guestPhone") ?? ""),
+      guestPhone: String(f.get("phoneDigits") ?? "")
+        ? `${String(f.get("phoneCountry") ?? phoneCountry)}${String(f.get("phoneDigits") ?? "")}`
+        : "",
     };
     if (existing) {
       input.id = existing.id;
@@ -104,8 +132,8 @@ export function GuestReservationForm({
     <div className="guest-workflow">
       <form
         className="form-panel"
+        hidden={!!review}
         onSubmit={prepare}
-        onChange={() => setReview(null)}
       >
         <fieldset disabled={pending}>
           <legend>
@@ -132,15 +160,52 @@ export function GuestReservationForm({
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
-                <label>
-                  Guest phone (optional)
-                  <input
-                    name="guestPhone"
-                    type="tel"
-                    maxLength={32}
-                    defaultValue={existing?.guest_phone ?? ""}
-                  />
-                </label>
+                <div className="phone-field">
+                  <label htmlFor="guestPhoneDigits">Guest phone (optional)</label>
+                  <div className="phone-input-row">
+                    <div className="phone-country">
+                    <span className="phone-country-code" aria-hidden="true">
+                      {Flag && <Flag className="phone-flag" />}
+                      {phoneCountry}
+                    </span>
+                    <select
+                      name="phoneCountry"
+                      aria-label="Phone country code"
+                      value={phoneCountry}
+                      onChange={(event) => {
+                        setPhoneCountry(event.target.value);
+                        setPhoneDigits((digits) => digits.replace(/\D/g, "").slice(0, findPhoneCountry(event.target.value)?.digits ?? 15));
+                      }}
+                    >
+                      {phoneCountries.map((country) => <option key={country.code} value={country.code}>{country.name} ({country.code})</option>)}
+                    </select>
+                    </div>
+                    <input
+                      id="guestPhoneDigits"
+                      name="phoneDigits"
+                      type="tel"
+                      inputMode="numeric"
+                      pattern="[0-9]*"
+                      maxLength={maxPhoneDigits}
+                      value={phoneDigits}
+                      onChange={(event) => setPhoneDigits(event.target.value.replace(/\D/g, "").slice(0, maxPhoneDigits))}
+                      placeholder="Digits only"
+                      autoComplete="tel-national"
+                      aria-invalid={phoneProblem && phoneDigits.length >= maxPhoneDigits ? true : undefined}
+                      aria-describedby="guestPhoneRule"
+                    />
+                  </div>
+                  <p
+                    id="guestPhoneRule"
+                    className={
+                      phoneProblem && phoneDigits.length >= maxPhoneDigits
+                        ? "field-hint error"
+                        : "field-hint"
+                    }
+                  >
+                    {selectedCountry?.rule}
+                  </p>
+                </div>
               </>
             )}
             <label className="full">
@@ -148,7 +213,8 @@ export function GuestReservationForm({
               <select
                 name="roomId"
                 required
-                defaultValue={allocation?.room_id ?? rooms[0]?.id}
+                value={roomId}
+                onChange={(event) => setRoomId(event.target.value)}
               >
                 {rooms.map((r) => (
                   <option key={r.id} value={r.id}>
@@ -158,26 +224,16 @@ export function GuestReservationForm({
                 ))}
               </select>
             </label>
-            <label>
-              Check-in
-              <input
-                name="checkIn"
-                type="date"
-                min={today}
-                required
-                defaultValue={allocation?.check_in ?? today}
-              />
-            </label>
-            <label>
-              Check-out
-              <input
-                name="checkOut"
-                type="date"
-                min={today}
-                required
-                defaultValue={allocation?.check_out}
-              />
-            </label>
+            <StayDates
+              bookedNights={bookedNights[roomId] ?? []}
+              min={
+                allocation?.check_in && allocation.check_in < today
+                  ? allocation.check_in
+                  : today
+              }
+              defaultCheckIn={allocation?.check_in ?? today}
+              defaultCheckOut={allocation?.check_out}
+            />
             <label>
               Guests
               <input

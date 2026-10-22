@@ -3,14 +3,14 @@ import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { logoutAction } from "@/app/login/actions";
 const links = [
-  ["/admin", "Management overview"],
+  ["/admin", "Management Overview"],
   ["/staff/reservations", "Reservations"],
   ["/admin/rooms", "Rooms"],
-  ["/admin/tables", "Restaurant tables"],
-  ["/admin/staff", "Staff directory"],
-  ["/admin/activity", "Activity log"],
-  ["/account", "My profile"],
-  ["/", "Public website"],
+  ["/admin/tables", "Restaurant Tables"],
+  ["/admin/staff", "Staff Directory"],
+  ["/admin/activity", "Activity Log"],
+  ["/admin/profile", "My Profile"],
+  ["/", "Public Website"],
 ] as const;
 export function AdminSidebar() {
   const pathname = usePathname();
@@ -30,8 +30,8 @@ export function AdminSidebar() {
           </Link>
         ))}
       </nav>
-      <form action={logoutAction}>
-        <button className="plain">Sign out</button>
+      <form action={logoutAction} className="sidebar-signout-form">
+        <button className="plain sidebar-signout">Sign out</button>
       </form>
     </aside>
   );
