@@ -31,5 +31,8 @@
     "@next/eslint-plugin-next@16.4.2": {
       "fast-glob": "file:tools/next-eslint-glob"
     }
+  },
+  "dependencies": {
+    "country-flag-icons": "^1.6.20"
   }
 }

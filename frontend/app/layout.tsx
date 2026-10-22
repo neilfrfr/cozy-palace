@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
+import { readNavState } from "@/lib/auth/nav-state";
 import "./globals.css";
 import "./hotel.css";
 export const metadata: Metadata = {
@@ -10,6 +11,14 @@ export const metadata: Metadata = {
   },
   description: "Book your stay and keep every reservation in one place.",
 };
+/** My Reservations, or the work dashboard, once someone is signed in. */
+async function FooterStayLink() {
+  const { signedIn, home, employee } = await readNavState();
+  if (!signedIn) return null;
+  return (
+    <Link href={home}>{employee ? "Work dashboard" : "My Reservations"}</Link>
+  );
+}
 export default function RootLayout({
   children,
 }: {
@@ -43,7 +52,7 @@ export default function RootLayout({
             </nav>
             <nav className="footer-links" aria-label="Your stay">
               <h2>Your stay</h2>
-              <Link href="/reservations">My Reservations</Link>
+              <FooterStayLink />
               <Link href="/login">Sign in</Link>
               <Link href="/register">Create an Account</Link>
               <Link href="/staff/register">Staff Registration</Link>

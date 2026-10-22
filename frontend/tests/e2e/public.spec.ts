@@ -42,8 +42,12 @@ test("mobile navigation stays within viewport", async ({ page }) => {
   await expect(
     page
       .getByRole("navigation", { name: "Main navigation" })
-      .getByRole("link", { name: "My Reservations", exact: true }),
+      .getByRole("link", { name: "Rooms", exact: true }),
   ).toBeVisible();
+  // My Reservations is only offered once a customer has signed in.
+  await expect(
+    page.getByRole("link", { name: "My Reservations", exact: true }),
+  ).toHaveCount(0);
 });
 
 test("registration and recovery have clear accessible fields", async ({
