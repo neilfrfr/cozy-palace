@@ -33,8 +33,8 @@ Docker is optional when using the team's hosted Supabase development project. It
 Run these commands in VS Code's terminal or your normal terminal:
 
 ```sh
-git clone https://github.com/neilfrfr/Cozy-Palace-Hotel-and-Restaurant.git
-cd Cozy-Palace-Hotel-and-Restaurant
+git clone https://github.com/neilfrfr/cozy-palace.git
+cd cozy-palace
 npm ci
 ```
 
