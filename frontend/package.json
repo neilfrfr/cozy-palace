@@ -12,9 +12,6 @@
     "test:e2e": "playwright test",
     "test:e2e:connected": "playwright test --config=playwright.connected.config.ts"
   },
-  "engines": {
-    "node": ">=22"
-  },
   "dependencies": {
     "@supabase/ssr": "0.12.7",
     "@supabase/supabase-js": "2.118.0",
