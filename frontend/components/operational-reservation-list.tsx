@@ -60,7 +60,9 @@ export function OperationalReservationList({
               <td>
                 {r.booking_source === "staff_guest"
                   ? "Staff-entered guest"
-                  : "Customer online"}
+                  : r.booking_source === "guest_online"
+                    ? "Guest online"
+                    : "Customer online"}
               </td>
               <td>
                 <span className={"status " + r.status}>

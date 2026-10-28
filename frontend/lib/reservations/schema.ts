@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { isValidPhone } from "@/lib/phone";
 const date = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -26,6 +27,19 @@ export const updateSchema = z
   .object({ ...fields, id: z.uuid(), version: z.number().int().positive() })
   .strict()
   .refine(dates, { path: ["checkOut"], message: "Check the stay dates." });
+export const guestOnlineSchema = z
+  .object({
+    ...fields,
+    guestFullName: z.string().trim().min(2).max(100),
+    guestEmail: z.email().trim().max(254),
+    guestPhone: z.string().trim().refine(isValidPhone),
+    idempotencyKey: z.uuid(),
+  })
+  .strict()
+  .refine(dates, {
+    path: ["checkOut"],
+    message: "Check-out must be after check-in and within 365 nights.",
+  });
 export type ReservationInput = z.infer<typeof reservationSchema>;
 export function parseReservationInput(value: unknown): ReservationInput {
   return reservationSchema.parse(value);

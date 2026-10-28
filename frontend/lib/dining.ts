@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { guestFields } from "@/lib/operations/schema";
 import { errorMessages } from "@/lib/reservations/errors";
+import { isValidPhone } from "@/lib/phone";
 
 const halfHours = (from: number, to: number) =>
   Array.from({ length: (to - from) * 2 + 1 }, (_, i) => {
@@ -25,6 +26,12 @@ const booking = {
 };
 export const tableBookingSchema = z.object(booking).strict();
 export const walkInSchema = z.object({ ...booking, ...guestFields }).strict();
+export const guestOnlineTableSchema = z.object({
+  ...booking,
+  guestFullName: z.string().trim().min(2).max(100),
+  guestEmail: z.email().trim().max(254),
+  guestPhone: z.string().trim().refine(isValidPhone),
+}).strict();
 export const tableStatuses = [
   "confirmed",
   "seated",
@@ -38,7 +45,7 @@ export type TableBooking = {
   status: string;
   guests: number;
   version: number;
-  booking_source: "customer_online" | "staff_guest";
+  booking_source: "customer_online" | "staff_guest" | "guest_online";
   guest_full_name: string | null;
   guest_phone: string | null;
   customer?: { full_name: string } | null;
@@ -68,6 +75,7 @@ const diningErrors: Record<string, string> = {
   AVAILABILITY_CONFLICT:
     "Someone has just booked this table for that time. Choose another table or time.",
   INVALID_INPUT: "Check the date, time, party size and guest details.",
+  RATE_LIMITED: "We’ve received several requests for these contact details. Please try again in an hour or contact the hotel.",
   POLICY_RESTRICTED:
     "This booking can't be changed now. Seating and completing are for the booking's own day.",
   NOT_FOUND: "This table booking could not be found.",

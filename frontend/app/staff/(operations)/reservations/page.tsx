@@ -64,6 +64,7 @@ export default async function OperationsQueue({
             <option value="">All sources</option>
             <option value="customer_online">Customer online</option>
             <option value="staff_guest">Staff-entered guest</option>
+            <option value="guest_online">Guest online</option>
           </select>
         </label>
         <label className="filter-checkbox">

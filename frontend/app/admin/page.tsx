@@ -61,7 +61,7 @@ export default async function ManagementDashboard() {
             Review onboarding records and share the staff registration portal
             with approved employees.
           </p>
-          <div className="actions">
+          <div className="actions overview-actions">
             <Link className="button secondary" href="/admin/staff">
               Staff Directory
             </Link>
@@ -74,7 +74,7 @@ export default async function ManagementDashboard() {
             Review live rooms and restaurant tables. Inventory lists are
             read-only in this increment.
           </p>
-          <div className="actions">
+          <div className="actions overview-actions">
             <Link className="button secondary" href="/admin/rooms">Rooms</Link>
             <Link className="button secondary" href="/admin/tables">Restaurant Tables</Link>
           </div>

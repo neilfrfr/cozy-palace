@@ -13,6 +13,7 @@ import {
   tableBookingSchema,
   tableStatuses,
   walkInSchema,
+  guestOnlineTableSchema,
 } from "@/lib/dining";
 
 type Saved = { id: string; reference: string; status: string };
@@ -63,7 +64,22 @@ export async function bookTableAction(
   input: unknown,
 ): Promise<ActionResult<Saved>> {
   const who = await identity();
-  if (!who) return { ok: false, code: "UNAUTHORIZED" };
+  if (!who) {
+    if (!isConfigured()) return { ok: false, code: "SETUP_REQUIRED" };
+    const parsed = guestOnlineTableSchema.safeParse(input);
+    if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+    const p = parsed.data;
+    const db = await createClient();
+    return rpc(db, "create_guest_table_booking", {
+      p_table_id: p.tableId,
+      p_start_at: slotStart(p.date, p.time),
+      p_guests: p.guests,
+      p_guest_full_name: p.guestFullName,
+      p_guest_email: p.guestEmail,
+      p_guest_phone: p.guestPhone,
+      p_idempotency_key: p.idempotencyKey,
+    });
+  }
   const guest = who.role !== "customer" ? walkInSchema.safeParse(input) : null;
   const parsed = guest ?? tableBookingSchema.safeParse(input);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };

@@ -335,6 +335,75 @@ input:disabled {
   flex-wrap: wrap;
   margin-top: 26px;
 }
+.overview-actions {
+  margin-top: 14px;
+  gap: 10px;
+}
+.guest-booking-page {
+  width: min(100% - 40px, 1080px);
+  margin: 0 auto;
+  padding: 54px 0 88px;
+}
+.guest-online-form,
+.guest-lookup-layout .form-panel {
+  max-width: 900px;
+  margin-top: 28px;
+}
+.guest-online-form h2,
+.guest-lookup-layout h2 {
+  margin-top: 0;
+}
+.phone-entry {
+  display: grid;
+  grid-template-columns: minmax(190px, 0.85fr) minmax(180px, 1fr);
+  gap: 10px;
+}
+.phone-entry select {
+  min-width: 0;
+}
+.phone-entry .field-hint {
+  grid-column: 1 / -1;
+}
+.guest-reference {
+  display: inline-block;
+  margin: 8px 0 16px;
+  padding: 10px 16px;
+  border: 1px solid var(--line);
+  border-radius: 4px;
+  background: #fff;
+  color: var(--navy);
+  font-weight: 700;
+  letter-spacing: 0.12em;
+}
+.guest-lookup-layout {
+  display: grid;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(320px, 1.1fr);
+  align-items: start;
+  gap: 28px;
+  margin: 30px 0;
+}
+.lookup-result {
+  margin-top: 28px;
+}
+.table-picker-actions {
+  margin-top: 16px;
+}
+.table-availability-button {
+  margin-top: 18px;
+  min-width: 220px;
+}
+.reservation-group + .reservation-group {
+  margin-top: 80px;
+}
+#table-reservations {
+  scroll-margin-top: 140px;
+}
+@media (max-width: 760px) {
+  .guest-booking-page { width: min(100% - 32px, 1080px); padding: 38px 0 64px; }
+  .guest-lookup-layout { grid-template-columns: 1fr; gap: 16px; }
+  .phone-entry { grid-template-columns: minmax(0, 1fr); }
+  .reservation-group + .reservation-group { margin-top: 56px; }
+}
 .subtle {
   color: var(--muted);
   font-size: 14px;
