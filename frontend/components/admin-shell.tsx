@@ -5,6 +5,7 @@ import { logoutAction } from "@/app/login/actions";
 const links = [
   ["/admin", "Management Overview"],
   ["/staff/reservations", "Reservations"],
+  ["/staff/tables", "Table Service"],
   ["/admin/rooms", "Rooms"],
   ["/admin/tables", "Restaurant Tables"],
   ["/admin/staff", "Staff Directory"],

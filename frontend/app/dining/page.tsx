@@ -1,13 +1,25 @@
+import Link from "next/link";
 import Image from "next/image";
 import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
 import { menu } from "@/lib/menu";
+import { TablePicker } from "@/components/table-picker";
+import { createClient } from "@/lib/supabase/server";
+import { readRole } from "@/lib/auth/authorize";
+import { businessDate } from "@/lib/operations/schema";
 export const dynamic = "force-dynamic";
+async function viewerRole() {
+  const db = await createClient();
+  const { data } = await db.auth.getUser();
+  return data.user ? readRole(db, data.user.id) : null;
+}
 export default async function Dining() {
   const configured = isConfigured();
-  const tables = configured ? await getDiningTables() : [];
+  const [tables, role] = configured
+    ? await Promise.all([getDiningTables(), viewerRole()])
+    : [[], null];
   return (
     <div className="public-page">
       <PageBanner
@@ -43,17 +55,27 @@ export default async function Dining() {
       <section className="section" aria-labelledby="seating-title">
         <p className="eyebrow">Table reservations</p>
         <h2 id="seating-title">Restaurant Seating</h2>
+        <p className="intro">
+          Pick a date, time and table. Each booking holds your table for two
+          hours, and our staff confirm your request before you arrive.
+        </p>
+        {!configured && <SetupNotice />}
+        <TablePicker
+          tables={tables}
+          today={businessDate()}
+          instead={
+            role === null ? (
+              <Link className="button" href="/login?next=/dining">
+                Sign in to book
+              </Link>
+            ) : role !== "customer" ? (
+              <Link className="button" href="/staff/tables">
+                Book walk-ins in Table Service
+              </Link>
+            ) : undefined
+          }
+        />
         <div className="floor-plans">
-          <figure>
-            <Image
-              src="/design/dining/floor-plan.jpg"
-              alt="Restaurant floor plan with the bar, booth tables, round tables and an outdoor patio"
-              width={1024}
-              height={683}
-              sizes="(max-width: 760px) 100vw, 50vw"
-            />
-            <figcaption>Restaurant layout</figcaption>
-          </figure>
           <figure>
             <Image
               src="/design/dining/floor-plan-annotated.jpg"
@@ -67,30 +89,12 @@ export default async function Dining() {
             </figcaption>
           </figure>
         </div>
-        <h3 className="tables-title">Restaurant Tables</h3>
-        <p className="notice">
-          Online table reservations are not available yet. The operational state
-          below does not indicate availability for a particular date or time.
-        </p>
-        {!configured && <SetupNotice />}
-        <div className="grid">
-          {tables.map((table) => (
-            <article className="panel" key={table.id}>
-              <p className="eyebrow">RESTAURANT</p>
-              <h3>Table {table.table_number}</h3>
-              <p>Up to {table.capacity} guests</p>
-              <span className={"status " + table.operational_state}>
-                {table.operational_state.replaceAll("_", " ")}
-              </span>
-            </article>
-          ))}
-        </div>
         {configured && !tables.length && (
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
         <p className="subtle">
-          Prototype seating records are fictional. Opening hours have not been
-          published.
+          Prototype seating records are fictional. Tables can be booked from
+          11:00 to 14:00 and 17:00 to 21:00.
         </p>
       </section>
     </div>
