@@ -703,79 +703,48 @@ main:has(.page-banner) {
   animation: loader-in 200ms ease 300ms forwards;
 }
 .page-loader-mark {
-  font-family: var(--display);
-  font-size: 34px;
-  color: var(--navy);
-}
-.page-loader-line {
   position: relative;
-  width: 140px;
-  height: 1px;
-  overflow: hidden;
-  background: rgb(201 162 75 / 0.25);
+  font-family: var(--display);
+  font-size: clamp(40px, 8vw, 72px);
+  line-height: 1;
+  /* Faint outline of the name; the ::after copy fills it from the bottom. */
+  color: rgb(21 34 56 / 0.14);
 }
-.page-loader-line::after {
-  content: "";
+.page-loader-mark::after {
+  content: attr(data-text);
   position: absolute;
   inset: 0;
-  background: var(--gold);
-  transform-origin: left;
-  animation: loader-sweep 1100ms linear infinite;
+  color: var(--navy);
+  clip-path: inset(100% 0 -0.3em 0);
+  animation: loader-fill 2200ms linear infinite;
 }
 @keyframes loader-in {
   to {
     opacity: 1;
   }
 }
-@keyframes loader-sweep {
-  from {
-    transform: translateX(-100%);
+@keyframes loader-fill {
+  0% {
+    clip-path: inset(100% 0 -0.3em 0);
+    opacity: 1;
   }
-  to {
-    transform: translateX(100%);
+  70%,
+  85% {
+    clip-path: inset(-0.3em 0 -0.3em 0);
+    opacity: 1;
   }
-}
-.rooms-skeleton .grid {
-  margin-top: 32px;
-}
-.skeleton {
-  background: #ebe7df;
-  animation: skeleton-pulse 1400ms ease-in-out infinite;
-}
-.skeleton-banner {
-  height: 420px;
-  margin: 0 calc(50% - 50vw);
-  background: #e3ded4;
-}
-.skeleton-bar {
-  height: 116px;
-  max-width: 1120px;
-  margin: -64px auto 0;
-  position: relative;
-  background: #d9d3c7;
-}
-.skeleton-card {
-  height: 420px;
-}
-main:has(.rooms-skeleton) {
-  padding-top: 0;
-}
-@keyframes skeleton-pulse {
-  50% {
-    opacity: 0.55;
+  100% {
+    clip-path: inset(-0.3em 0 -0.3em 0);
+    opacity: 0;
   }
 }
 @media (prefers-reduced-motion: reduce) {
   .page-loader {
     animation-duration: 1ms;
   }
-  .page-loader-line::after {
+  .page-loader-mark::after {
     animation: none;
-    transform: none;
-    opacity: 0.6;
-  }
-  .skeleton {
-    animation: none;
+    clip-path: none;
   }
 }
 
