@@ -947,6 +947,7 @@ main:has(.admin-layout) {
   color: #963c35;
 }
 .status.checked_in,
+.status.seated,
 .status.completed {
   background: #edf1f7;
   color: var(--navy);

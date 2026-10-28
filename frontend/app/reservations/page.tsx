@@ -2,13 +2,18 @@ import Link from "next/link";
 import { getReservations } from "@/lib/reservations/service";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationList } from "@/components/reservation-list";
+import { TableBookingList } from "@/components/table-booking-list";
+import { getMyTableBookings } from "@/lib/reservations/dining";
 export const dynamic = "force-dynamic";
 export default async function Reservations({
   searchParams,
 }: {
   searchParams: Promise<{ notice?: string }>;
 }) {
-  const rows = await getReservations();
+  const [rows, tableRows] = await Promise.all([
+    getReservations(),
+    getMyTableBookings(),
+  ]);
   const p = await searchParams;
   return (
     <>
@@ -20,7 +25,8 @@ export default async function Reservations({
         </Link>
       </div>
       <p className="intro">
-        Review your saved drafts, upcoming stays, and booking progress. This list shows your latest 50 reservations.
+        Review your saved drafts, upcoming stays, and booking progress. This
+        list shows your latest 50 reservations.
       </p>
       {p.notice === "forbidden" && (
         <div className="notice error" role="alert">
@@ -28,6 +34,13 @@ export default async function Reservations({
         </div>
       )}
       <ReservationList rows={rows} />
+      <div className="section-head">
+        <h2>Table Bookings</h2>
+        <Link className="button" href="/dining">
+          Book a table
+        </Link>
+      </div>
+      <TableBookingList rows={tableRows} />
     </>
   );
 }

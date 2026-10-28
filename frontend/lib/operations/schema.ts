@@ -6,13 +6,13 @@ const optional = <T extends z.ZodType<string>>(schema: T) =>
     (v) => (typeof v === "string" && !v.trim() ? undefined : v),
     schema.optional(),
   );
-const fields = {
+export const guestFields = {
   guestFullName: z.string().trim().min(1).max(100),
   guestEmail: optional(z.email().trim().max(254)),
   guestPhone: optional(z.string().trim().max(32).refine(isValidPhone)),
 };
-export const guestSchema = reservationSchema.extend(fields);
-export const guestUpdateSchema = updateSchema.extend(fields);
+export const guestSchema = reservationSchema.extend(guestFields);
+export const guestUpdateSchema = updateSchema.extend(guestFields);
 export const operationalStatuses = [
   "pending",
   "confirmed",

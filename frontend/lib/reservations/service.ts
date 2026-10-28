@@ -17,7 +17,12 @@ export async function getFullyBookedNights(): Promise<string[]> {
       getRooms(),
       getBookedRanges(businessDate()),
     ]);
-    return [...fullyBookedNights(ranges, rooms.map((r) => r.id))];
+    return [
+      ...fullyBookedNights(
+        ranges,
+        rooms.map((r) => r.id),
+      ),
+    ];
   } catch {
     return [];
   }
@@ -91,6 +96,7 @@ export async function getReservations(staff = false): Promise<Reservation[]> {
   let query = db
     .from("reservations")
     .select("*,room_bookings(*)")
+    .eq("kind", "hotel")
     .order("created_at", { ascending: false })
     .limit(50);
   if (!staff) query = query.eq("customer_id", userId);
