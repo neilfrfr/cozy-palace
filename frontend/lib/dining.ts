@@ -44,6 +44,7 @@ export type TableBooking = {
   booking_source: "customer_online" | "staff_guest" | "guest_online";
   guest_full_name: string | null;
   guest_phone: string | null;
+  created_at: string;
   customer?: { full_name: string } | null;
   table_bookings: {
     start_at: string;

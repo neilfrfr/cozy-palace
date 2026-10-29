@@ -10,7 +10,7 @@ import {
   tableStatuses,
   type TableBooking,
 } from "@/lib/dining";
-import { formatLabel } from "@/lib/format";
+import { bookedAt, formatLabel } from "@/lib/format";
 
 function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
   const [pending, startTransition] = useTransition();
@@ -102,6 +102,7 @@ export function TableBookingList({
             <th scope="col">Seating</th>
             <th scope="col">Table</th>
             {staff && <th scope="col">Guest</th>}
+            {staff && <th scope="col">Booked on</th>}
             <th scope="col">Guests</th>
             <th scope="col">Status</th>
             <th scope="col">Action</th>
@@ -124,6 +125,7 @@ export function TableBookingList({
                   )}
                 </td>
               )}
+              {staff && <td>{bookedAt(r.created_at)}</td>}
               <td>{r.guests}</td>
               <td>
                 <span className={"status " + r.status}>

@@ -3,7 +3,7 @@ import { requireCustomer, requireStaff } from "@/lib/auth/authorize";
 import type { TableBooking } from "@/lib/dining";
 
 const columns =
-  "id,reference,status,guests,version,booking_source,guest_full_name,guest_phone,table_bookings!inner(start_at,end_at,restaurant_tables(table_number))";
+  "id,reference,status,guests,version,created_at,booking_source,guest_full_name,guest_phone,table_bookings!inner(start_at,end_at,restaurant_tables(table_number))";
 
 export async function getMyTableBookings(
   reference = "",
