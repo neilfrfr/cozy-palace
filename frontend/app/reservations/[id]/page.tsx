@@ -57,8 +57,8 @@ export default async function Details({
       )}
       {r.status === "pending" && (
         <div className="notice">
-          Your request is awaiting staff confirmation. Pending holds can expire
-          after 24 hours or at the start of the stay.
+          Your request is awaiting staff confirmation. We hold the room for
+          you until your check-in day.
         </div>
       )}
       <ReservationControls reservation={r} />

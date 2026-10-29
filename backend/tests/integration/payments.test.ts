@@ -57,12 +57,14 @@ beforeAll(async () => {
 afterAll(async () => {
   await db?.close();
 });
-it("charges the stored total and confirms the stay once PayMongo reports it paid", async () => {
+it("records the payment but leaves the stay pending until staff confirm it", async () => {
   const r = await pendingStay(10);
+  const hold = (await db.query("select hold_expires_at=($1::date::timestamp at time zone 'Asia/Manila') ok from reservations where id=$2", [day(10), r.id])).rows[0];
+  expect(hold).toEqual({ ok: true });
   const p = await open(r.id);
   expect(Number(p.amount)).toBe(Number(r.total));
   expect(await record(p.id, "pay_ok", Number(r.total))).toBe("paid");
-  expect(await status(r.id)).toBe("confirmed");
+  expect(await status(r.id)).toBe("pending");
   const log = (await db.query("select actor_role,action from audit_logs where record_id=$1 order by occurred_at desc limit 1", [r.id])).rows[0];
   expect(log).toEqual({ actor_role: "system", action: "payment_paid" });
 });
@@ -80,12 +82,19 @@ it("keeps a wrong amount or currency for review instead of confirming", async ()
   expect(await record((await open(r.id)).id, "pay_usd", Number(r.total), "USD")).toBe("review");
   expect(await status(r.id)).toBe("pending");
 });
-it("a second payment for an already confirmed stay goes to review", async () => {
+it("a second payment for an already paid stay goes to review", async () => {
   const r = await pendingStay(40);
   const first = await open(r.id),
     second = await open(r.id);
   expect(await record(first.id, "pay_first", Number(r.total))).toBe("paid");
   expect(await record(second.id, "pay_second", Number(r.total))).toBe("review");
+  await expect(open(r.id)).rejects.toThrow("INVALID_TRANSITION");
+});
+it("a stay staff already confirmed can still be paid once", async () => {
+  const r = await pendingStay(45);
+  await db.query("update reservations set status='confirmed',hold_expires_at=null where id=$1", [r.id]);
+  expect(await record((await open(r.id)).id, "pay_after_confirm", Number(r.total))).toBe("paid");
+  expect(await status(r.id)).toBe("confirmed");
   await expect(open(r.id)).rejects.toThrow("INVALID_TRANSITION");
 });
 it("only the owner can open a payment, and only for a live pending hold", async () => {

@@ -74,8 +74,9 @@ export function CheckoutSummary({
       </section>
       {returned && (
         <p className="notice" role="status">
-          Thank you. Your reservation is confirmed as soon as PayMongo reports
-          the payment, usually within a minute. Refresh to see the update.
+          Thank you. PayMongo reports the payment to us, usually within a
+          minute. Our staff confirm your reservation if they haven&apos;t
+          already.
         </p>
       )}
       {payment === "unavailable" && (
@@ -86,8 +87,8 @@ export function CheckoutSummary({
       )}
       {payment === "closed" && !returned && (
         <p className="notice" id="payment-unavailable">
-          Online payment is open for submitted requests while their hold is
-          active.
+          Online payment is open for submitted and confirmed reservations
+          that haven&apos;t been paid yet.
         </p>
       )}
       <div className="actions">

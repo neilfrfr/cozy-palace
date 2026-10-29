@@ -1,6 +1,6 @@
 import Link from "next/link";
 import type { OperationalReservation } from "@/lib/operations/service";
-import { formatLabel, sourceLabel } from "@/lib/format";
+import { bookedAt, formatLabel, sourceLabel } from "@/lib/format";
 export function OperationalReservationList({
   rows,
 }: {
@@ -30,6 +30,7 @@ export function OperationalReservationList({
             <th>Reference and guest</th>
             <th>Stay</th>
             <th>Room</th>
+            <th>Booked on</th>
             <th>Source</th>
             <th>Status</th>
             <th>Action</th>
@@ -57,6 +58,7 @@ export function OperationalReservationList({
                 <br />
                 Room {r.room_number}
               </td>
+              <td>{bookedAt(r.created_at)}</td>
               <td>
                 {sourceLabel(r.booking_source)}
               </td>

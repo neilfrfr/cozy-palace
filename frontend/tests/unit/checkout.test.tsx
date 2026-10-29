@@ -69,7 +69,7 @@ it("checkout presents actual booking data and never offers a working payment or 
     expect(html).not.toContain("Pay &amp; Confirm");
   }
 });
-it("an open hold offers the PayMongo button, and a return hides it while confirmation arrives", async () => {
+it("an open hold offers the PayMongo button, and a return hides it while the payment is reported", async () => {
   const { CheckoutSummary } = await import("@/components/checkout-summary");
   const open = renderToStaticMarkup(
     createElement(CheckoutSummary, { reservation, room: null, payment: "open" }),
@@ -81,7 +81,7 @@ it("an open hold offers the PayMongo button, and a return hides it while confirm
     createElement(CheckoutSummary, { reservation, room: null, payment: "open", returned: true }),
   );
   expect(back).not.toContain("Pay with PayMongo");
-  expect(back).toContain("as soon as PayMongo reports");
+  expect(back).toContain("PayMongo reports the payment");
 });
 it("checkout refuses invalid IDs and missing or foreign owned-query results", async () => {
   const { default: Page } = await import(

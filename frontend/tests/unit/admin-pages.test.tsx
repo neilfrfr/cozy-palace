@@ -10,6 +10,7 @@ vi.mock("@/lib/operations/service", () => ({
       { name: "reservations", count: 23 },
     ],
     pendingStaff: 2,
+    pendingTables: 3,
     statuses: [{ status: "confirmed", count: 7 }],
     recent: [],
   }),
@@ -19,6 +20,7 @@ it("admin summary uses actual queried counts without invented financial metrics"
   const html = renderToStaticMarkup(await Page());
   expect(html).toContain("17");
   expect(html).toContain("23");
+  expect(html).toContain("<strong>3</strong> pending table requests");
   expect(html).not.toMatch(/revenue|78%|184,500/i);
 });
 it("admin layout requires administrator authority before returning its content", async () => {
