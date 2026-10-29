@@ -23,8 +23,9 @@ export default async function Checkout({
   // The database re-checks all of this when the payment is opened.
   const payment = !paymongoKey()
     ? "unavailable"
-    : reservation.status === "pending" &&
-        new Date(reservation.hold_expires_at ?? 0) > new Date()
+    : reservation.status === "confirmed" ||
+        (reservation.status === "pending" &&
+          new Date(reservation.hold_expires_at ?? 0) > new Date())
       ? "open"
       : "closed";
   return (

@@ -160,9 +160,9 @@ export function GuestReservationForm({
         <section className="notice" role="status">
           <h2>Booking request {booked.reference} received</h2>
           <p>
-            We have emailed the details to {booked.email}. The room is held for
-            24 hours, or until your check-in day if that is sooner, while our
-            staff confirm it and arrange payment with you.
+            We have emailed the details to {booked.email}. The room is held until
+            your check-in day while our staff confirm it and arrange payment
+            with you.
           </p>
           <p>
             To change or cancel it, contact the front desk and quote{" "}
@@ -312,7 +312,7 @@ export function GuestReservationForm({
           </dl>
           <p>
             {visitor
-              ? "Booking holds the room for 24 hours (less if you arrive sooner) while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
+              ? "Booking holds the room until your check-in day while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
               : "Confirmation reserves the room for this guest. It does not record a payment."}
           </p>
           {visitor && (

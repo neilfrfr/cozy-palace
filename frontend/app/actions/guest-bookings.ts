@@ -104,7 +104,7 @@ export async function bookAsGuestAction(
       name: p.guestFullName,
       booking: `a stay from ${p.checkIn} to ${p.checkOut}`,
       guests: p.guests,
-      next: "We hold the room for 24 hours, or until your check-in day if that is sooner. Our staff will contact you to confirm it and arrange payment.",
+      next: "We hold the room until your check-in day. Our staff will contact you to confirm it and arrange payment.",
     }),
   );
 }
