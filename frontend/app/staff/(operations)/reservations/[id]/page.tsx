@@ -43,14 +43,16 @@ export default async function OperationalDetail({
             "Booking source",
             r.booking_source === "staff_guest"
               ? "Staff-entered guest"
-              : "Customer online",
+              : r.booking_source === "guest_online"
+                ? "Guest online"
+                : "Customer online",
           ],
           ["Created by", r.creator_name ?? "Unavailable"],
           ["Room", `${r.room_type_name} · Room ${r.room_number}`],
           ["Stay", `${a?.check_in} to ${a?.check_out}`],
           ["Guests", String(r.guests)],
           ["Reservation total", `₱${Number(r.total).toLocaleString("en-PH")}`],
-          ...(r.booking_source === "staff_guest"
+          ...(r.booking_source === "staff_guest" || r.booking_source === "guest_online"
             ? [
                 ["Guest email", r.guest_email ?? "Not provided"],
                 ["Guest phone", r.guest_phone ?? "Not provided"],
@@ -75,7 +77,7 @@ export default async function OperationalDetail({
           attributed to your employee account.
         </p>
       </section>
-      {["pending", "confirmed"].includes(r.status) && (
+      {r.booking_source !== "guest_online" && ["pending", "confirmed"].includes(r.status) && (
         <section className="operations-section">
           <h2>Update booking</h2>
           <GuestReservationForm

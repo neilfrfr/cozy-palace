@@ -26,7 +26,7 @@ export type OperationsFilter = {
   page: number;
   date?: string;
   status?: (typeof operationalStatuses)[number];
-  source?: "customer_online" | "staff_guest";
+  source?: "customer_online" | "staff_guest" | "guest_online";
   staying: boolean;
 };
 export function parseOperationsFilter(
@@ -37,7 +37,7 @@ export function parseOperationsFilter(
   const date = z.iso.date().safeParse(text("date")),
     status = z.enum(operationalStatuses).safeParse(text("status")),
     source = z
-      .enum(["customer_online", "staff_guest"])
+      .enum(["customer_online", "staff_guest", "guest_online"])
       .safeParse(text("source")),
     page = Number(text("page"));
   return {

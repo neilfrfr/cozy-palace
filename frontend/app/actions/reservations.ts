@@ -8,6 +8,7 @@ import {
   reservationSchema,
   mutationSchema,
   updateSchema,
+  guestOnlineSchema,
 } from "@/lib/reservations/schema";
 import { publicError } from "@/lib/reservations/errors";
 import type { ActionResult, Reservation } from "@/lib/reservations/types";
@@ -57,6 +58,30 @@ export async function createReservationAction(
     p_guests: p.guests,
     p_idempotency_key: p.idempotencyKey,
   });
+}
+export async function createGuestOnlineReservationAction(
+  input: unknown,
+): Promise<ActionResult<Reservation>> {
+  if (!isConfigured()) return { ok: false, code: "SETUP_REQUIRED" };
+  const parsed = guestOnlineSchema.safeParse(input);
+  if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+  const db = await createClient();
+  const p = parsed.data;
+  const { data, error } = await db.rpc("create_guest_room_booking", {
+    p_room_id: p.roomId,
+    p_check_in: p.checkIn,
+    p_check_out: p.checkOut,
+    p_guests: p.guests,
+    p_guest_full_name: p.guestFullName,
+    p_guest_email: p.guestEmail,
+    p_guest_phone: p.guestPhone,
+    p_idempotency_key: p.idempotencyKey,
+  });
+  if (error) return { ok: false, code: publicError(error) };
+  revalidatePath("/rooms");
+  revalidatePath("/staff/reservations");
+  revalidatePath("/admin/activity");
+  return { ok: true, data: data as Reservation };
 }
 export async function updateReservationAction(
   input: unknown,

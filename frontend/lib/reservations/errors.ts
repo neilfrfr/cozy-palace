@@ -10,6 +10,7 @@ const codes = [
   "IDEMPOTENCY_CONFLICT",
   "POLICY_RESTRICTED",
   "AVAILABILITY_CONFLICT",
+  "RATE_LIMITED",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -18,6 +19,7 @@ export function publicError(error: unknown): string {
   return codes.includes(e.message ?? "") ? e.message! : "REQUEST_FAILED";
 }
 export const errorMessages: Record<string, string> = {
+  SETUP_REQUIRED: "Booking is not connected yet. Please contact the hotel.",
   UNAUTHORIZED: "Please sign in to continue.",
   FORBIDDEN: "You do not have access to this reservation.",
   NOT_FOUND: "This reservation could not be found.",
@@ -33,5 +35,7 @@ export const errorMessages: Record<string, string> = {
   POLICY_RESTRICTED: "Please contact the staff to make this change.",
   AVAILABILITY_CONFLICT:
     "Someone has booked this room for those dates. Choose another room or date.",
+  RATE_LIMITED:
+    "We’ve received several requests for these contact details. Please try again in an hour or contact the hotel.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",
 };

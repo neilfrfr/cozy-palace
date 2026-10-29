@@ -22,7 +22,7 @@ export type Reservation = {
   id: string;
   reference: string;
   customer_id: string | null;
-  booking_source?: "customer_online" | "staff_guest";
+  booking_source?: "customer_online" | "staff_guest" | "guest_online";
   created_by?: string;
   guest_full_name?: string | null;
   guest_email?: string | null;

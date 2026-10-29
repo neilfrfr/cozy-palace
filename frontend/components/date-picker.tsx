@@ -39,6 +39,7 @@ export type DatePickerProps = {
   /** Month to show when nothing is selected yet. */
   initialMonth?: string;
   required?: boolean;
+  readOnly?: boolean;
   className?: string;
 };
 
@@ -55,6 +56,7 @@ export function DatePicker({
   unavailable = () => "",
   initialMonth,
   required,
+  readOnly = false,
   className,
 }: DatePickerProps) {
   const [own, setOwn] = useState(defaultValue);
@@ -158,6 +160,7 @@ export function DatePicker({
           pattern="\d{4}-\d{2}-\d{2}"
           maxLength={10}
           required={required}
+          readOnly={readOnly}
           value={value}
           role="combobox"
           aria-haspopup="dialog"
