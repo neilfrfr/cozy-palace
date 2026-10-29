@@ -6,15 +6,19 @@ import type { TableBooking } from "@/lib/dining";
 const columns =
   "id,reference,status,guests,version,booking_source,guest_full_name,guest_phone,table_bookings!inner(start_at,end_at,restaurant_tables(table_number))";
 
-export async function getMyTableBookings(): Promise<TableBooking[]> {
+export async function getMyTableBookings(
+  reference = "",
+): Promise<TableBooking[]> {
   const { db, userId } = await requireCustomer();
-  const { data, error } = await db
+  let query = db
     .from("reservations")
     .select(columns)
     .eq("kind", "dining")
     .eq("customer_id", userId)
     .order("created_at", { ascending: false })
     .limit(50);
+  if (reference) query = query.ilike("reference", `%${reference}%`);
+  const { data, error } = await query;
   if (error)
     throw new Error("Table bookings could not be loaded. Please try again.");
   return data as unknown as TableBooking[];

@@ -9,6 +9,7 @@ import { TablePicker } from "@/components/table-picker";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
 import { businessDate } from "@/lib/operations/schema";
+import { visitorBookingEnabled } from "@/lib/captcha";
 export const dynamic = "force-dynamic";
 async function viewerRole() {
   const db = await createClient();
@@ -63,11 +64,14 @@ export default async function Dining() {
         <TablePicker
           tables={tables}
           today={businessDate()}
+          visitor={role === null && visitorBookingEnabled()}
           instead={
             role === null ? (
-              <Link className="button" href="/login?next=/dining">
-                Sign in to book
-              </Link>
+              visitorBookingEnabled() ? undefined : (
+                <Link className="button" href="/login?next=/dining">
+                  Sign in to book
+                </Link>
+              )
             ) : role !== "customer" ? (
               <Link className="button" href="/staff/tables">
                 Book walk-ins in Table Service

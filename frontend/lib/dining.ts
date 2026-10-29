@@ -1,5 +1,5 @@
 import { z } from "zod";
-import { guestFields } from "@/lib/operations/schema";
+import { guestFields, visitorContact } from "@/lib/operations/schema";
 import { errorMessages } from "@/lib/reservations/errors";
 
 const halfHours = (from: number, to: number) =>
@@ -25,6 +25,9 @@ const booking = {
 };
 export const tableBookingSchema = z.object(booking).strict();
 export const walkInSchema = z.object({ ...booking, ...guestFields }).strict();
+export const visitorTableSchema = z
+  .object({ ...booking, ...visitorContact })
+  .strict();
 export const tableStatuses = [
   "confirmed",
   "seated",
@@ -38,7 +41,7 @@ export type TableBooking = {
   status: string;
   guests: number;
   version: number;
-  booking_source: "customer_online" | "staff_guest";
+  booking_source: "customer_online" | "staff_guest" | "guest_online";
   guest_full_name: string | null;
   guest_phone: string | null;
   customer?: { full_name: string } | null;

@@ -39,29 +39,34 @@ it("verifies the CAPTCHA with Cloudflare and fails closed", async () => {
   expect(await verifyCaptcha("any", "1.2.3.4")).toBe(false);
   expect(await verifyCaptcha("", "1.2.3.4")).toBe(false);
 });
-it("emails the link with the guest's name escaped, and skips when not configured", async () => {
-  const { sendBookingLink } = await import("@/lib/email");
+it("emails the booking details with the guest's name escaped, and skips when not configured", async () => {
+  const { sendBookingEmail } = await import("@/lib/email");
   const booking = {
     to: "walk@example.test",
     name: "<script>x</script>",
     reference: "CP-ABC",
-    checkIn: "2027-01-10",
-    checkOut: "2027-01-12",
+    booking: "a stay from 2027-01-10 to 2027-01-12",
     guests: 2,
-    link: "https://cozy.example/stay/" + "a".repeat(64),
+    next: "We hold the room for 24 hours.",
+    id: "20000000-0000-4000-8000-000000000001",
   };
-  expect(await sendBookingLink(booking)).toBe(false);
+  expect(await sendBookingEmail(booking)).toBe(false);
   expect(fetchMock).not.toHaveBeenCalled();
   vi.stubEnv("RESEND_API_KEY", "re_test");
   vi.stubEnv("EMAIL_FROM", "Cozy Palace <onboarding@resend.dev>");
   fetchMock.mockResolvedValueOnce(new Response("{}", { status: 200 }));
-  expect(await sendBookingLink(booking)).toBe(true);
-  const sent = JSON.parse(fetchMock.mock.calls[0][1].body as string);
+  expect(await sendBookingEmail(booking)).toBe(true);
+  const [, init] = fetchMock.mock.calls[0];
+  const sent = JSON.parse(init.body as string);
   expect(sent.to).toEqual(["walk@example.test"]);
   expect(sent.html).toContain("&lt;script&gt;");
   expect(sent.html).not.toContain("<script>");
-  expect(sent.text).toContain(booking.link);
+  expect(sent.text).toContain(
+    "CP-ABC: a stay from 2027-01-10 to 2027-01-12, 2 guests",
+  );
+  expect(sent.text).not.toContain("http");
+  expect(init.headers["idempotency-key"]).toBe("booking-" + booking.id);
   vi.spyOn(console, "error").mockImplementation(() => {});
   fetchMock.mockResolvedValueOnce(new Response("{}", { status: 422 }));
-  expect(await sendBookingLink(booking)).toBe(false);
+  expect(await sendBookingEmail(booking)).toBe(false);
 });

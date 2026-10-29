@@ -74,6 +74,10 @@ export function GuestReservationForm({
       input: Input;
       quote: { total: number; nights: number; rate: number; room: string };
     } | null>(null);
+  const [booked, setBooked] = useState<{
+    reference: string;
+    email: string;
+  } | null>(null);
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
   const [roomId, setRoomId] = useState(
@@ -82,8 +86,11 @@ export function GuestReservationForm({
       rooms[0]?.id ??
       "",
   );
-  // Only staff-entered bookings carry editable guest details here.
-  const online = !!existing && existing.booking_source !== "staff_guest";
+  // A customer's details live on their account; walk-in and visitor details are edited here.
+  const online = existing?.booking_source === "customer_online";
+  // The email is the only way a visitor hears about their booking, so it can't be removed.
+  const contactRequired =
+    visitor || existing?.booking_source === "guest_online";
   const selectedCountry = findPhoneCountry(phoneCountry);
   const maxPhoneDigits = selectedCountry?.digits ?? 15;
   const Flag = selectedCountry ? Flags[selectedCountry.iso] : undefined;
@@ -132,15 +139,18 @@ export function GuestReservationForm({
     setError("");
     start(async () => {
       if (visitor) {
-        const booked = await bookAsGuestAction(review.input, captcha);
-        if (!booked.ok) {
+        const result = await bookAsGuestAction(review.input, captcha);
+        if (!result.ok) {
           // The CAPTCHA token is single-use; show a fresh check for the retry.
           setCaptcha("");
           setCaptchaRound((n) => n + 1);
-          setError(errorMessages[booked.code] ?? "Could not book this room.");
+          setError(errorMessages[result.code] ?? "Could not book this room.");
           return;
         }
-        router.push("/stay/" + booked.data.token);
+        setBooked({
+          reference: result.data.reference,
+          email: review.input.guestEmail,
+        });
         return;
       }
       const result = existing
@@ -166,6 +176,26 @@ export function GuestReservationForm({
       setReview(null);
     });
   }
+  if (booked)
+    return (
+      <div className="guest-workflow">
+        <section className="notice" role="status">
+          <h2>Booking request {booked.reference} received</h2>
+          <p>
+            We have emailed the details to {booked.email}. The room is held for
+            24 hours, or until your check-in day if that is sooner, while our
+            staff confirm it and arrange payment with you.
+          </p>
+          <p>
+            To change or cancel it, contact the front desk and quote{" "}
+            {booked.reference}.
+          </p>
+        </section>
+        <Link className="back-link" href="/rooms">
+          Back to rooms
+        </Link>
+      </div>
+    );
   return (
     <div className="guest-workflow">
       <form className="form-panel" hidden={!!review} onSubmit={prepare}>
@@ -190,18 +220,26 @@ export function GuestReservationForm({
                   />
                 </label>
                 <label>
-                  {visitor ? "Email" : "Guest email (optional)"}
+                  {visitor
+                    ? "Email"
+                    : contactRequired
+                      ? "Guest email"
+                      : "Guest email (optional)"}
                   <input
                     name="guestEmail"
                     type="email"
-                    required={visitor}
+                    required={contactRequired}
                     maxLength={254}
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
                 <div className="phone-field">
                   <label htmlFor="guestPhoneDigits">
-                    {visitor ? "Mobile number" : "Guest phone (optional)"}
+                    {visitor
+                      ? "Mobile number"
+                      : contactRequired
+                        ? "Guest phone"
+                        : "Guest phone (optional)"}
                   </label>
                   <div className="phone-input-row">
                     <div className="phone-country">
@@ -249,7 +287,7 @@ export function GuestReservationForm({
                         )
                       }
                       placeholder="Digits only"
-                      required={visitor}
+                      required={contactRequired}
                       autoComplete="tel-national"
                       aria-invalid={
                         phoneProblem && phoneDigits.length >= maxPhoneDigits
@@ -316,7 +354,7 @@ export function GuestReservationForm({
           </div>
           <p className="subtle">
             {visitor
-              ? "No account needed. Next you will get a private link to view, pay for or cancel this booking."
+              ? "No account needed. We email your booking details to you; our staff confirm it and arrange payment."
               : "No customer account is created for a walk-in guest."}{" "}
             Room availability and the final price are checked when you confirm.
           </p>
@@ -360,7 +398,7 @@ export function GuestReservationForm({
           </dl>
           <p>
             {visitor
-              ? "Booking holds the room for 24 hours (less if you arrive sooner). Pay online from your booking link to confirm it, or arrange payment with staff."
+              ? "Booking holds the room for 24 hours (less if you arrive sooner) while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
               : "Confirmation reserves the room for this guest. It does not record a payment."}
           </p>
           {visitor && <Turnstile key={captchaRound} onToken={setCaptcha} />}

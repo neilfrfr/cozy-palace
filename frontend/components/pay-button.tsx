@@ -2,13 +2,11 @@
 import { useActionState } from "react";
 import { startCheckoutAction } from "@/app/actions/payments";
 import { errorMessages } from "@/lib/reservations/errors";
-/** Pass the reservation id for a signed-in customer, or the booking-link token for a visitor. */
-export function PayButton({ id, token }: { id?: string; token?: string }) {
+export function PayButton({ id }: { id: string }) {
   const [state, submit, pending] = useActionState(startCheckoutAction, null);
   return (
     <form action={submit}>
-      {id && <input type="hidden" name="id" value={id} />}
-      {token && <input type="hidden" name="token" value={token} />}
+      <input type="hidden" name="id" value={id} />
       <button className="primary gold" type="submit" disabled={pending}>
         {pending ? "Opening PayMongo…" : "Pay with PayMongo"}
       </button>

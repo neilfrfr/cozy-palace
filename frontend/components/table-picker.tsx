@@ -13,6 +13,8 @@ import type { DiningTable } from "@/lib/inventory/service";
 import { DatePicker } from "@/components/date-picker";
 import { addDays } from "@/lib/reservations/availability";
 import { bookTableAction, bookedTablesAction } from "@/app/actions/dining";
+import { bookTableAsGuestAction } from "@/app/actions/guest-bookings";
+import { Turnstile } from "@/components/turnstile";
 import {
   BOOKING_WINDOW_DAYS,
   SEATING_MS,
@@ -45,6 +47,7 @@ export function TablePicker({
   tables,
   today,
   walkIn = false,
+  visitor = false,
   instead,
 }: {
   tables: DiningTable[];
@@ -52,6 +55,8 @@ export function TablePicker({
   today: string;
   /** Staff booking on behalf of a guest: asks for their name and contact. */
   walkIn?: boolean;
+  /** A visitor without an account: asks for their contact details and a CAPTCHA. */
+  visitor?: boolean;
   /** Shown in place of the booking button, e.g. a sign-in link. */
   instead?: ReactNode;
 }) {
@@ -73,6 +78,9 @@ export function TablePicker({
   const [message, setMessage] = useState<{ ok: boolean; text: ReactNode }>();
   const [pending, startTransition] = useTransition();
   const requestKey = useRef<string | null>(null);
+  const [captcha, setCaptcha] = useState(""),
+    [captchaRound, setCaptchaRound] = useState(0);
+  const contact = walkIn || visitor;
 
   const lastDay = addDays(today, BOOKING_WINDOW_DAYS);
   const slots = slotsOn(date);
@@ -107,7 +115,7 @@ export function TablePicker({
       time,
       guests,
       idempotencyKey: requestKey.current,
-      ...(walkIn && {
+      ...(contact && {
         guestFullName: String(f.get("guestFullName") ?? ""),
         guestPhone: String(f.get("guestPhone") ?? ""),
         guestEmail: String(f.get("guestEmail") ?? ""),
@@ -115,7 +123,14 @@ export function TablePicker({
     };
     setMessage(undefined);
     startTransition(async () => {
-      const result = await bookTableAction(input);
+      const result = visitor
+        ? await bookTableAsGuestAction(input, captcha)
+        : await bookTableAction(input);
+      if (visitor) {
+        // The CAPTCHA token is single-use; show a fresh check for the next booking.
+        setCaptcha("");
+        setCaptchaRound((n) => n + 1);
+      }
       if (!result.ok) {
         setMessage({ ok: false, text: diningError(result.code) });
         if (result.code === "AVAILABILITY_CONFLICT") setRefresh((n) => n + 1);
@@ -124,11 +139,13 @@ export function TablePicker({
       requestKey.current = null;
       setSelectedId(null);
       setRefresh((n) => n + 1);
-      if (walkIn) form.reset();
+      if (contact) form.reset();
       setMessage({
         ok: true,
         text: walkIn ? (
           `Table ${selected.table_number} booked for ${input.guestFullName} at ${time}. Reference ${result.data.reference}.`
+        ) : visitor ? (
+          `Table ${selected.table_number} requested for ${date} at ${time} (reference ${result.data.reference}). We have emailed the details to ${input.guestEmail}. It's held for you until our staff confirm it. To change or cancel, contact us and quote the reference.`
         ) : (
           <>
             Table {selected.table_number} requested for {date} at {time}{" "}
@@ -228,27 +245,41 @@ export function TablePicker({
             ? "Choose a table on the floor plan."
             : "No tables are on the floor plan yet."}
       </p>
-      {walkIn && (
+      {contact && (
         <div className="table-picker-fields">
           <label>
-            Guest name
+            {visitor ? "Full name" : "Guest name"}
             <input name="guestFullName" required maxLength={100} />
           </label>
           <label>
-            Phone (optional)
+            {visitor ? "Mobile number" : "Phone (optional)"}
             <input
               name="guestPhone"
               type="tel"
               placeholder="+639171234567"
               maxLength={32}
+              required={visitor}
             />
           </label>
           <label>
-            Email (optional)
-            <input name="guestEmail" type="email" maxLength={254} />
+            {visitor ? "Email" : "Email (optional)"}
+            <input
+              name="guestEmail"
+              type="email"
+              maxLength={254}
+              required={visitor}
+            />
           </label>
         </div>
       )}
+      {visitor && (
+        <p className="subtle">
+          No account needed. We email your booking details to you.{" "}
+          <Link href="/login?next=/dining">Sign in</Link> instead to see your
+          bookings in your account.
+        </p>
+      )}
+      {visitor && <Turnstile key={captchaRound} onToken={setCaptcha} />}
       {message && (
         <div
           className={message.ok ? "notice" : "notice error"}
@@ -258,7 +289,10 @@ export function TablePicker({
         </div>
       )}
       {instead ?? (
-        <button className="button" disabled={!selected || pending}>
+        <button
+          className="button"
+          disabled={!selected || pending || (visitor && !captcha)}
+        >
           {pending
             ? "Booking…"
             : walkIn
