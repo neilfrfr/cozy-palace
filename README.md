@@ -4,7 +4,7 @@ A hotel reservation prototype built with Next.js, TypeScript, Tailwind CSS, and 
 
 ## Current status
 
-This is development software, not a live booking service. Dining, payment collection, purchase history, and financial report generation are not implemented. Do not use the fictional inventory for real reservations.
+This is development software, not a live booking service. Live payment collection, purchase history, and financial report generation are not implemented. Do not use the fictional inventory for real reservations.
 
 ## Repository structure
 
@@ -217,7 +217,24 @@ Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASS
 
 The public home, room search/details, dining, about and contact pages follow the Figma design. Rooms, prices, capacities and table states come from Supabase. Administrators can view live counts and inventory at `/admin`, `/admin/rooms` and `/admin/tables`, and manage employees at `/admin/staff`.
 
-Customers can open checkout from their own reservation. It displays the stored reservation total; e-wallet payment is disabled until a payment provider and merchant configuration are integrated. Inventory screens are read-only. Contact details and room photographs are omitted until verified information is available. Original Figma photographs and licensed local fonts are bundled with the frontend.
+Customers can open checkout from their own reservation. It displays the stored reservation total. Online payment stays disabled until the three payment variables in `frontend/.env.example` are set; see below. Inventory screens are read-only. Contact details and room photographs are omitted until verified information is available. Original Figma photographs and licensed local fonts are bundled with the frontend.
+
+### Booking without an account
+
+When `SUPABASE_SECRET_KEY` and both Cloudflare Turnstile keys are set, a signed-out visitor can book a room (from **Choose room**) or a restaurant table (from **Dining**) without an account. They enter their name, email and mobile number and pass a Turnstile CAPTCHA, which the server re-checks with Cloudflare before it touches the database. With a real secret, the server also checks the token came from the same form (action `book_room` or `book_table`) on a hostname listed in `TURNSTILE_HOSTNAMES`; booking without an account stays off until that list is set. The app server books through `book_as_guest` or `book_table_as_guest`, database functions only the server can call. Each creates a `pending` reservation with booking source `guest_online`: a room is held for 24 hours (or until the check-in day), a table until staff confirm it or the seating starts. Each IP address can make 5 bookings per hour, and each email can hold 2 pending bookings at once. The visitor sees their booking reference on screen and gets the details by email through Resend (when `RESEND_API_KEY` and `EMAIL_FROM` are set). The email is sent after the response, so it never delays or undoes the booking. Visitors have no page to view, cancel or pay for the booking: they contact the front desk with the reference, and online payment is for account holders only. Staff and admins see these bookings in the queue and the table list as "Online guest (no account)", can filter the queue to them, change the stay and correct the guest's contact details (the email and phone can be corrected but not removed), and move them through confirmation, check-in or seating as with any booking. Without the Turnstile keys, booking without an account stays off and visitors are asked to sign in. For local testing use Cloudflare's always-pass test keys listed in `frontend/.env.example`. Without a verified domain, Resend only delivers to the email address of your own Resend account. Signed-in customers find their own bookings on **My Reservations** with the **Find my reservation** box, which searches their rooms and tables by reference. Migrations: `backend/supabase/migrations/20261029100000_online_guest_bookings.sql` and `20261029120000_guest_email_only.sql`. Tests: `backend/tests/integration/online-guest-bookings.test.ts` and `frontend/tests/unit/guest-bookings.test.ts`.
+
+### Online payment (PayMongo, test mode)
+
+A submitted (pending) reservation with an active hold can be paid through PayMongo's hosted checkout (GCash, Maya or card). Card and wallet details never reach this app. The amount always comes from the stored total. The reservation becomes confirmed only when PayMongo's signed `checkout_session.payment.paid` webhook arrives at `/api/paymongo/webhook`, not when the customer returns from checkout. A payment whose amount does not match, that arrives after the hold lapsed, or that pays an already-confirmed stay is stored with status `review` for staff to refund.
+
+1. Apply `backend/supabase/migrations/20261029090000_payments.sql`.
+2. Locally, set `PAYMONGO_SECRET_KEY=sk_test_…` and `SUPABASE_SECRET_KEY` in `frontend/.env.local`, plus any non-empty `PAYMONGO_WEBHOOK_SECRET`. The button then opens PayMongo, but webhooks cannot reach localhost, so the stay stays pending.
+3. On Vercel, set the same variables for **Preview only**. In the PayMongo dashboard (test mode), add a webhook to `https://<preview-host>/api/paymongo/webhook` for `checkout_session.payment.paid` and use its secret as `PAYMONGO_WEBHOOK_SECRET`. If Deployment Protection is on, the webhook needs a protection bypass.
+4. Pay with a test card (`4343434343434345` succeeds; `5100000000000198` declines for insufficient funds) or pick GCash/Maya and press Authorize or Fail on PayMongo's test page.
+
+Without a PayMongo account, set `PAYMONGO_SECRET_KEY=sk_test_placeholder` and any `PAYMONGO_WEBHOOK_SECRET` locally. Clicking **Pay with PayMongo** then shows an error, but it still opens the payment row. Run `npm run simulate:payment -- CP-XXXXXXXXXXXX` while `npm run dev` is running to send a signed paid event to the local webhook. Add an amount in pesos after the reference (for example `1`) to check that a wrong amount goes to `review`. The script only posts to localhost.
+
+`sk_live_` keys are ignored outside Vercel Production. Covered by `tests/unit/payments.test.ts` (signature, parsing, key guard, webhook responses) and `backend/tests/integration/payments.test.ts` (ownership, amounts, replays, holds, permissions).
 
 ### Staff operations and management dashboards
 

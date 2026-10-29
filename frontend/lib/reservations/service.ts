@@ -91,7 +91,11 @@ export async function getRooms(filter?: {
   if (error) throw new Error("Rooms could not be loaded. Please try again.");
   return data as unknown as Room[];
 }
-export async function getReservations(staff = false): Promise<Reservation[]> {
+/** `reference` narrows a customer's own list, for Find my reservation. */
+export async function getReservations(
+  staff = false,
+  reference = "",
+): Promise<Reservation[]> {
   const { db, userId } = staff ? await requireStaff() : await requireCustomer();
   let query = db
     .from("reservations")
@@ -100,6 +104,7 @@ export async function getReservations(staff = false): Promise<Reservation[]> {
     .order("created_at", { ascending: false })
     .limit(50);
   if (!staff) query = query.eq("customer_id", userId);
+  if (reference) query = query.ilike("reference", `%${reference}%`);
   const { data, error } = await query;
   if (error)
     throw new Error("Reservations could not be loaded. Please try again.");

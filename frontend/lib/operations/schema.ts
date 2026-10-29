@@ -26,7 +26,7 @@ export type OperationsFilter = {
   page: number;
   date?: string;
   status?: (typeof operationalStatuses)[number];
-  source?: "customer_online" | "staff_guest";
+  source?: "customer_online" | "staff_guest" | "guest_online";
   staying: boolean;
 };
 export function parseOperationsFilter(
@@ -37,7 +37,7 @@ export function parseOperationsFilter(
   const date = z.iso.date().safeParse(text("date")),
     status = z.enum(operationalStatuses).safeParse(text("status")),
     source = z
-      .enum(["customer_online", "staff_guest"])
+      .enum(["customer_online", "staff_guest", "guest_online"])
       .safeParse(text("source")),
     page = Number(text("page"));
   return {
@@ -61,3 +61,10 @@ export function businessDate(now = new Date()) {
   const p = (t: string) => parts.find((v) => v.type === t)!.value;
   return `${p("year")}-${p("month")}-${p("day")}`;
 }
+/** A visitor booking without an account: the email is the only way their booking reaches them. */
+export const visitorContact = {
+  guestFullName: guestFields.guestFullName,
+  guestEmail: z.email().trim().max(254),
+  guestPhone: z.string().trim().max(32).refine(isValidPhone),
+};
+export const visitorSchema = reservationSchema.extend(visitorContact);

@@ -8,8 +8,13 @@ import {
   updateOperationalBookingAction,
   quoteGuestBookingAction,
 } from "@/app/staff/reservations/actions";
+import {
+  bookAsGuestAction,
+  quoteStayAction,
+} from "@/app/actions/guest-bookings";
 import * as Flags from "country-flag-icons/react/3x2";
 import { StayDates } from "@/components/stay-dates";
+import { Turnstile } from "@/components/turnstile";
 import { errorMessages } from "@/lib/reservations/errors";
 import {
   phoneCountries,
@@ -37,6 +42,8 @@ export function GuestReservationForm({
   today,
   existing,
   bookedNights,
+  visitor = false,
+  defaults,
 }: {
   rooms: Room[];
   requestKey: string;
@@ -44,7 +51,17 @@ export function GuestReservationForm({
   existing?: OperationalReservation;
   /** Booked nights per room id, greyed out in the calendars. */
   bookedNights: Record<string, string[]>;
+  /** A visitor without an account booking for themselves, instead of staff entering a walk-in. */
+  visitor?: boolean;
+  defaults?: {
+    room?: string;
+    checkIn?: string;
+    checkOut?: string;
+    guests?: string;
+  };
 }) {
+  const [captcha, setCaptcha] = useState(""),
+    [captchaRound, setCaptchaRound] = useState(0);
   const [pending, start] = useTransition(),
     [error, setError] = useState(""),
     [phoneCountry, setPhoneCountry] = useState(() => {
@@ -57,10 +74,23 @@ export function GuestReservationForm({
       input: Input;
       quote: { total: number; nights: number; rate: number; room: string };
     } | null>(null);
+  const [booked, setBooked] = useState<{
+    reference: string;
+    email: string;
+  } | null>(null);
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
-  const [roomId, setRoomId] = useState(allocation?.room_id ?? rooms[0]?.id ?? "");
+  const [roomId, setRoomId] = useState(
+    allocation?.room_id ??
+      rooms.find((r) => r.id === defaults?.room)?.id ??
+      rooms[0]?.id ??
+      "",
+  );
+  // A customer's details live on their account; walk-in and visitor details are edited here.
   const online = existing?.booking_source === "customer_online";
+  // The email is the only way a visitor hears about their booking, so it can't be removed.
+  const contactRequired =
+    visitor || existing?.booking_source === "guest_online";
   const selectedCountry = findPhoneCountry(phoneCountry);
   const maxPhoneDigits = selectedCountry?.digits ?? 15;
   const Flag = selectedCountry ? Flags[selectedCountry.iso] : undefined;
@@ -91,13 +121,16 @@ export function GuestReservationForm({
     } else input.idempotencyKey = requestKey;
     setError("");
     start(async () => {
-      const result = await quoteGuestBookingAction(input, !!existing);
+      const result = visitor
+        ? await quoteStayAction(input)
+        : await quoteGuestBookingAction(input, !!existing);
       if (!result.ok) {
         setError(
           errorMessages[result.code] ?? "Could not review this booking.",
         );
         return;
       }
+      setCaptcha("");
       setReview({ input, quote: result.data });
     });
   }
@@ -105,6 +138,21 @@ export function GuestReservationForm({
     if (!review) return;
     setError("");
     start(async () => {
+      if (visitor) {
+        const result = await bookAsGuestAction(review.input, captcha);
+        if (!result.ok) {
+          // The CAPTCHA token is single-use; show a fresh check for the retry.
+          setCaptcha("");
+          setCaptchaRound((n) => n + 1);
+          setError(errorMessages[result.code] ?? "Could not book this room.");
+          return;
+        }
+        setBooked({
+          reference: result.data.reference,
+          email: review.input.guestEmail,
+        });
+        return;
+      }
       const result = existing
         ? online
           ? await updateOperationalBookingAction({
@@ -128,22 +176,42 @@ export function GuestReservationForm({
       setReview(null);
     });
   }
+  if (booked)
+    return (
+      <div className="guest-workflow">
+        <section className="notice" role="status">
+          <h2>Booking request {booked.reference} received</h2>
+          <p>
+            We have emailed the details to {booked.email}. The room is held for
+            24 hours, or until your check-in day if that is sooner, while our
+            staff confirm it and arrange payment with you.
+          </p>
+          <p>
+            To change or cancel it, contact the front desk and quote{" "}
+            {booked.reference}.
+          </p>
+        </section>
+        <Link className="back-link" href="/rooms">
+          Back to rooms
+        </Link>
+      </div>
+    );
   return (
     <div className="guest-workflow">
-      <form
-        className="form-panel"
-        hidden={!!review}
-        onSubmit={prepare}
-      >
+      <form className="form-panel" hidden={!!review} onSubmit={prepare}>
         <fieldset disabled={pending}>
           <legend>
-            {online ? "Update the guest’s stay" : "Guest and stay details"}
+            {online
+              ? "Update the guest’s stay"
+              : visitor
+                ? "Your details and stay"
+                : "Guest and stay details"}
           </legend>
           <div className="form-grid">
             {!online && (
               <>
                 <label className="full">
-                  Guest full name
+                  {visitor ? "Full name" : "Guest full name"}
                   <input
                     name="guestFullName"
                     maxLength={100}
@@ -152,33 +220,56 @@ export function GuestReservationForm({
                   />
                 </label>
                 <label>
-                  Guest email (optional)
+                  {visitor
+                    ? "Email"
+                    : contactRequired
+                      ? "Guest email"
+                      : "Guest email (optional)"}
                   <input
                     name="guestEmail"
                     type="email"
+                    required={contactRequired}
                     maxLength={254}
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
                 <div className="phone-field">
-                  <label htmlFor="guestPhoneDigits">Guest phone (optional)</label>
+                  <label htmlFor="guestPhoneDigits">
+                    {visitor
+                      ? "Mobile number"
+                      : contactRequired
+                        ? "Guest phone"
+                        : "Guest phone (optional)"}
+                  </label>
                   <div className="phone-input-row">
                     <div className="phone-country">
-                    <span className="phone-country-code" aria-hidden="true">
-                      {Flag && <Flag className="phone-flag" />}
-                      {phoneCountry}
-                    </span>
-                    <select
-                      name="phoneCountry"
-                      aria-label="Phone country code"
-                      value={phoneCountry}
-                      onChange={(event) => {
-                        setPhoneCountry(event.target.value);
-                        setPhoneDigits((digits) => digits.replace(/\D/g, "").slice(0, findPhoneCountry(event.target.value)?.digits ?? 15));
-                      }}
-                    >
-                      {phoneCountries.map((country) => <option key={country.code} value={country.code}>{country.name} ({country.code})</option>)}
-                    </select>
+                      <span className="phone-country-code" aria-hidden="true">
+                        {Flag && <Flag className="phone-flag" />}
+                        {phoneCountry}
+                      </span>
+                      <select
+                        name="phoneCountry"
+                        aria-label="Phone country code"
+                        value={phoneCountry}
+                        onChange={(event) => {
+                          setPhoneCountry(event.target.value);
+                          setPhoneDigits((digits) =>
+                            digits
+                              .replace(/\D/g, "")
+                              .slice(
+                                0,
+                                findPhoneCountry(event.target.value)?.digits ??
+                                  15,
+                              ),
+                          );
+                        }}
+                      >
+                        {phoneCountries.map((country) => (
+                          <option key={country.code} value={country.code}>
+                            {country.name} ({country.code})
+                          </option>
+                        ))}
+                      </select>
                     </div>
                     <input
                       id="guestPhoneDigits"
@@ -188,10 +279,21 @@ export function GuestReservationForm({
                       pattern="[0-9]*"
                       maxLength={maxPhoneDigits}
                       value={phoneDigits}
-                      onChange={(event) => setPhoneDigits(event.target.value.replace(/\D/g, "").slice(0, maxPhoneDigits))}
+                      onChange={(event) =>
+                        setPhoneDigits(
+                          event.target.value
+                            .replace(/\D/g, "")
+                            .slice(0, maxPhoneDigits),
+                        )
+                      }
                       placeholder="Digits only"
+                      required={contactRequired}
                       autoComplete="tel-national"
-                      aria-invalid={phoneProblem && phoneDigits.length >= maxPhoneDigits ? true : undefined}
+                      aria-invalid={
+                        phoneProblem && phoneDigits.length >= maxPhoneDigits
+                          ? true
+                          : undefined
+                      }
                       aria-describedby="guestPhoneRule"
                     />
                   </div>
@@ -231,8 +333,10 @@ export function GuestReservationForm({
                   ? allocation.check_in
                   : today
               }
-              defaultCheckIn={allocation?.check_in ?? today}
-              defaultCheckOut={allocation?.check_out}
+              defaultCheckIn={
+                allocation?.check_in ?? defaults?.checkIn ?? today
+              }
+              defaultCheckOut={allocation?.check_out ?? defaults?.checkOut}
             />
             <label>
               Guests
@@ -242,13 +346,17 @@ export function GuestReservationForm({
                 min={1}
                 max={20}
                 required
-                defaultValue={existing?.guests ?? 1}
+                defaultValue={
+                  existing?.guests ?? (Number(defaults?.guests) || 1)
+                }
               />
             </label>
           </div>
           <p className="subtle">
-            No customer account is created for a walk-in guest. Room
-            availability and the final price are checked when you confirm.
+            {visitor
+              ? "No account needed. We email your booking details to you; our staff confirm it and arrange payment."
+              : "No customer account is created for a walk-in guest."}{" "}
+            Room availability and the final price are checked when you confirm.
           </p>
           <button className="primary" disabled={pending || !rooms.length}>
             {pending ? "Checking…" : "Review booking"}
@@ -289,20 +397,30 @@ export function GuestReservationForm({
             </div>
           </dl>
           <p>
-            Confirmation reserves the room for this guest. It does not record a
-            payment.
+            {visitor
+              ? "Booking holds the room for 24 hours (less if you arrive sooner) while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
+              : "Confirmation reserves the room for this guest. It does not record a payment."}
           </p>
+          {visitor && (
+            <Turnstile
+              key={captchaRound}
+              action="book_room"
+              onToken={setCaptcha}
+            />
+          )}
           <div className="actions">
             <button
               className="primary gold"
-              disabled={pending}
+              disabled={pending || (visitor && !captcha)}
               onClick={confirm}
             >
               {pending
                 ? "Saving…"
                 : existing
                   ? "Save booking changes"
-                  : "Confirm guest booking"}
+                  : visitor
+                    ? "Book this room"
+                    : "Confirm guest booking"}
             </button>
             <button
               className="button secondary"
@@ -314,8 +432,11 @@ export function GuestReservationForm({
           </div>
         </section>
       )}
-      <Link className="back-link" href="/staff/reservations">
-        Back to reservations
+      <Link
+        className="back-link"
+        href={visitor ? "/rooms" : "/staff/reservations"}
+      >
+        {visitor ? "Back to rooms" : "Back to reservations"}
       </Link>
     </div>
   );
