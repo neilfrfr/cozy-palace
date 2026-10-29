@@ -15,6 +15,7 @@ import { addDays } from "@/lib/reservations/availability";
 import { bookTableAction, bookedTablesAction } from "@/app/actions/dining";
 import { bookTableAsGuestAction } from "@/app/actions/guest-bookings";
 import { Turnstile } from "@/components/turnstile";
+import { PhoneField } from "@/components/phone-field";
 import {
   BOOKING_WINDOW_DAYS,
   SEATING_MS,
@@ -246,21 +247,15 @@ export function TablePicker({
             : "No tables are on the floor plan yet."}
       </p>
       {contact && (
-        <div className="table-picker-fields">
+        <div className="table-picker-fields contact">
           <label>
             {visitor ? "Full name" : "Guest name"}
             <input name="guestFullName" required maxLength={100} />
           </label>
-          <label>
-            {visitor ? "Mobile number" : "Phone (optional)"}
-            <input
-              name="guestPhone"
-              type="tel"
-              placeholder="+639171234567"
-              maxLength={32}
-              required={visitor}
-            />
-          </label>
+          <PhoneField
+            label={visitor ? "Mobile number" : "Phone (optional)"}
+            required={visitor}
+          />
           <label>
             {visitor ? "Email" : "Email (optional)"}
             <input
