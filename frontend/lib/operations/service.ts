@@ -75,9 +75,9 @@ export async function getStaffDashboard() {
       filter: { status: "checked_in", date, staying: "1" },
     },
   ];
-  return {
-    date,
-    metrics: await Promise.all(
+  const { db } = await requireStaff();
+  const [metrics, tables] = await Promise.all([
+    Promise.all(
       definitions.map(async (item) => ({
         name: item.name,
         count: (
@@ -86,7 +86,29 @@ export async function getStaffDashboard() {
         href: "/staff/reservations?" + new URLSearchParams(item.filter),
       })),
     ),
+    pendingTableBookings(db),
+  ]);
+  return {
+    date,
+    metrics: [
+      ...metrics,
+      { name: "Pending table requests", count: tables, href: "/staff/tables" },
+    ],
   };
+}
+
+/** Table requests still waiting for staff, from today onward. */
+async function pendingTableBookings(
+  db: Awaited<ReturnType<typeof requireStaff>>["db"],
+) {
+  const r = await db
+    .from("reservations")
+    .select("id,table_bookings!inner(start_at)", { count: "exact", head: true })
+    .eq("kind", "dining")
+    .eq("status", "pending")
+    .gte("table_bookings.start_at", businessDate() + "T00:00:00+08:00");
+  if (r.error) throw Error("Table booking counts are unavailable.");
+  return r.count ?? 0;
 }
 
 export async function getManagementDashboard() {
@@ -97,7 +119,7 @@ export async function getManagementDashboard() {
     "staff_members",
     "reservations",
   ] as const;
-  const [counts, pending, statuses, recent] = await Promise.all([
+  const [counts, pending, statuses, recent, pendingTables] = await Promise.all([
     Promise.all(
       names.map(async (name) => {
         const r = await db
@@ -134,6 +156,7 @@ export async function getManagementDashboard() {
       .select("id,actor_name,actor_role,action,record_id,occurred_at")
       .order("occurred_at", { ascending: false })
       .limit(6),
+    pendingTableBookings(db),
   ]);
   if (pending.error || recent.error)
     throw Error("Management activity could not be loaded.");
@@ -145,6 +168,7 @@ export async function getManagementDashboard() {
   return {
     counts,
     pendingStaff: pending.count ?? 0,
+    pendingTables,
     statuses,
     recent: (recent.data ?? []).map((r) => ({
       ...r,

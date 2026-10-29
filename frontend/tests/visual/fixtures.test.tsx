@@ -58,6 +58,7 @@ const data = vi.hoisted(() => ({
 }));
 vi.mock("@/lib/reservations/service", () => ({
   getRooms: async () => data.rooms,
+  getBookedNightsByRoom: async () => ({}),
 }));
 vi.mock("@/lib/operations/service", () => ({
   getStaffDashboard: async () => ({
@@ -88,6 +89,7 @@ vi.mock("@/lib/operations/service", () => ({
       { name: "reservations", count: 42 },
     ],
     pendingStaff: 2,
+    pendingTables: 3,
     statuses: [
       { status: "pending", count: 4 },
       { status: "confirmed", count: 7 },

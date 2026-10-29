@@ -51,6 +51,12 @@ export default async function ManagementDashboard() {
           <Link className="text-link" href="/staff/reservations">
             Open reservation oversight →
           </Link>
+          <p className="access-count">
+            <strong>{data.pendingTables}</strong> pending table requests
+          </p>
+          <Link className="text-link" href="/staff/tables">
+            Open table service →
+          </Link>
         </section>
         <section className="operations-section">
           <h2>Staff access</h2>
