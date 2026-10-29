@@ -4,7 +4,11 @@ import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { after } from "next/server";
 import { createAdminClient } from "@/lib/supabase/admin";
-import { verifyCaptcha, visitorBookingEnabled } from "@/lib/captcha";
+import {
+  verifyCaptcha,
+  visitorBookingEnabled,
+  type CaptchaAction,
+} from "@/lib/captcha";
 import { sendBookingEmail } from "@/lib/email";
 import { visitorSchema } from "@/lib/operations/schema";
 import { slotStart, visitorTableSchema } from "@/lib/dining";
@@ -37,6 +41,7 @@ export async function quoteStayAction(
 /** Checks the CAPTCHA, books through the server-only RPC, then emails the visitor their booking. */
 async function bookAsVisitor(
   captchaToken: unknown,
+  action: CaptchaAction,
   rpc: string,
   args: Record<string, unknown>,
   email: (b: {
@@ -51,7 +56,7 @@ async function bookAsVisitor(
     h.get("x-real-ip") ??
     h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
     "unknown";
-  if (!(await verifyCaptcha(String(captchaToken ?? ""), ip)))
+  if (!(await verifyCaptcha(String(captchaToken ?? ""), ip, action)))
     return { ok: false, code: "CAPTCHA_FAILED" };
   const { data, error } = await createAdminClient().rpc(rpc, {
     ...args,
@@ -81,6 +86,7 @@ export async function bookAsGuestAction(
   const p = parsed.data;
   return bookAsVisitor(
     captchaToken,
+    "book_room",
     "book_as_guest",
     {
       p_room_id: p.roomId,
@@ -111,6 +117,7 @@ export async function bookTableAsGuestAction(
   const p = parsed.data;
   return bookAsVisitor(
     captchaToken,
+    "book_table",
     "book_table_as_guest",
     {
       p_table_id: p.tableId,

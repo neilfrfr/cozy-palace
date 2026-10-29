@@ -16,7 +16,7 @@ it("verifies the CAPTCHA with Cloudflare and fails closed", async () => {
   vi.stubEnv("TURNSTILE_SECRET_KEY", "");
   vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "");
   expect(visitorBookingEnabled()).toBe(false);
-  expect(await verifyCaptcha("token", "1.2.3.4")).toBe(false);
+  expect(await verifyCaptcha("token", "1.2.3.4", "book_room")).toBe(false);
   expect(fetchMock).not.toHaveBeenCalled();
   vi.stubEnv("TURNSTILE_SECRET_KEY", "1x0000000000000000000000000000000AA");
   vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "1x00000000000000000000AA");
@@ -27,17 +27,39 @@ it("verifies the CAPTCHA with Cloudflare and fails closed", async () => {
   fetchMock.mockResolvedValueOnce(
     new Response(JSON.stringify({ success: true })),
   );
-  expect(await verifyCaptcha("XXXX.DUMMY.TOKEN.XXXX", "1.2.3.4")).toBe(true);
+  expect(
+    await verifyCaptcha("XXXX.DUMMY.TOKEN.XXXX", "1.2.3.4", "book_room"),
+  ).toBe(true);
   const body = fetchMock.mock.calls[0][1].body as URLSearchParams;
   expect(body.get("response")).toBe("XXXX.DUMMY.TOKEN.XXXX");
   expect(body.get("remoteip")).toBe("1.2.3.4");
   fetchMock.mockResolvedValueOnce(
     new Response(JSON.stringify({ success: false })),
   );
-  expect(await verifyCaptcha("used", "1.2.3.4")).toBe(false);
+  expect(await verifyCaptcha("used", "1.2.3.4", "book_room")).toBe(false);
   fetchMock.mockRejectedValueOnce(new Error("network"));
-  expect(await verifyCaptcha("any", "1.2.3.4")).toBe(false);
-  expect(await verifyCaptcha("", "1.2.3.4")).toBe(false);
+  expect(await verifyCaptcha("any", "1.2.3.4", "book_room")).toBe(false);
+  expect(await verifyCaptcha("", "1.2.3.4", "book_room")).toBe(false);
+});
+it("with a real secret, needs the hostname list and checks the action and hostname", async () => {
+  const { verifyCaptcha, visitorBookingEnabled } =
+    await import("@/lib/captcha");
+  vi.stubEnv("TURNSTILE_SECRET_KEY", "0x4AAAAAAAreal-secret");
+  vi.stubEnv("NEXT_PUBLIC_TURNSTILE_SITE_KEY", "0x4AAAAAAAsite");
+  vi.stubEnv("TURNSTILE_HOSTNAMES", "");
+  expect(visitorBookingEnabled()).toBe(false);
+  vi.stubEnv("TURNSTILE_HOSTNAMES", "cozy.example, preview.example");
+  expect(visitorBookingEnabled()).toBe(true);
+  const answer = (action: string, hostname: string) =>
+    fetchMock.mockResolvedValueOnce(
+      new Response(JSON.stringify({ success: true, action, hostname })),
+    );
+  answer("book_room", "preview.example");
+  expect(await verifyCaptcha("t", "1.2.3.4", "book_room")).toBe(true);
+  answer("book_table", "cozy.example");
+  expect(await verifyCaptcha("t", "1.2.3.4", "book_room")).toBe(false);
+  answer("book_room", "evil.example");
+  expect(await verifyCaptcha("t", "1.2.3.4", "book_room")).toBe(false);
 });
 it("emails the booking details with the guest's name escaped, and skips when not configured", async () => {
   const { sendBookingEmail } = await import("@/lib/email");

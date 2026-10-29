@@ -279,7 +279,13 @@ export function TablePicker({
           bookings in your account.
         </p>
       )}
-      {visitor && <Turnstile key={captchaRound} onToken={setCaptcha} />}
+      {visitor && (
+        <Turnstile
+          key={captchaRound}
+          action="book_table"
+          onToken={setCaptcha}
+        />
+      )}
       {message && (
         <div
           className={message.ok ? "notice" : "notice error"}

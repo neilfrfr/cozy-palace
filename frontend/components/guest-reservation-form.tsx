@@ -401,7 +401,13 @@ export function GuestReservationForm({
               ? "Booking holds the room for 24 hours (less if you arrive sooner) while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
               : "Confirmation reserves the room for this guest. It does not record a payment."}
           </p>
-          {visitor && <Turnstile key={captchaRound} onToken={setCaptcha} />}
+          {visitor && (
+            <Turnstile
+              key={captchaRound}
+              action="book_room"
+              onToken={setCaptcha}
+            />
+          )}
           <div className="actions">
             <button
               className="primary gold"
