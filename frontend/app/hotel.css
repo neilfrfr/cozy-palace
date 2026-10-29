@@ -983,6 +983,13 @@ body {
   gap: 6px;
   font-weight: 600;
 }
+/* Contact row: the phone hint sits under its boxes, so line fields up by their tops. */
+.table-picker-fields.contact {
+  align-items: start;
+}
+.table-picker-fields .phone-field > label {
+  font-weight: 600;
+}
 .table-picker-fields select,
 .table-picker-fields input {
   min-height: 44px;

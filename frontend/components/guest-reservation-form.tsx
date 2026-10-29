@@ -12,16 +12,10 @@ import {
   bookAsGuestAction,
   quoteStayAction,
 } from "@/app/actions/guest-bookings";
-import * as Flags from "country-flag-icons/react/3x2";
 import { StayDates } from "@/components/stay-dates";
 import { Turnstile } from "@/components/turnstile";
 import { errorMessages } from "@/lib/reservations/errors";
-import {
-  phoneCountries,
-  phoneCountry as findPhoneCountry,
-  phoneError,
-  splitPhoneNumber,
-} from "@/lib/phone";
+import { PhoneField } from "@/components/phone-field";
 import type { Room } from "@/lib/reservations/types";
 import type { OperationalReservation } from "@/lib/operations/service";
 type Input = {
@@ -64,12 +58,6 @@ export function GuestReservationForm({
     [captchaRound, setCaptchaRound] = useState(0);
   const [pending, start] = useTransition(),
     [error, setError] = useState(""),
-    [phoneCountry, setPhoneCountry] = useState(() => {
-      return splitPhoneNumber(existing?.guest_phone ?? "").countryCode;
-    }),
-    [phoneDigits, setPhoneDigits] = useState(() => {
-      return splitPhoneNumber(existing?.guest_phone ?? "").digits;
-    }),
     [review, setReview] = useState<{
       input: Input;
       quote: { total: number; nights: number; rate: number; room: string };
@@ -91,16 +79,8 @@ export function GuestReservationForm({
   // The email is the only way a visitor hears about their booking, so it can't be removed.
   const contactRequired =
     visitor || existing?.booking_source === "guest_online";
-  const selectedCountry = findPhoneCountry(phoneCountry);
-  const maxPhoneDigits = selectedCountry?.digits ?? 15;
-  const Flag = selectedCountry ? Flags[selectedCountry.iso] : undefined;
-  const phoneProblem = phoneDigits ? phoneError(phoneCountry, phoneDigits) : "";
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
-    if (phoneProblem) {
-      setError(phoneProblem);
-      return;
-    }
     const f = new FormData(event.currentTarget);
     const input: Input = {
       roomId: String(f.get("roomId")),
@@ -111,9 +91,7 @@ export function GuestReservationForm({
         f.get("guestFullName") ?? existing?.customer_name ?? "",
       ),
       guestEmail: String(f.get("guestEmail") ?? ""),
-      guestPhone: String(f.get("phoneDigits") ?? "")
-        ? `${String(f.get("phoneCountry") ?? phoneCountry)}${String(f.get("phoneDigits") ?? "")}`
-        : "",
+      guestPhone: String(f.get("guestPhone") ?? ""),
     };
     if (existing) {
       input.id = existing.id;
@@ -233,81 +211,17 @@ export function GuestReservationForm({
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
-                <div className="phone-field">
-                  <label htmlFor="guestPhoneDigits">
-                    {visitor
+                <PhoneField
+                  label={
+                    visitor
                       ? "Mobile number"
                       : contactRequired
                         ? "Guest phone"
-                        : "Guest phone (optional)"}
-                  </label>
-                  <div className="phone-input-row">
-                    <div className="phone-country">
-                      <span className="phone-country-code" aria-hidden="true">
-                        {Flag && <Flag className="phone-flag" />}
-                        {phoneCountry}
-                      </span>
-                      <select
-                        name="phoneCountry"
-                        aria-label="Phone country code"
-                        value={phoneCountry}
-                        onChange={(event) => {
-                          setPhoneCountry(event.target.value);
-                          setPhoneDigits((digits) =>
-                            digits
-                              .replace(/\D/g, "")
-                              .slice(
-                                0,
-                                findPhoneCountry(event.target.value)?.digits ??
-                                  15,
-                              ),
-                          );
-                        }}
-                      >
-                        {phoneCountries.map((country) => (
-                          <option key={country.code} value={country.code}>
-                            {country.name} ({country.code})
-                          </option>
-                        ))}
-                      </select>
-                    </div>
-                    <input
-                      id="guestPhoneDigits"
-                      name="phoneDigits"
-                      type="tel"
-                      inputMode="numeric"
-                      pattern="[0-9]*"
-                      maxLength={maxPhoneDigits}
-                      value={phoneDigits}
-                      onChange={(event) =>
-                        setPhoneDigits(
-                          event.target.value
-                            .replace(/\D/g, "")
-                            .slice(0, maxPhoneDigits),
-                        )
-                      }
-                      placeholder="Digits only"
-                      required={contactRequired}
-                      autoComplete="tel-national"
-                      aria-invalid={
-                        phoneProblem && phoneDigits.length >= maxPhoneDigits
-                          ? true
-                          : undefined
-                      }
-                      aria-describedby="guestPhoneRule"
-                    />
-                  </div>
-                  <p
-                    id="guestPhoneRule"
-                    className={
-                      phoneProblem && phoneDigits.length >= maxPhoneDigits
-                        ? "field-hint error"
-                        : "field-hint"
-                    }
-                  >
-                    {selectedCountry?.rule}
-                  </p>
-                </div>
+                        : "Guest phone (optional)"
+                  }
+                  required={contactRequired}
+                  defaultValue={existing?.guest_phone ?? ""}
+                />
               </>
             )}
             <label className="full">
