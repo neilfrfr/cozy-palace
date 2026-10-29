@@ -1,12 +1,17 @@
 import Link from "next/link";
 import type { Reservation } from "@/lib/reservations/types";
 import type { InventoryRoom } from "@/lib/inventory/service";
+import { PayButton } from "@/components/pay-button";
 export function CheckoutSummary({
   reservation: r,
   room,
+  payment = "unavailable",
+  returned = false,
 }: {
   reservation: Reservation;
   room: InventoryRoom | null;
+  payment?: "unavailable" | "open" | "closed";
+  returned?: boolean;
 }) {
   const allocation = r.room_bookings[0];
   return (
@@ -50,7 +55,11 @@ export function CheckoutSummary({
           </div>
           <div>
             <dt>Payment method</dt>
-            <dd>E-wallet · unavailable</dd>
+            <dd>
+              {payment === "unavailable"
+                ? "E-wallet · unavailable"
+                : "GCash, Maya or card · PayMongo"}
+            </dd>
           </div>
           <div className="total">
             <dt>Reservation total ({r.currency})</dt>
@@ -63,19 +72,37 @@ export function CheckoutSummary({
           </div>
         </dl>
       </section>
-      <p className="notice" id="payment-unavailable">
-        E-wallet payments are not available yet. Contact staff for payment
-        arrangements.
-      </p>
+      {returned && (
+        <p className="notice" role="status">
+          Thank you. Your reservation is confirmed as soon as PayMongo reports
+          the payment, usually within a minute. Refresh to see the update.
+        </p>
+      )}
+      {payment === "unavailable" && (
+        <p className="notice" id="payment-unavailable">
+          E-wallet payments are not available yet. Contact staff for payment
+          arrangements.
+        </p>
+      )}
+      {payment === "closed" && !returned && (
+        <p className="notice" id="payment-unavailable">
+          Online payment is open for submitted requests while their hold is
+          active.
+        </p>
+      )}
       <div className="actions">
-        <button
-          className="primary gold"
-          type="button"
-          disabled
-          aria-describedby="payment-unavailable"
-        >
-          Payment unavailable
-        </button>
+        {payment === "open" && !returned ? (
+          <PayButton id={r.id} />
+        ) : (
+          <button
+            className="primary gold"
+            type="button"
+            disabled
+            aria-describedby={returned ? undefined : "payment-unavailable"}
+          >
+            Payment unavailable
+          </button>
+        )}
         <Link className="button secondary" href={`/reservations/${r.id}`}>
           Back to reservation
         </Link>

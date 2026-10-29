@@ -7,6 +7,7 @@ import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
 import { businessDate } from "@/lib/operations/schema";
 import { GuestReservationForm } from "@/components/guest-reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
+import { sourceLabel } from "@/lib/format";
 export const dynamic = "force-dynamic";
 export default async function OperationalDetail({
   params,
@@ -39,18 +40,13 @@ export default async function OperationalDetail({
       </header>
       <dl className="details operational-details">
         {[
-          [
-            "Booking source",
-            r.booking_source === "staff_guest"
-              ? "Staff-entered guest"
-              : "Customer online",
-          ],
+          ["Booking source", sourceLabel(r.booking_source)],
           ["Created by", r.creator_name ?? "Unavailable"],
           ["Room", `${r.room_type_name} · Room ${r.room_number}`],
           ["Stay", `${a?.check_in} to ${a?.check_out}`],
           ["Guests", String(r.guests)],
           ["Reservation total", `₱${Number(r.total).toLocaleString("en-PH")}`],
-          ...(r.booking_source === "staff_guest"
+          ...(r.booking_source !== "customer_online"
             ? [
                 ["Guest email", r.guest_email ?? "Not provided"],
                 ["Guest phone", r.guest_phone ?? "Not provided"],

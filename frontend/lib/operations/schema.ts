@@ -61,3 +61,11 @@ export function businessDate(now = new Date()) {
   const p = (t: string) => parts.find((v) => v.type === t)!.value;
   return `${p("year")}-${p("month")}-${p("day")}`;
 }
+/** A visitor booking without an account: contact details are required to reach them. */
+export const visitorSchema = reservationSchema.extend({
+  guestFullName: guestFields.guestFullName,
+  guestEmail: z.email().trim().max(254),
+  guestPhone: z.string().trim().max(32).refine(isValidPhone),
+});
+/** The secret in a visitor's private booking link. */
+export const guestLinkToken = z.string().regex(/^[0-9a-f]{64}$/);

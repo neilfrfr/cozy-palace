@@ -10,7 +10,8 @@
     "typecheck": "tsc --noEmit",
     "test": "vitest run tests/unit",
     "test:e2e": "playwright test",
-    "test:e2e:connected": "playwright test --config=playwright.connected.config.ts"
+    "test:e2e:connected": "playwright test --config=playwright.connected.config.ts",
+    "simulate:payment": "node scripts/simulate-paymongo.mjs"
   },
   "engines": {
     "node": ">=22"

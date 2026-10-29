@@ -21,7 +21,8 @@
     "test:concurrency": "npm run test:concurrency --workspace=@cozy-palace/backend",
     "test:e2e": "npm run test:e2e --workspace=@cozy-palace/frontend",
     "test:e2e:connected": "npm run test:e2e:connected --workspace=@cozy-palace/frontend",
-    "test:security": "node --test tools/next-eslint-glob/test/*.test.cjs"
+    "test:security": "node --test tools/next-eslint-glob/test/*.test.cjs",
+    "simulate:payment": "npm run simulate:payment --workspace=@cozy-palace/frontend --"
   },
   "devDependencies": {
     "eslint": "9.39.5",
