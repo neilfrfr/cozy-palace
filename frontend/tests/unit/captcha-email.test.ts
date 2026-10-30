@@ -1,8 +1,15 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({ adminConfigured: () => true }));
+const mail = vi.hoisted(() => {
+  const sendMail = vi.fn();
+  return { sendMail, createTransport: vi.fn(() => ({ sendMail })) };
+});
+vi.mock("nodemailer", () => ({ createTransport: mail.createTransport }));
 const fetchMock = vi.fn();
 beforeEach(() => {
+  mail.createTransport.mockClear();
+  mail.sendMail.mockReset();
   vi.stubGlobal("fetch", fetchMock);
   fetchMock.mockReset();
 });
@@ -69,26 +76,29 @@ it("emails the booking details with the guest's name escaped, and skips when not
     reference: "CP-ABC",
     booking: "a stay from 2027-01-10 to 2027-01-12",
     guests: 2,
-    next: "We hold the room for 24 hours.",
+    next: "We hold the room until your check-in day.",
     id: "20000000-0000-4000-8000-000000000001",
   };
   expect(await sendBookingEmail(booking)).toBe(false);
-  expect(fetchMock).not.toHaveBeenCalled();
-  vi.stubEnv("RESEND_API_KEY", "re_test");
-  vi.stubEnv("EMAIL_FROM", "Cozy Palace <onboarding@resend.dev>");
-  fetchMock.mockResolvedValueOnce(new Response("{}", { status: 200 }));
+  expect(mail.createTransport).not.toHaveBeenCalled();
+  vi.stubEnv("GMAIL_USER", "cozypalace.bookings@gmail.com");
+  vi.stubEnv("GMAIL_APP_PASSWORD", "abcd efgh ijkl mnop");
+  mail.sendMail.mockResolvedValueOnce({});
   expect(await sendBookingEmail(booking)).toBe(true);
-  const [, init] = fetchMock.mock.calls[0];
-  const sent = JSON.parse(init.body as string);
-  expect(sent.to).toEqual(["walk@example.test"]);
+  expect(mail.createTransport).toHaveBeenCalledWith(
+    expect.objectContaining({
+      auth: { user: "cozypalace.bookings@gmail.com", pass: "abcdefghijklmnop" },
+    }),
+  );
+  const sent = mail.sendMail.mock.calls[0][0];
+  expect(sent.to).toBe("walk@example.test");
   expect(sent.html).toContain("&lt;script&gt;");
   expect(sent.html).not.toContain("<script>");
   expect(sent.text).toContain(
     "CP-ABC: a stay from 2027-01-10 to 2027-01-12, 2 guests",
   );
   expect(sent.text).not.toContain("http");
-  expect(init.headers["idempotency-key"]).toBe("booking-" + booking.id);
   vi.spyOn(console, "error").mockImplementation(() => {});
-  fetchMock.mockResolvedValueOnce(new Response("{}", { status: 422 }));
+  mail.sendMail.mockRejectedValueOnce(new Error("535 bad credentials"));
   expect(await sendBookingEmail(booking)).toBe(false);
 });
