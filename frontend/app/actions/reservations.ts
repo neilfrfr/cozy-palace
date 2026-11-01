@@ -1,6 +1,8 @@
 "use server";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { deliverNotifications } from "@/lib/notifications";
 import { readRole } from "@/lib/auth/authorize";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
@@ -37,6 +39,7 @@ async function invoke(
     "/admin",
   ])
     revalidatePath(path);
+  after(() => deliverNotifications());
   return { ok: true, data: data as Reservation };
 }
 export async function createReservationAction(
