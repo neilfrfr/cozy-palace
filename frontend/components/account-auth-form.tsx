@@ -53,6 +53,22 @@ export function AccountAuthForm({
             />
           </label>
         )}
+        {mode === "password" && (
+          <div className="full">
+            <label htmlFor="currentPassword">Current password</label>
+            <PasswordInput
+              id="currentPassword"
+              name="currentPassword"
+              visibilityLabel="current password"
+              autoComplete="current-password"
+              maxLength={128}
+              aria-describedby="currentPasswordHint"
+            />
+            <p id="currentPasswordHint" className="subtle">
+              Leave blank if you opened a reset link from your email.
+            </p>
+          </div>
+        )}
         {(mode === "register" || mode === "password") && (
           <>
             <div className="full">

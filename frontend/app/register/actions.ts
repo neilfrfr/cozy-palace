@@ -103,6 +103,7 @@ export async function passwordAction(
   const p = passwordSchema.safeParse({
     password: form.get("password"),
     confirmPassword: form.get("confirmPassword"),
+    currentPassword: form.get("currentPassword") || undefined,
   });
   if (!p.success)
     return {
@@ -111,11 +112,15 @@ export async function passwordAction(
     };
   const { error } = await identity.db.auth.updateUser({
     password: p.data.password,
+    // Supabase checks it when "Require current password when updating" is on.
+    current_password: p.data.currentPassword,
   });
   if (error)
     return {
       message:
-        "We could not update your password. Request a fresh recovery link or sign in again.",
+        error.code === "current_password_required"
+          ? "Enter your current password."
+          : "We could not update your password. Check your current password, or request a fresh recovery link.",
       success: false,
     };
   return { message: "Your password has been updated.", success: true };
