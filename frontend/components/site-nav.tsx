@@ -15,7 +15,7 @@ export async function SiteNav() {
                 label: employee ? "Work dashboard" : "My Reservations",
               },
             ]
-          : []),
+          : [{ href: "/find-reservation", label: "Find a Reservation" }]),
         { href: "/about", label: "About" },
         { href: "/contact", label: "Contact" },
       ]}
