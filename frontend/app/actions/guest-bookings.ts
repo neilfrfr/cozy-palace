@@ -8,8 +8,8 @@ import {
   visitorBookingEnabled,
   type CaptchaAction,
 } from "@/lib/captcha";
-import { sendBookingEmail } from "@/lib/email";
 import { clientIp } from "@/lib/client-ip";
+import { deliverNotifications } from "@/lib/notifications";
 import { visitorSchema } from "@/lib/operations/schema";
 import { slotStart, visitorTableSchema } from "@/lib/dining";
 import { publicError } from "@/lib/reservations/errors";
@@ -38,16 +38,12 @@ export async function quoteStayAction(
     },
   };
 }
-/** Checks the CAPTCHA, books through the server-only RPC, then emails the visitor their booking. */
+/** Checks the CAPTCHA, books through the server-only RPC, then sends the queued booking email. */
 async function bookAsVisitor(
   captchaToken: unknown,
   action: CaptchaAction,
   rpc: string,
   args: Record<string, unknown>,
-  email: (b: {
-    id: string;
-    reference: string;
-  }) => Parameters<typeof sendBookingEmail>[0],
 ): Promise<Booked> {
   if (!visitorBookingEnabled()) return { ok: false, code: "REQUEST_FAILED" };
   const ip = await clientIp();
@@ -68,8 +64,8 @@ async function bookAsVisitor(
   ])
     revalidatePath(path);
   const booked = data as { id: string; reference: string };
-  // The booking stands even if the email fails; the reference is also shown on screen.
-  after(() => sendBookingEmail(email(booked)));
+  // The booking stands even if the email fails; it is retried later and the reference is shown on screen.
+  after(() => deliverNotifications());
   return { ok: true, data: { reference: booked.reference } };
 }
 export async function bookAsGuestAction(
@@ -79,29 +75,16 @@ export async function bookAsGuestAction(
   const parsed = visitorSchema.safeParse(input);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
   const p = parsed.data;
-  return bookAsVisitor(
-    captchaToken,
-    "book_room",
-    "book_as_guest",
-    {
-      p_room_id: p.roomId,
-      p_check_in: p.checkIn,
-      p_check_out: p.checkOut,
-      p_guests: p.guests,
-      p_guest_full_name: p.guestFullName,
-      p_guest_email: p.guestEmail,
-      p_guest_phone: p.guestPhone,
-      p_idempotency_key: p.idempotencyKey,
-    },
-    (b) => ({
-      ...b,
-      to: p.guestEmail,
-      name: p.guestFullName,
-      booking: `a stay from ${p.checkIn} to ${p.checkOut}`,
-      guests: p.guests,
-      next: "We hold the room until your check-in day. Our staff will contact you to confirm it and arrange payment.",
-    }),
-  );
+  return bookAsVisitor(captchaToken, "book_room", "book_as_guest", {
+    p_room_id: p.roomId,
+    p_check_in: p.checkIn,
+    p_check_out: p.checkOut,
+    p_guests: p.guests,
+    p_guest_full_name: p.guestFullName,
+    p_guest_email: p.guestEmail,
+    p_guest_phone: p.guestPhone,
+    p_idempotency_key: p.idempotencyKey,
+  });
 }
 export async function bookTableAsGuestAction(
   input: unknown,
@@ -110,26 +93,13 @@ export async function bookTableAsGuestAction(
   const parsed = visitorTableSchema.safeParse(input);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
   const p = parsed.data;
-  return bookAsVisitor(
-    captchaToken,
-    "book_table",
-    "book_table_as_guest",
-    {
-      p_table_id: p.tableId,
-      p_start_at: slotStart(p.date, p.time),
-      p_guests: p.guests,
-      p_guest_full_name: p.guestFullName,
-      p_guest_email: p.guestEmail,
-      p_guest_phone: p.guestPhone,
-      p_idempotency_key: p.idempotencyKey,
-    },
-    (b) => ({
-      ...b,
-      to: p.guestEmail,
-      name: p.guestFullName,
-      booking: `a table on ${p.date} at ${p.time}`,
-      guests: p.guests,
-      next: "We hold the table until our staff confirm it. Seatings last two hours.",
-    }),
-  );
+  return bookAsVisitor(captchaToken, "book_table", "book_table_as_guest", {
+    p_table_id: p.tableId,
+    p_start_at: slotStart(p.date, p.time),
+    p_guests: p.guests,
+    p_guest_full_name: p.guestFullName,
+    p_guest_email: p.guestEmail,
+    p_guest_phone: p.guestPhone,
+    p_idempotency_key: p.idempotencyKey,
+  });
 }

@@ -2249,3 +2249,18 @@ button.primary:hover {
     width: min(304px, calc(100vw - 32px));
   }
 }
+.notice-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+.notice-list li {
+  padding: 16px 0;
+  border-bottom: 1px solid var(--line);
+}
+.notice-list p {
+  margin: 0 0 4px;
+}
+.notice-list .status {
+  margin-left: 8px;
+}

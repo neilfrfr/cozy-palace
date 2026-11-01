@@ -1,6 +1,7 @@
 import { afterEach, beforeEach, expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({ adminConfigured: () => true }));
+vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
 const mail = vi.hoisted(() => {
   const sendMail = vi.fn();
   return { sendMail, createTransport: vi.fn(() => ({ sendMail })) };
@@ -68,23 +69,27 @@ it("with a real secret, needs the hostname list and checks the action and hostna
   answer("book_room", "evil.example");
   expect(await verifyCaptcha("t", "1.2.3.4", "book_room")).toBe(false);
 });
-it("emails the booking details with the guest's name escaped, and skips when not configured", async () => {
-  const { sendBookingEmail } = await import("@/lib/email");
-  const booking = {
-    to: "walk@example.test",
-    name: "<script>x</script>",
-    reference: "CP-ABC",
-    booking: "a stay from 2027-01-10 to 2027-01-12",
-    guests: 2,
-    next: "We hold the room until your check-in day.",
-    id: "20000000-0000-4000-8000-000000000001",
-  };
-  expect(await sendBookingEmail(booking)).toBe(false);
+it("emails a notice with the guest's name escaped, and reports why a send failed", async () => {
+  const { sendEmail } = await import("@/lib/email");
+  const { emailFor } = await import("@/lib/notifications");
+  const message = emailFor(
+    { id: "n1", event: "confirmed", email: "walk@example.test" },
+    {
+      reference: "CP-ABC",
+      kind: "hotel",
+      guests: 2,
+      guest_full_name: "<script>x</script>",
+      customer: null,
+      room_bookings: [{ check_in: "2027-01-10", check_out: "2027-01-12" }],
+      table_bookings: [],
+    },
+  );
+  expect(await sendEmail(message)).toBe("Email is not configured");
   expect(mail.createTransport).not.toHaveBeenCalled();
   vi.stubEnv("GMAIL_USER", "cozypalace.bookings@gmail.com");
   vi.stubEnv("GMAIL_APP_PASSWORD", "abcd efgh ijkl mnop");
   mail.sendMail.mockResolvedValueOnce({});
-  expect(await sendBookingEmail(booking)).toBe(true);
+  expect(await sendEmail(message)).toBeNull();
   expect(mail.createTransport).toHaveBeenCalledWith(
     expect.objectContaining({
       auth: { user: "cozypalace.bookings@gmail.com", pass: "abcdefghijklmnop" },
@@ -92,6 +97,8 @@ it("emails the booking details with the guest's name escaped, and skips when not
   );
   const sent = mail.sendMail.mock.calls[0][0];
   expect(sent.to).toBe("walk@example.test");
+  expect(sent.subject).toBe("Your booking is confirmed · CP-ABC");
+  expect(sent.messageId).toBe("<notice-n1@cozypalace>");
   expect(sent.html).toContain("&lt;script&gt;");
   expect(sent.html).not.toContain("<script>");
   expect(sent.text).toContain(
@@ -100,5 +107,5 @@ it("emails the booking details with the guest's name escaped, and skips when not
   expect(sent.text).not.toContain("http");
   vi.spyOn(console, "error").mockImplementation(() => {});
   mail.sendMail.mockRejectedValueOnce(new Error("535 bad credentials"));
-  expect(await sendBookingEmail(booking)).toBe(false);
+  expect(await sendEmail(message)).toBe("535 bad credentials");
 });

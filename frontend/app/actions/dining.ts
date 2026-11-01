@@ -1,6 +1,8 @@
 "use server";
 import { z } from "zod";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { deliverNotifications } from "@/lib/notifications";
 import { readRole } from "@/lib/auth/authorize";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
@@ -41,6 +43,7 @@ async function rpc(
   const { data, error } = await db.rpc(name, args);
   if (error) return { ok: false, code: publicError(error) };
   refresh();
+  after(() => deliverNotifications());
   return { ok: true, data: data as Saved };
 }
 
