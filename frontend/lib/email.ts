@@ -8,35 +8,25 @@ const escape = (s: string) =>
         c
       ]!,
   );
+/** True when the hotel's Gmail account is set up for sending. */
+export const emailConfigured = () =>
+  Boolean(process.env.GMAIL_USER && process.env.GMAIL_APP_PASSWORD);
 /**
- * Emails a visitor without an account the details of their booking from the hotel's Gmail account.
- * This email is their only record of it. Returns false when not configured or not sent.
+ * Sends one plain email from the hotel's Gmail account, each line a paragraph.
+ * Returns null when sent, otherwise the reason, so the caller can record it and retry.
  */
-export async function sendBookingEmail(p: {
+export async function sendEmail(p: {
   to: string;
-  name: string;
-  reference: string;
-  /** e.g. "Deluxe · Room 101, 2027-01-10 to 2027-01-12" or "Table T5, 2027-01-10 at 19:00". */
-  booking: string;
-  guests: number;
-  /** What happens next, e.g. how long the hold lasts. */
-  next: string;
-  /** Booking id, used as the Message-ID so a resend reads as the same email. */
+  subject: string;
+  lines: string[];
+  /** Stable per event, so a retried send reads as the same email. */
   id: string;
-}): Promise<boolean> {
+}): Promise<string | null> {
   const user = process.env.GMAIL_USER,
     // Google shows app passwords in groups of four with spaces.
     pass = process.env.GMAIL_APP_PASSWORD?.replace(/\s/g, "");
-  if (!user || !pass) return false;
-  const lines = [
-    `Hello ${p.name},`,
-    `We received your booking request ${p.reference}: ${p.booking}, ${p.guests} guest${p.guests === 1 ? "" : "s"}.`,
-    p.next,
-    `To change or cancel it, contact the front desk and quote ${p.reference}.`,
-    "Cozy Palace Hotel and Restaurant",
-  ];
+  if (!user || !pass) return "Email is not configured";
   try {
-    // shortcut: Gmail has no idempotency key, so a replayed booking request emails twice; fine at hotel volume.
     await createTransport({
       service: "gmail",
       auth: { user, pass },
@@ -46,14 +36,14 @@ export async function sendBookingEmail(p: {
     }).sendMail({
       from: { name: "Cozy Palace", address: user },
       to: p.to,
-      subject: `Your Cozy Palace booking ${p.reference}`,
-      text: lines.join("\n\n"),
-      html: lines.map((l) => `<p>${escape(l)}</p>`).join(""),
-      messageId: `<booking-${p.id}@cozypalace>`,
+      subject: p.subject,
+      text: p.lines.join("\n\n"),
+      html: p.lines.map((l) => `<p>${escape(l)}</p>`).join(""),
+      messageId: `<${p.id}@cozypalace>`,
     });
-    return true;
+    return null;
   } catch (error) {
-    console.error("Booking email failed", error);
-    return false;
+    console.error("Email failed", error);
+    return error instanceof Error ? error.message : "Email failed";
   }
 }

@@ -1,5 +1,7 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
+import { deliverNotifications } from "@/lib/notifications";
 import { requireStaff } from "@/lib/auth/authorize";
 import { guestSchema, guestUpdateSchema } from "@/lib/operations/schema";
 import { updateSchema } from "@/lib/reservations/schema";
@@ -18,6 +20,7 @@ function refresh(id: string) {
     "/reservations/" + id,
   ])
     revalidatePath(path);
+  after(() => deliverNotifications());
 }
 async function save(
   input: unknown,
