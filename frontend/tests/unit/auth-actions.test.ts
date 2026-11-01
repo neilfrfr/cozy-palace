@@ -1,7 +1,15 @@
 import { beforeEach, it, expect, vi } from "vitest";
 const db = vi.hoisted(() => ({
-  auth: { signUp: vi.fn(), resetPasswordForEmail: vi.fn(), resend: vi.fn() },
+  auth: {
+    signUp: vi.fn(),
+    resetPasswordForEmail: vi.fn(),
+    resend: vi.fn(),
+    updateUser: vi.fn(),
+  },
   rpc: vi.fn(),
+}));
+vi.mock("@/lib/auth/authorize", () => ({
+  requireIdentity: async () => ({ db }),
 }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => db }));
@@ -11,7 +19,11 @@ vi.mock("next/navigation", () => ({
     throw new Error("REDIRECT:" + url);
   },
 }));
-import { registerAction, emailAction } from "@/app/register/actions";
+import {
+  registerAction,
+  emailAction,
+  passwordAction,
+} from "@/app/register/actions";
 import { siteOrigin } from "@/lib/accounts/site-url";
 const initial = { message: "", success: false };
 beforeEach(() => {
@@ -65,4 +77,28 @@ it("rejects unsafe email-link origins", () => {
   expect(siteOrigin()).toBeNull();
   vi.stubEnv("SITE_URL", "http://public.example");
   expect(siteOrigin()).toBeNull();
+});
+it("password change sends the current password and explains when it is missing", async () => {
+  const f = new FormData();
+  f.set("password", "A-new-password-123");
+  f.set("confirmPassword", "A-new-password-123");
+  f.set("currentPassword", "");
+  db.auth.updateUser.mockResolvedValueOnce({
+    error: { code: "current_password_required" },
+  });
+  expect(await passwordAction(initial, f)).toEqual({
+    message: "Enter your current password.",
+    success: false,
+  });
+  expect(db.auth.updateUser).toHaveBeenLastCalledWith({
+    password: "A-new-password-123",
+    current_password: undefined,
+  });
+  f.set("currentPassword", "Old-password-1");
+  db.auth.updateUser.mockResolvedValueOnce({ error: null });
+  expect((await passwordAction(initial, f)).success).toBe(true);
+  expect(db.auth.updateUser).toHaveBeenLastCalledWith({
+    password: "A-new-password-123",
+    current_password: "Old-password-1",
+  });
 });

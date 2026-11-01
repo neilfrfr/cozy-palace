@@ -9,6 +9,7 @@ export const passwordSchema = z
   .object({
     password: z.string().min(8).max(128),
     confirmPassword: z.string().min(8).max(128),
+    currentPassword: z.string().max(128).optional(),
   })
   .strict()
   .refine((p) => p.password === p.confirmPassword, {
