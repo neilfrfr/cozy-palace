@@ -21,8 +21,8 @@ async function as(user: string, sql: string, params: unknown[] = []) {
 }
 async function create(
   user = a,
-  start = "2026-11-01",
-  end = "2026-11-03",
+  start = "2030-11-01",
+  end = "2030-11-03",
   k = key(),
   guests = 2,
 ) {
@@ -72,7 +72,7 @@ it("persists create read update and physical draft delete", async () => {
   const edit = await as(
     a,
     "select update_reservation($1,1,$2,$3::date,$4::date,1) as result",
-    [r.id, room, "2026-11-03", "2026-11-04"],
+    [r.id, room, "2030-11-03", "2030-11-04"],
   );
   expect((edit.rows[0] as { result: { version: number } }).result.version).toBe(
     2,
@@ -87,10 +87,10 @@ it("persists create read update and physical draft delete", async () => {
   ).toBe(3);
 });
 it("rejects invalid dates and capacity on the database", async () => {
-  await expect(create(a, "2026-11-04", "2026-11-04")).rejects.toThrow(
+  await expect(create(a, "2030-11-04", "2030-11-04")).rejects.toThrow(
     "INVALID_INPUT",
   );
-  await expect(create(a, "2026-11-04", "2026-11-05", key(), 9)).rejects.toThrow(
+  await expect(create(a, "2030-11-04", "2030-11-05", key(), 9)).rejects.toThrow(
     "CAPACITY_EXCEEDED",
   );
 });
@@ -120,13 +120,13 @@ it("rejects missing identity even when function access exists", async () => {
   await expect(create("")).rejects.toThrow("UNAUTHORIZED");
 });
 it("protects active intervals and allows adjacent bookings", async () => {
-  const { result: r } = await create(a, "2026-12-01", "2026-12-03");
+  const { result: r } = await create(a, "2030-12-01", "2030-12-03");
   await as(a, "select submit_reservation($1,1)", [r.id]);
-  const { result: s } = await create(b, "2026-12-02", "2026-12-04");
+  const { result: s } = await create(b, "2030-12-02", "2030-12-04");
   await expect(
     as(b, "select submit_reservation($1,1)", [s.id]),
   ).rejects.toThrow("AVAILABILITY_CONFLICT");
-  const { result: t } = await create(b, "2026-12-03", "2026-12-04");
+  const { result: t } = await create(b, "2030-12-03", "2030-12-04");
   await as(b, "select submit_reservation($1,1)", [t.id]);
   const state = await db.query("select status from reservations where id=$1", [
     s.id,
@@ -208,7 +208,7 @@ it("shows visitors booked date ranges without disclosing who booked them", async
   await db.exec("set role anon");
   try {
     const result = await db.query<Record<string, string>>(
-      "select room_id,check_in::text as check_in,check_out::text as check_out from room_booked_ranges('2026-12-01','2026-12-10')",
+      "select room_id,check_in::text as check_in,check_out::text as check_out from room_booked_ranges('2030-12-01','2030-12-10')",
     );
     expect(result.fields.map((f) => f.name)).toEqual([
       "room_id",
@@ -217,34 +217,34 @@ it("shows visitors booked date ranges without disclosing who booked them", async
     ]);
     expect(result.rows).toEqual(
       expect.arrayContaining([
-        { room_id: room, check_in: "2026-12-01", check_out: "2026-12-03" },
-        { room_id: room, check_in: "2026-12-03", check_out: "2026-12-04" },
+        { room_id: room, check_in: "2030-12-01", check_out: "2030-12-03" },
+        { room_id: room, check_in: "2030-12-03", check_out: "2030-12-04" },
       ]),
     );
     expect(result.rows).not.toContainEqual(
-      expect.objectContaining({ check_in: "2026-12-02" }),
+      expect.objectContaining({ check_in: "2030-12-02" }),
     );
     await expect(
-      db.query("select * from room_booked_ranges('2026-12-10','2026-12-01')"),
+      db.query("select * from room_booked_ranges('2030-12-10','2030-12-01')"),
     ).rejects.toThrow("INVALID_INPUT");
   } finally {
     await db.exec("reset role");
   }
   const own = await db.query<{ id: string }>(
-    "select r.id from reservations r join room_bookings b on b.reservation_id=r.id where b.check_in='2026-12-01' and b.blocks_inventory",
+    "select r.id from reservations r join room_bookings b on b.reservation_id=r.id where b.check_in='2030-12-01' and b.blocks_inventory",
   );
   const excluded = await as(
     a,
-    "select check_in::text as check_in from room_booked_ranges('2026-12-01','2026-12-10',$1)",
+    "select check_in::text as check_in from room_booked_ranges('2030-12-01','2030-12-10',$1)",
     [own.rows[0].id],
   );
-  expect(excluded.rows).not.toContainEqual({ check_in: "2026-12-01" });
+  expect(excluded.rows).not.toContainEqual({ check_in: "2030-12-01" });
 });
 it("shows conflict-free availability to a visitor without disclosing bookings", async () => {
   await db.exec("set role anon");
   try {
     const result = await db.query<{ id: string }>(
-      "select * from search_availability('2026-12-01','2026-12-02',2)",
+      "select * from search_availability('2030-12-01','2030-12-02',2)",
     );
     expect(result.rows.map((r) => r.id)).not.toContain(room);
     await expect(db.query("select * from reservations")).rejects.toThrow();
