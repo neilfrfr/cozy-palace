@@ -10,10 +10,13 @@ export function AccountAuthForm({
   mode,
   configured,
   next = "/reservations",
+  reset = false,
 }: {
   mode: "register" | "recover" | "resend" | "password";
   configured: boolean;
   next?: string;
+  /** Arrived from a password-reset email, so the current password isn't asked. */
+  reset?: boolean;
 }) {
   const action =
     mode === "register"
@@ -53,7 +56,7 @@ export function AccountAuthForm({
             />
           </label>
         )}
-        {mode === "password" && (
+        {mode === "password" && !reset && (
           <div className="full">
             <label htmlFor="currentPassword">Current password</label>
             <PasswordInput
@@ -61,12 +64,9 @@ export function AccountAuthForm({
               name="currentPassword"
               visibilityLabel="current password"
               autoComplete="current-password"
+              required
               maxLength={128}
-              aria-describedby="currentPasswordHint"
             />
-            <p id="currentPasswordHint" className="subtle">
-              Leave blank if you opened a reset link from your email.
-            </p>
           </div>
         )}
         {(mode === "register" || mode === "password") && (

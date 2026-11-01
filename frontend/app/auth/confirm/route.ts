@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
       await db.rpc("accept_staff_invitation");
       const next = safeRedirect(
         p.get("next") ||
-          (type === "recovery" ? "/account/password" : "/reservations"),
+          (type === "recovery" ? "/account/password?reset=1" : "/reservations"),
       );
       return NextResponse.redirect(new URL(next, request.url));
     }
