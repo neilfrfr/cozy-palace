@@ -63,7 +63,7 @@ it("recovery uses the configured origin and the password page", async () => {
     "guest@example.test",
     {
       redirectTo:
-        "https://cozy.example/auth/confirm?next=%2Faccount%2Fpassword",
+        "https://cozy.example/auth/confirm?next=%2Faccount%2Fpassword%3Freset%3D1",
     },
   );
 });

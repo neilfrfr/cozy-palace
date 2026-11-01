@@ -76,7 +76,9 @@ export async function emailAction(
   const redirectTo =
     origin +
     "/auth/confirm?next=" +
-    encodeURIComponent(recovering ? "/account/password" : "/reservations");
+    encodeURIComponent(
+      recovering ? "/account/password?reset=1" : "/reservations",
+    );
   const { error } = recovering
     ? await db.auth.resetPasswordForEmail(p.data, { redirectTo })
     : await db.auth.resend({
