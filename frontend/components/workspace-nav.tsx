@@ -13,7 +13,12 @@ export async function WorkspaceNav() {
   return (
     <nav className="workspace-nav" aria-label="Account navigation">
       {!staff && <Link href="/reservations">My Reservations</Link>}
-      <Link href={staff ? (admin ? "/admin/profile" : "/staff/profile") : "/account"}>
+      {!staff && <Link href="/purchases">My Purchases</Link>}
+      <Link
+        href={
+          staff ? (admin ? "/admin/profile" : "/staff/profile") : "/account"
+        }
+      >
         My Profile
       </Link>
       {staff && <Link href="/staff">Staff workspace</Link>}
