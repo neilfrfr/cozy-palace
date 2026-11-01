@@ -34,7 +34,7 @@ export default async function Reservations({
       </p>
       <form className="operations-filters" action="/reservations" role="search">
         <label>
-          Find my reservation
+          Search my bookings
           <input
             name="q"
             defaultValue={q}

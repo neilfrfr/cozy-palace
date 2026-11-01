@@ -1,5 +1,4 @@
 "use server";
-import { headers } from "next/headers";
 import { revalidatePath } from "next/cache";
 import { createClient } from "@/lib/supabase/server";
 import { after } from "next/server";
@@ -9,6 +8,7 @@ import {
   visitorBookingEnabled,
   type CaptchaAction,
 } from "@/lib/captcha";
+import { clientIp } from "@/lib/client-ip";
 import { deliverNotifications } from "@/lib/notifications";
 import { visitorSchema } from "@/lib/operations/schema";
 import { slotStart, visitorTableSchema } from "@/lib/dining";
@@ -46,12 +46,7 @@ async function bookAsVisitor(
   args: Record<string, unknown>,
 ): Promise<Booked> {
   if (!visitorBookingEnabled()) return { ok: false, code: "REQUEST_FAILED" };
-  const h = await headers();
-  // Vercel sets x-real-ip itself; the forwarded chain is the local fallback.
-  const ip =
-    h.get("x-real-ip") ??
-    h.get("x-forwarded-for")?.split(",")[0]?.trim() ??
-    "unknown";
+  const ip = await clientIp();
   if (!(await verifyCaptcha(String(captchaToken ?? ""), ip, action)))
     return { ok: false, code: "CAPTCHA_FAILED" };
   const { data, error } = await createAdminClient().rpc(rpc, {
