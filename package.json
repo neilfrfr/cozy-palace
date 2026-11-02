@@ -25,6 +25,7 @@
     "simulate:payment": "npm run simulate:payment --workspace=@cozy-palace/frontend --"
   },
   "devDependencies": {
+    "@types/nodemailer": "^8.0.2",
     "eslint": "9.39.5",
     "eslint-config-next": "16.4.2"
   },
@@ -34,6 +35,7 @@
     }
   },
   "dependencies": {
-    "country-flag-icons": "^1.6.20"
+    "country-flag-icons": "^1.6.20",
+    "nodemailer": "^10.3.1"
   }
 }
