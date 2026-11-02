@@ -21,8 +21,9 @@ export async function SiteNav() {
       ]}
       account={{
         href: signedIn ? (employee ? home : "/account") : "/login",
-        label: signedIn ? (employee ? "Workspace" : "My account") : "Sign in",
+        label: signedIn ? (employee ? "Workspace" : "My account") : "Log in",
       }}
+      signup={!signedIn}
     />
   );
 }

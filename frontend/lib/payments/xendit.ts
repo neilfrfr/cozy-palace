@@ -12,8 +12,7 @@ export function xenditKey(
     return null;
   if (key.startsWith("xnd_production_") && env.VERCEL_ENV !== "production")
     return null;
-  return key.startsWith("xnd_production_") ||
-    key.startsWith("xnd_development_")
+  return key.startsWith("xnd_production_") || key.startsWith("xnd_development_")
     ? key
     : null;
 }
@@ -28,7 +27,7 @@ export async function createCheckout(
     reference: string;
     amount: number;
   },
-): Promise<string> {
+): Promise<{ url: string; expiresAt: string }> {
   const origin = siteOrigin();
   if (!origin) throw new Error("SETUP_REQUIRED");
   const back = origin + p.returnPath;
@@ -46,15 +45,24 @@ export async function createCheckout(
       description: `Cozy Palace reservation ${p.reference}`,
       success_redirect_url: back + "?paid=1",
       failure_redirect_url: back,
+      invoice_duration: 86400,
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
   });
   if (!res.ok) throw new Error("XENDIT_" + res.status);
-  const url = (await res.json())?.invoice_url;
+  const json = await res.json();
+  const url = json?.invoice_url;
   if (typeof url !== "string" || !url.startsWith("https://"))
     throw new Error("XENDIT_RESPONSE");
-  return url;
+  const expiry = Date.parse(json?.expiry_date);
+  return {
+    url,
+    // invoice_duration above; the response's own expiry wins when present.
+    expiresAt: new Date(
+      Number.isNaN(expiry) ? Date.now() + 86400_000 : expiry,
+    ).toISOString(),
+  };
 }
 
 /** Xendit sends the dashboard's webhook verification token as x-callback-token. Replays are no-ops in record_payment. */
@@ -84,7 +92,9 @@ export function readPaidInvoice(body: string) {
   const status = (json as { status?: unknown })?.status;
   if (status !== "PAID" && status !== "SETTLED") return null;
   // Dashboard-made invoices and Xendit's "Test and save" sample are not ours: acknowledge, don't retry.
-  if (!z.uuid().safeParse((json as { external_id?: unknown }).external_id).success)
+  if (
+    !z.uuid().safeParse((json as { external_id?: unknown }).external_id).success
+  )
     return null;
   const parsed = paidInvoice.safeParse(json);
   if (!parsed.success) return "INVALID" as const;

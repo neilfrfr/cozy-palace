@@ -21,8 +21,10 @@ async function FooterStayLink() {
 }
 export default function RootLayout({
   children,
+  modal,
 }: {
   children: React.ReactNode;
+  modal: React.ReactNode;
 }) {
   return (
     <html lang="en">
@@ -32,6 +34,7 @@ export default function RootLayout({
         </a>
         <SiteNav />
         <main id="main">{children}</main>
+        {modal}
         <footer className="footer">
           <div className="footer-inner">
             <div className="footer-brand">
@@ -54,7 +57,7 @@ export default function RootLayout({
             <nav className="footer-links" aria-label="Your stay">
               <h2>Your stay</h2>
               <FooterStayLink />
-              <Link href="/login">Sign in</Link>
+              <Link href="/login">Log in</Link>
               <Link href="/register">Create an Account</Link>
               <Link href="/staff/register">Staff Registration</Link>
             </nav>

@@ -11,7 +11,7 @@ import { businessDate } from "@/lib/operations/schema";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
-import { formatLabel } from "@/lib/format";
+import { bookedAt, formatLabel } from "@/lib/format";
 import { canPayOnline, isPaid } from "@/lib/reservations/normalize";
 import { xenditKey } from "@/lib/payments/xendit";
 export const dynamic = "force-dynamic";
@@ -64,6 +64,15 @@ export default async function Details({
         </div>
       )}
       {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
+      {r.payments
+        ?.filter((p) => p.status === "refunded")
+        .map((p) => (
+          <div className="notice" key={p.refunded_at}>
+            Your payment of ₱{Number(p.amount_paid).toLocaleString("en-PH")} was
+            refunded on {bookedAt(p.refunded_at!)}. It can take a few days to
+            appear in your GCash or Maya account.
+          </div>
+        ))}
       <ReservationControls reservation={r}>
         {xenditKey() && canPayOnline(r) && (
           <Link

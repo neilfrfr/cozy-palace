@@ -1,3 +1,4 @@
+import Link from "next/link";
 import { z } from "zod";
 import { getDiningTables } from "@/lib/inventory/service";
 import { getTableBookings } from "@/lib/reservations/dining";
@@ -35,9 +36,9 @@ export default async function TableService({
         <DatePicker name="date" label="Seating date" defaultValue={date ?? today} />
         <button className="button">Show</button>
         {date && (
-          <a className="text-link" href="/staff/tables">
+          <Link className="text-link" href="/staff/tables">
             Show all upcoming
-          </a>
+          </Link>
         )}
       </form>
       <h2>{date ? "Bookings for " + date : "Upcoming bookings"}</h2>

@@ -13,9 +13,12 @@ type NavLink = { href: string; label: string };
 export function SiteHeaderFrame({
   links,
   account,
+  signup = false,
 }: {
   links: NavLink[];
   account: NavLink;
+  /** Signed-out visitors also get a Sign up link that opens the sign-up popup. */
+  signup?: boolean;
 }) {
   const pathname = usePathname();
   const overlay = pathname === "/";
@@ -57,6 +60,11 @@ export function SiteHeaderFrame({
             <Link className="nav-account" href={account.href}>
               {account.label}
             </Link>
+            {signup && (
+              <Link className="nav-account nav-signup" href="/register">
+                Sign up
+              </Link>
+            )}
             <Link className="button gold nav-book" href="/rooms">
               Book a stay
             </Link>

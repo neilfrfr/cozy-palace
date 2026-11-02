@@ -27,7 +27,7 @@ test("mobile navigation stays within viewport", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
   const brand = await page.locator(".site-header .brand").boundingBox();
-  const account = await page.locator(".site-header .nav-account").boundingBox();
+  const account = await page.locator(".site-header .nav-account").first().boundingBox();
   expect(Math.abs(brand!.y - account!.y)).toBeLessThan(10);
   await page.screenshot({
     caret: "initial",
@@ -55,7 +55,7 @@ test("registration and recovery have clear accessible fields", async ({
 }) => {
   await page.goto("/register");
   await expect(
-    page.getByRole("heading", { name: "Create your account", exact: true }),
+    page.getByRole("heading", { name: "Welcome to Cozy Palace", exact: true }),
   ).toBeVisible();
   await expect(page.getByLabel("Full name", { exact: true })).toBeVisible();
   await expect(
@@ -64,7 +64,7 @@ test("registration and recovery have clear accessible fields", async ({
   await expect(
     page.getByRole("button", { name: "Create account", exact: true }),
   ).toBeDisabled();
-  await page.getByRole("link", { name: "Sign in", exact: true }).last().click();
+  await page.getByRole("link", { name: "Log in", exact: true }).last().click();
   await page
     .getByRole("link", { name: "Forgot password?", exact: true })
     .click();
