@@ -31,7 +31,7 @@ const notes = async (reservation: string) =>
 beforeAll(async () => {
   db = new PGlite({ extensions: { btree_gist } });
   await db.exec(
-    `create role anon nologin;create role service_role nologin;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
+    `create role anon nologin;create role service_role nologin bypassrls;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
   );
   for (const f of readdirSync("supabase/migrations").sort())
     await db.exec(readFileSync("supabase/migrations/" + f, "utf8"));
@@ -106,6 +106,12 @@ it("a failed email is retried, then marked sent once; the booking is untouched",
   const [first] = await claim();
   expect(first.attempts).toBe(1);
   expect(await claim()).toEqual([]);
+  // The sender (frontend/lib/notifications.ts) reads the booking as service_role to write the email.
+  const booking = await worker(
+    "select r.reference,r.kind,r.guests,r.guest_full_name,p.full_name,b.check_in,t.start_at from reservations r left join profiles p on p.id=r.customer_id left join room_bookings b on b.reservation_id=r.id left join table_bookings t on t.reservation_id=r.id where r.id=$1",
+    [b.id],
+  );
+  expect(booking.rows).toHaveLength(1);
   await worker("select finish_notification($1,'smtp down')", [first.id]);
   expect(await claim()).toEqual([]);
   await db.query("update notifications set next_attempt_at=now() where id=$1", [first.id]);
