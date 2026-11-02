@@ -105,6 +105,12 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
     "CP-ABC: a stay from 2027-01-10 to 2027-01-12, 2 guests",
   );
   expect(sent.text).not.toContain("http");
+  const refund = emailFor(
+    { id: "n2", event: "refunded", email: "walk@example.test" },
+    { reference: "CP-ABC", kind: "hotel", guests: 2, guest_full_name: "Ana", customer: null, room_bookings: [], table_bookings: [] },
+  );
+  expect(refund.subject).toBe("Your payment was refunded · CP-ABC");
+  expect(refund.lines.join(" ")).not.toContain("change or cancel");
   vi.spyOn(console, "error").mockImplementation(() => {});
   mail.sendMail.mockRejectedValueOnce(new Error("535 bad credentials"));
   expect(await sendEmail(message)).toBe("535 bad credentials");
