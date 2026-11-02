@@ -1,6 +1,8 @@
 "use server";
 import { z } from "zod";
 import { redirect } from "next/navigation";
+import { revalidatePath } from "next/cache";
+import { requireStaff } from "@/lib/auth/authorize";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
@@ -31,4 +33,18 @@ export async function startCheckoutAction(
     return { code: "PAYMENT_UNAVAILABLE" };
   }
   redirect(url);
+}
+/** Records a refund staff already sent from the Xendit dashboard. */
+export async function markRefundedAction(form: FormData) {
+  const { db } = await requireStaff();
+  const id = z.uuid().safeParse(form.get("id"));
+  const reference = z.string().trim().min(1).max(200).safeParse(form.get("reference"));
+  if (!id.success || !reference.success)
+    redirect("/staff/payments?error=INVALID_INPUT");
+  const { error } = await db.rpc("mark_payment_refunded", {
+    p_payment_id: id.data,
+    p_reference: reference.data,
+  });
+  for (const p of ["/staff/payments", "/admin/activity"]) revalidatePath(p);
+  redirect("/staff/payments?" + (error ? "error=" + publicError(error) : "notice=refunded"));
 }

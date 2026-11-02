@@ -40,7 +40,7 @@ export type Reservation = {
     check_out: string;
     rate_at_booking: number;
   }[];
-  payments?: { status: "open" | "paid" | "review" }[];
+  payments?: { status: "open" | "paid" | "review" | "refunded" }[];
 };
 export type ActionResult<T> =
   | { ok: true; data: T }

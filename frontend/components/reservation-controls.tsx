@@ -7,6 +7,7 @@ import {
   transitionReservationAction,
 } from "@/app/actions/reservations";
 import { errorMessages } from "@/lib/reservations/errors";
+import { isPaid } from "@/lib/reservations/normalize";
 import type { Reservation } from "@/lib/reservations/types";
 export function ReservationControls({
   reservation: r,
@@ -24,6 +25,14 @@ export function ReservationControls({
     if (
       kind === "delete" &&
       !confirm("Delete this unpaid draft? This cannot be undone.")
+    )
+      return;
+    if (
+      kind === "cancelled" &&
+      isPaid(r) &&
+      !confirm(
+        "This booking has been paid. Cancelling it does not refund the guest: send the refund from the Xendit dashboard, then mark it refunded under Payments. Cancel anyway?",
+      )
     )
       return;
     setError("");

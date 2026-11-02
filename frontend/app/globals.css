@@ -931,12 +931,14 @@ main:has(.admin-layout) {
 }
 .status.active,
 .status.available,
-.status.confirmed {
+.status.confirmed,
+.status.paid {
   background: #eaf4ee;
   color: #326749;
 }
 .status.pending,
-.status.draft {
+.status.draft,
+.status.review {
   background: #fbf0df;
   color: #875012;
 }
@@ -948,7 +950,9 @@ main:has(.admin-layout) {
 }
 .status.checked_in,
 .status.seated,
-.status.completed {
+.status.completed,
+.status.refunded,
+.status.open {
   background: #edf1f7;
   color: var(--navy);
 }
@@ -2263,4 +2267,24 @@ button.primary:hover {
 }
 .notice-list .status {
   margin-left: 8px;
+}
+/* Fits beside the staff sidebar on a laptop; names and refund IDs wrap instead of widening the table. */
+.payments-table th,
+.payments-table td {
+  padding: 12px 14px;
+}
+.payments-table .wrap {
+  white-space: normal;
+}
+/* Only the refund cell breaks mid-word (long Xendit IDs); its min-width stops it collapsing. */
+.payments-table .refund {
+  min-width: 10rem;
+  overflow-wrap: anywhere;
+}
+.inline-form {
+  display: grid;
+  gap: 8px;
+}
+.inline-form input {
+  width: 100%;
 }
