@@ -49,6 +49,7 @@ export default function RootLayout({
               <Link href="/dining">Dining</Link>
               <Link href="/about">About</Link>
               <Link href="/contact">Contact</Link>
+              <Link href="/privacy">Privacy Notice</Link>
             </nav>
             <nav className="footer-links" aria-label="Your stay">
               <h2>Your stay</h2>
