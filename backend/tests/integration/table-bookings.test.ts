@@ -102,7 +102,8 @@ it("staff book walk-ins confirmed and move statuses at their discretion", async 
   const reopened = await set("confirmed", cancelled.version);
   expect(await booked(at("19:00"))).toContain(tables.T5);
   await db.query(
-    "update table_bookings set start_at=now()-interval '30 minutes',end_at=now()+interval '90 minutes' where reservation_id=$1",
+    // Starts now, not earlier: seating needs today's Manila date, and "30 minutes ago" is yesterday just after midnight.
+    "update table_bookings set start_at=now(),end_at=now()+interval '2 hours' where reservation_id=$1",
     [r.id],
   );
   const seated = await set("seated", reopened.version);
