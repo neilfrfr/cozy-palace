@@ -7,6 +7,7 @@ const links = [
   ["/staff/reservations", "Reservations"],
   ["/staff/tables", "Table Service"],
   ["/staff/orders", "Orders"],
+  ["/staff/payments", "Payments"],
   ["/admin/rooms", "Rooms"],
   ["/admin/tables", "Restaurant Tables"],
   ["/admin/menu", "Menu"],

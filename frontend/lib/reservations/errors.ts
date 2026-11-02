@@ -12,6 +12,7 @@ const codes = [
   "AVAILABILITY_CONFLICT",
   "RATE_LIMITED",
   "RESOURCE_HAS_BOOKINGS",
+  "TOO_MANY_PENDING",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -39,6 +40,8 @@ export const errorMessages: Record<string, string> = {
     "The security check expired or failed. Complete it again, then book.",
   RATE_LIMITED:
     "Too many booking requests. Please wait a while or contact the hotel.",
+  TOO_MANY_PENDING:
+    "You already have 3 requests waiting for staff. Wait for one to be confirmed, or cancel one, before sending another.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",
