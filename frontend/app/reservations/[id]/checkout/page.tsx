@@ -5,6 +5,7 @@ import { getReservation } from "@/lib/reservations/service";
 import { getRoom } from "@/lib/inventory/service";
 import { xenditKey } from "@/lib/payments/xendit";
 import { CheckoutSummary } from "@/components/checkout-summary";
+import { canPayOnline } from "@/lib/reservations/normalize";
 export const dynamic = "force-dynamic";
 export default async function Checkout({
   params,
@@ -20,12 +21,9 @@ export default async function Checkout({
   if (!reservation) notFound();
   const allocation = reservation.room_bookings[0];
   const room = allocation ? await getRoom(allocation.room_id) : null;
-  // The database re-checks all of this when the payment is opened.
   const payment = !xenditKey()
     ? "unavailable"
-    : reservation.status === "confirmed" ||
-        (reservation.status === "pending" &&
-          new Date(reservation.hold_expires_at ?? 0) > new Date())
+    : canPayOnline(reservation)
       ? "open"
       : "closed";
   return (

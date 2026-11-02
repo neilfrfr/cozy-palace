@@ -17,3 +17,16 @@ export function normalizeReservation(value: unknown): Reservation {
         : [],
   };
 }
+
+export const isPaid = (r: Reservation) =>
+  !!r.payments?.some((p) => p.status === "paid");
+
+/** Mirrors open_payment: submitted (held) or confirmed, with a total, not yet paid. The database re-checks. */
+export function canPayOnline(r: Reservation, now = new Date()) {
+  return (
+    !isPaid(r) &&
+    Number(r.total) > 0 &&
+    (r.status === "confirmed" ||
+      (r.status === "pending" && new Date(r.hold_expires_at ?? 0) > now))
+  );
+}
