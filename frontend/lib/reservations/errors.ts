@@ -11,6 +11,7 @@ const codes = [
   "POLICY_RESTRICTED",
   "AVAILABILITY_CONFLICT",
   "RATE_LIMITED",
+  "RESOURCE_HAS_BOOKINGS",
   "TOO_MANY_PENDING",
 ];
 export function publicError(error: unknown): string {
