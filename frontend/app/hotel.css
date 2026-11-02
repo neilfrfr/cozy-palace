@@ -698,7 +698,11 @@ main:has(.page-banner) {
   place-items: center;
   align-content: center;
   gap: 18px;
-  min-height: 60vh;
+  /* Pinned to the viewport so it shows centered even when the visitor was scrolled down; stays under the sticky header (z-index 40). */
+  position: fixed;
+  inset: 0;
+  z-index: 30;
+  background: var(--paper);
   opacity: 0;
   animation: loader-in 200ms ease 300ms forwards;
 }
