@@ -11,8 +11,14 @@ export async function GET(request: Request) {
     return new Response("Unauthorized", { status: 401 });
   if (!adminConfigured())
     return new Response("Not configured", { status: 503 });
-  const { data: reminders, error } =
-    await createAdminClient().rpc("enqueue_reminders");
+  const db = createAdminClient();
+  const { data: reminders, error } = await db.rpc("enqueue_reminders");
   if (error) console.error("Queueing reminders failed", error);
-  return Response.json({ reminders, sent: await deliverNotifications(50) });
+  const { data: pruned, error: pruneError } = await db.rpc("prune_rate_limits");
+  if (pruneError) console.error("Pruning rate limits failed", pruneError);
+  return Response.json({
+    reminders,
+    pruned,
+    sent: await deliverNotifications(50),
+  });
 }
