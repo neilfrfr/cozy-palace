@@ -10,6 +10,7 @@ import {
 } from "@/lib/accounts/schema";
 import { siteOrigin } from "@/lib/accounts/site-url";
 import { requireIdentity } from "@/lib/auth/authorize";
+import { authFailure, captchaToken } from "@/lib/auth/captcha";
 export type AccountState = { message: string; success: boolean };
 const unavailable = {
   message: "Account services are not connected yet. Please try again later.",
@@ -44,12 +45,15 @@ export async function registerAction(
       data: { full_name: p.data.fullName },
       emailRedirectTo:
         origin + "/auth/confirm?next=" + encodeURIComponent(next),
+      captchaToken: captchaToken(form),
     },
   });
   if (error)
     return {
-      message:
+      message: authFailure(
+        error,
         "We could not complete registration. Check your details or try again later.",
+      ),
       success: false,
     };
   if (data.session) {
@@ -79,18 +83,20 @@ export async function emailAction(
     encodeURIComponent(
       recovering ? "/account/password?reset=1" : "/reservations",
     );
+  const token = captchaToken(form);
   const { error } = recovering
-    ? await db.auth.resetPasswordForEmail(p.data, { redirectTo })
+    ? await db.auth.resetPasswordForEmail(p.data, {
+        redirectTo,
+        captchaToken: token,
+      })
     : await db.auth.resend({
         type: "signup",
         email: p.data,
-        options: { emailRedirectTo: redirectTo },
+        options: { emailRedirectTo: redirectTo, captchaToken: token },
       });
-  if (error && error.status === 429)
-    return {
-      message: "Too many requests. Wait a few minutes before trying again.",
-      success: false,
-    };
+  // Other errors stay hidden so the form never reveals whether an account exists.
+  if (error && (error.status === 429 || error.code === "captcha_failed"))
+    return { message: authFailure(error), success: false };
   return {
     message:
       "If this account is eligible, an email link has been sent. Check your inbox and spam folder.",

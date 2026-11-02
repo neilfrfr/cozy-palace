@@ -48,6 +48,8 @@ beforeAll(async () => {
   for (const f of readdirSync("supabase/migrations").sort())
     await db.exec(readFileSync("supabase/migrations/" + f, "utf8"));
   await db.exec(readFileSync("supabase/seed.sql", "utf8"));
+  // These tests submit many holds as one customer; the 3-request cap has its own test (customer-limits).
+  await db.exec("drop trigger reservations_pending_limit on public.reservations");
   await db.query(
     "insert into auth.users(id,email) values ($1,'payer@example.test'),($2,'other@example.test'),($3,'desk@example.test')",
     [owner, other, staff],
