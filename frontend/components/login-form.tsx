@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { PasswordInput } from "@/components/password-input";
 import { Turnstile } from "@/components/turnstile";
 import { loginAction } from "@/app/login/actions";
@@ -48,6 +49,9 @@ export function LoginForm({
             required
             maxLength={128}
           />
+          <Link className="login-forgot" href="/forgot-password">
+            Forgot password?
+          </Link>
         </div>
       </div>
       <label className="terms-check">
@@ -67,30 +71,31 @@ export function LoginForm({
           {state.message}
         </p>
       )}
-      <div className="actions">
-        <button
-          className="primary"
-          disabled={
-            pending || !configured || !accepted || (needsCaptcha && !captcha)
-          }
-        >
-          {pending ? "Signing in…" : "Sign in"}
-        </button>
+      <button
+        className="primary login-submit"
+        disabled={
+          pending || !configured || !accepted || (needsCaptcha && !captcha)
+        }
+      >
+        {pending ? "Signing in…" : "Log in"}
+        <ArrowRight size={20} aria-hidden="true" />
+      </button>
+      <div className="login-foot">
+        <p>
+          New here?{" "}
+          <Link href={"/register?next=" + encodeURIComponent(next)}>
+            Create an Account
+          </Link>
+        </p>
+        <p>
+          Team members: <Link href="/staff/register">Staff Registration</Link>{" "}
+          using the email approved by your administrator.
+        </p>
+        <p>
+          Didn&apos;t get the email?{" "}
+          <Link href="/forgot-password?mode=resend">Resend confirmation</Link>
+        </p>
       </div>
-      <p className="subtle login-register-link">
-        New here?{" "}
-        <a href={"/register?next=" + encodeURIComponent(next)}>
-          Create an Account
-        </a>
-      </p>
-      <p className="subtle login-staff-note">
-        Team members: <a href="/staff/register">Staff Registration</a> using the
-        email approved by your administrator.
-      </p>
-      <p>
-        <a href="/forgot-password">Forgot password?</a> ·{" "}
-        <a href="/forgot-password?mode=resend">Resend confirmation</a>
-      </p>
     </form>
   );
 }

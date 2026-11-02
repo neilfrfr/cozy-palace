@@ -9,7 +9,8 @@ const owner = "e0000000-0000-4000-8000-000000000001",
 const room = "10000000-0000-4000-8000-000000000001";
 let n = 0;
 const key = () => `e1000000-0000-4000-8000-${String(++n).padStart(12, "0")}`;
-const day = (d: number) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);
+// Manila calendar date (UTC+8, no DST), matching the database's "check-in must be after today" rule.
+const day = (d: number) => new Date(Date.now() + 8 * 36e5 + d * 864e5).toISOString().slice(0, 10);
 async function as(role: string, user: string | null, sql: string, args: unknown[] = []) {
   await db.exec(`set role ${role}`);
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [user ?? ""]);
@@ -31,7 +32,7 @@ const notes = async (reservation: string) =>
 beforeAll(async () => {
   db = new PGlite({ extensions: { btree_gist } });
   await db.exec(
-    `create role anon nologin;create role service_role nologin;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
+    `create role anon nologin;create role service_role nologin bypassrls;create role authenticated nologin;create schema auth;create table auth.users(id uuid primary key,email text,email_confirmed_at timestamptz,raw_user_meta_data jsonb default '{}');create function auth.uid() returns uuid language sql stable as $$select nullif(current_setting('request.jwt.claim.sub',true),'')::uuid$$;grant usage on schema auth to authenticated,anon;grant execute on function auth.uid() to authenticated,anon;`,
   );
   for (const f of readdirSync("supabase/migrations").sort())
     await db.exec(readFileSync("supabase/migrations/" + f, "utf8"));
@@ -49,8 +50,9 @@ it("records a notice with each booking step in the same transaction, privately",
   const { r } = (
     await as("authenticated", owner, "select create_reservation($1,$2::date,$3::date,2,$4) as r", [
       room,
-      day(1),
-      day(3),
+      // Tomorrow in Manila (UTC+8), so the reminder job below picks it up at any hour; day() is a UTC date.
+      new Date(Date.now() + 8 * 36e5 + 864e5).toISOString().slice(0, 10),
+      new Date(Date.now() + 8 * 36e5 + 3 * 864e5).toISOString().slice(0, 10),
       key(),
     ])
   ).rows[0] as { r: { id: string; version: number } };
@@ -58,6 +60,8 @@ it("records a notice with each booking step in the same transaction, privately",
   const s = (await as("authenticated", owner, "select submit_reservation($1,$2) as s", [r.id, r.version])).rows[0] as {
     s: { version: number };
   };
+  // Online room requests are confirmed only once paid.
+  await db.query("insert into payments(reservation_id,amount,status,amount_paid,paid_at) select id,total,'paid',total,now() from reservations where id=$1", [r.id]);
   const c = (
     await as("authenticated", staff, "select transition_reservation($1,$2,'confirmed') as c", [r.id, s.s.version])
   ).rows[0] as { c: { version: number } };
@@ -106,6 +110,12 @@ it("a failed email is retried, then marked sent once; the booking is untouched",
   const [first] = await claim();
   expect(first.attempts).toBe(1);
   expect(await claim()).toEqual([]);
+  // The sender (frontend/lib/notifications.ts) reads the booking as service_role to write the email.
+  const booking = await worker(
+    "select r.reference,r.kind,r.guests,r.guest_full_name,p.full_name,b.check_in,t.start_at from reservations r left join profiles p on p.id=r.customer_id left join room_bookings b on b.reservation_id=r.id left join table_bookings t on t.reservation_id=r.id where r.id=$1",
+    [b.id],
+  );
+  expect(booking.rows).toHaveLength(1);
   await worker("select finish_notification($1,'smtp down')", [first.id]);
   expect(await claim()).toEqual([]);
   await db.query("update notifications set next_attempt_at=now() where id=$1", [first.id]);

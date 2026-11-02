@@ -23,9 +23,20 @@ export type Order = {
   note: string | null;
   version: number;
   created_at: string;
+  paid_at: string | null;
+  payment_method: (typeof paymentMethods)[number] | null;
+  payment_reference: string | null;
   reservations: { reference: string } | null;
   order_items: { name: string; unit_price: number; quantity: number }[];
 };
+
+export const paymentMethods = [
+  "cash",
+  "gcash",
+  "maya",
+  "card",
+  "bank_transfer",
+] as const;
 
 export const peso = (n: number) =>
   "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2 });
@@ -49,7 +60,7 @@ export async function getOrders(
   let query = db
     .from("orders")
     .select(
-      "id,reference,status,total,note,version,created_at,reservations(reference),order_items(name,unit_price,quantity)",
+      "id,reference,status,total,note,version,created_at,paid_at,payment_method,payment_reference,reservations(reference),order_items(name,unit_price,quantity)",
     )
     .order("created_at", { ascending: false })
     .limit(limit);
@@ -92,8 +103,18 @@ export const menuItemSchema = z
   })
   .strict();
 
+export const orderPaymentSchema = z
+  .object({
+    id: z.uuid(),
+    version: z.coerce.number().int().positive(),
+    method: z.enum(paymentMethods),
+    reference: z.string().trim().max(100),
+  })
+  .strict();
+
 export const orderMessages: Record<string, string> = {
   created: "Order saved.",
+  paid: "Payment recorded.",
   saved: "Saved.",
   FORBIDDEN: "You do not have access to this.",
   NOT_FOUND:
@@ -102,5 +123,6 @@ export const orderMessages: Record<string, string> = {
     "This order changed in the meantime. Check it and try again.",
   INVALID_INPUT:
     "Pick at least one available item (1–50 each) and check the details.",
-  INVALID_TRANSITION: "Only open orders can be completed or cancelled.",
+  INVALID_TRANSITION:
+    "This order can't be changed now. Paid orders can't be cancelled, and an order is paid only once.",
 };

@@ -59,8 +59,10 @@ export default async function Details({
       )}
       {r.status === "pending" && (
         <div className="notice">
-          Your request is awaiting staff confirmation. We hold the room for
-          you until your check-in day.
+          {isPaid(r)
+            ? "Your request is awaiting staff confirmation."
+            : "Pay with E-wallet checkout so our staff can confirm your booking."}{" "}
+          We hold the room for you until your check-in day.
         </div>
       )}
       {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}

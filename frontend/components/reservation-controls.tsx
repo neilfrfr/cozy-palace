@@ -9,6 +9,7 @@ import {
 import { errorMessages } from "@/lib/reservations/errors";
 import { isPaid } from "@/lib/reservations/normalize";
 import type { Reservation } from "@/lib/reservations/types";
+import { useConfirm } from "@/components/confirm-dialog";
 export function ReservationControls({
   reservation: r,
   staff = false,
@@ -23,18 +24,30 @@ export function ReservationControls({
   const [pending, start] = useTransition(),
     [error, setError] = useState("");
   const router = useRouter();
-  function act(kind: string) {
+  const [ask, dialog] = useConfirm();
+  async function act(kind: string) {
     if (
       kind === "delete" &&
-      !confirm("Delete this unpaid draft? This cannot be undone.")
+      !(await ask({
+        title: "Delete this draft?",
+        message: "This unpaid draft will be removed. This cannot be undone.",
+        confirmLabel: "Delete draft",
+        cancelLabel: "Keep draft",
+        danger: true,
+      }))
     )
       return;
     if (
       kind === "cancelled" &&
       isPaid(r) &&
-      !confirm(
-        "This booking has been paid. Cancelling it does not refund the guest: send the refund from the Xendit dashboard, then mark it refunded under Payments. Cancel anyway?",
-      )
+      !(await ask({
+        title: "Cancel a paid booking?",
+        message:
+          "This booking has been paid. Cancelling it does not refund the guest: send the refund from the Xendit dashboard, then mark it refunded under Payments.",
+        confirmLabel: "Cancel booking",
+        cancelLabel: "Keep booking",
+        danger: true,
+      }))
     )
       return;
     setError("");
@@ -56,6 +69,7 @@ export function ReservationControls({
   }
   return (
     <>
+      {dialog}
       {error && (
         <div className="notice error" role="alert">
           {error}
