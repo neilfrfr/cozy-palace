@@ -83,6 +83,9 @@ export function readPaidInvoice(body: string) {
   }
   const status = (json as { status?: unknown })?.status;
   if (status !== "PAID" && status !== "SETTLED") return null;
+  // Dashboard-made invoices and Xendit's "Test and save" sample are not ours: acknowledge, don't retry.
+  if (!z.uuid().safeParse((json as { external_id?: unknown }).external_id).success)
+    return null;
   const parsed = paidInvoice.safeParse(json);
   if (!parsed.success) return "INVALID" as const;
   return {

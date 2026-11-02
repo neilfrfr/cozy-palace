@@ -4,6 +4,7 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: mocks.rpc }),
 }));
+vi.mock("@/lib/accounts/site-url", () => ({ siteOrigin: () => "https://cozy.test" }));
 const token = "xnd_webhook_token";
 const paymentId = "20000000-0000-4000-8000-000000000001";
 const invoice = (status = "PAID", paid_amount: unknown = 12345.67) =>
@@ -51,6 +52,8 @@ it("reads a paid or settled invoice and ignores other statuses", async () => {
   expect(readPaidInvoice(invoice("PAID", -5))).toBe("INVALID");
   expect(readPaidInvoice(invoice("PAID", "12345.67"))).toBe("INVALID");
   expect(readPaidInvoice("not json")).toBe("INVALID");
+  // Xendit's "Test and save" sample and dashboard-made invoices.
+  expect(readPaidInvoice(invoice().replace(paymentId, "invoice_123124123"))).toBeNull();
 });
 it("never uses a production key outside Production, or without every secret", async () => {
   const { xenditKey } = await import("@/lib/payments/xendit");
@@ -70,6 +73,36 @@ it("webhook records a paid invoice with the amount Xendit collected", async () =
     p_amount: 12345.67,
     p_currency: "PHP",
   });
+});
+it("webhook acknowledges invoices it did not create without touching the database", async () => {
+  expect((await post(invoice().replace(paymentId, "invoice_123124123"), token)).status).toBe(200);
+  expect(mocks.rpc).not.toHaveBeenCalled();
+});
+it("checkout asks Xendit for the stored total in pesos, keyed by the payment id", async () => {
+  const { createCheckout } = await import("@/lib/payments/xendit");
+  const fetchMock = vi.fn().mockResolvedValue(
+    new Response(JSON.stringify({ invoice_url: "https://checkout-staging.xendit.co/web/inv_1" })),
+  );
+  vi.stubGlobal("fetch", fetchMock);
+  const args = { paymentId, returnPath: "/reservations/r1/checkout", reference: "CP-1", amount: 1500.5 };
+  await expect(createCheckout("xnd_development_key", args)).resolves.toBe(
+    "https://checkout-staging.xendit.co/web/inv_1",
+  );
+  const [url, init] = fetchMock.mock.calls[0];
+  expect(url).toBe("https://api.xendit.co/v2/invoices");
+  expect(init.headers.authorization).toBe("Basic " + Buffer.from("xnd_development_key:").toString("base64"));
+  expect(JSON.parse(init.body)).toMatchObject({
+    external_id: paymentId,
+    amount: 1500.5,
+    currency: "PHP",
+    success_redirect_url: "https://cozy.test/reservations/r1/checkout?paid=1",
+    failure_redirect_url: "https://cozy.test/reservations/r1/checkout",
+  });
+  fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ invoice_url: "http://evil.test" })));
+  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow("XENDIT_RESPONSE");
+  fetchMock.mockResolvedValueOnce(new Response("{}", { status: 401 }));
+  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow("XENDIT_401");
+  vi.unstubAllGlobals();
 });
 it("webhook rejects missing or wrong tokens without touching the database", async () => {
   expect((await post(invoice(), null)).status).toBe(401);
