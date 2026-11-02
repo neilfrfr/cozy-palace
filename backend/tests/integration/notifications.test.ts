@@ -50,8 +50,9 @@ it("records a notice with each booking step in the same transaction, privately",
   const { r } = (
     await as("authenticated", owner, "select create_reservation($1,$2::date,$3::date,2,$4) as r", [
       room,
-      day(1),
-      day(3),
+      // Tomorrow in Manila (UTC+8), so the reminder job below picks it up at any hour; day() is a UTC date.
+      new Date(Date.now() + 8 * 36e5 + 864e5).toISOString().slice(0, 10),
+      new Date(Date.now() + 8 * 36e5 + 3 * 864e5).toISOString().slice(0, 10),
       key(),
     ])
   ).rows[0] as { r: { id: string; version: number } };
@@ -59,6 +60,8 @@ it("records a notice with each booking step in the same transaction, privately",
   const s = (await as("authenticated", owner, "select submit_reservation($1,$2) as s", [r.id, r.version])).rows[0] as {
     s: { version: number };
   };
+  // Online room requests are confirmed only once paid.
+  await db.query("insert into payments(reservation_id,amount,status,amount_paid,paid_at) select id,total,'paid',total,now() from reservations where id=$1", [r.id]);
   const c = (
     await as("authenticated", staff, "select transition_reservation($1,$2,'confirmed') as c", [r.id, s.s.version])
   ).rows[0] as { c: { version: number } };

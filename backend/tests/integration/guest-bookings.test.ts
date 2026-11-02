@@ -204,6 +204,11 @@ it("private customer drafts stay private and operational transitions keep origin
     as(staff, "select submit_reservation($1,1)", [row.r.id]),
   ).rejects.toThrow("FORBIDDEN");
   await as(customer, "select submit_reservation($1,1)", [row.r.id]);
+  // Online room requests are confirmed only once paid.
+  await db.query(
+    "insert into payments(reservation_id,amount,status,amount_paid,paid_at) select id,total,'paid',total,now() from reservations where id=$1",
+    [row.r.id],
+  );
   await as(staff, "select transition_reservation($1,2,'confirmed')", [
     row.r.id,
   ]);
