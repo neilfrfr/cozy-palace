@@ -92,12 +92,19 @@ it("a second payment for an already paid stay goes to review", async () => {
   expect(await record(second.id, "pay_second", Number(r.total))).toBe("review");
   await expect(open(r.id)).rejects.toThrow("INVALID_TRANSITION");
 });
-it("a stay staff already confirmed can still be paid once", async () => {
+it("staff confirm an online stay only once it is paid; review money does not count", async () => {
   const r = await pendingStay(45);
-  await db.query("update reservations set status='confirmed',hold_expires_at=null where id=$1", [r.id]);
-  expect(await record((await open(r.id)).id, "pay_after_confirm", Number(r.total))).toBe("paid");
+  const confirm = async () => {
+    const v = ((await db.query("select version from reservations where id=$1", [r.id])).rows[0] as { version: number }).version;
+    return as("authenticated", staff, "select transition_reservation($1,$2,'confirmed')", [r.id, v]);
+  };
+  await expect(confirm()).rejects.toThrow("PAYMENT_REQUIRED");
+  expect(await record((await open(r.id)).id, "pay_confirm_review", 1)).toBe("review");
+  await expect(confirm()).rejects.toThrow("PAYMENT_REQUIRED");
+  expect(await status(r.id)).toBe("pending");
+  expect(await record((await open(r.id)).id, "pay_confirm", Number(r.total))).toBe("paid");
+  await confirm();
   expect(await status(r.id)).toBe("confirmed");
-  await expect(open(r.id)).rejects.toThrow("INVALID_TRANSITION");
 });
 it("only the owner can open a payment, and only for a live pending hold", async () => {
   const r = await pendingStay(50);
