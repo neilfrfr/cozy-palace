@@ -68,8 +68,8 @@ export default async function Dining() {
           instead={
             role === null ? (
               visitorBookingEnabled() ? undefined : (
-                <Link className="button" href="/login?next=/dining">
-                  Sign in to book
+                <Link className="button" href="/register?next=/dining">
+                  Sign up to book
                 </Link>
               )
             ) : role !== "customer" ? (
