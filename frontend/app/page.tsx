@@ -142,8 +142,8 @@ export default async function Home() {
             Great company.
           </h2>
           <p>
-            See the restaurant seating before you arrive. Online table
-            reservations are coming later.
+            Explore the menu, choose a time and request a table before you
+            arrive.
           </p>
           <Link className="button outline-light" href="/dining">
             Explore dining

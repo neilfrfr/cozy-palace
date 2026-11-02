@@ -62,17 +62,24 @@ export default async function Reservations({
           No reservation matches {q}.
         </p>
       )}
-      {(!q || rows.length > 0) && <ReservationList rows={rows} />}
-      {(!q || tableRows.length > 0) && (
-        <>
+      {(!q || rows.length > 0) && (
+        <section className="reservation-group" aria-labelledby="room-reservations-title">
           <div className="section-head">
-            <h2>Table Bookings</h2>
+            <h2 id="room-reservations-title">Room Reservations</h2>
+          </div>
+          <ReservationList rows={rows} />
+        </section>
+      )}
+      {(!q || tableRows.length > 0) && (
+        <section className="reservation-group table-reservation-group" aria-labelledby="table-reservations-title">
+          <div className="section-head">
+            <h2 id="table-reservations-title">Table Reservations</h2>
             <Link className="button" href="/dining">
               Book a table
             </Link>
           </div>
           <TableBookingList rows={tableRows} />
-        </>
+        </section>
       )}
     </>
   );

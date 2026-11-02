@@ -50,6 +50,12 @@ export function TablePicker({
   walkIn = false,
   visitor = false,
   instead,
+  draftFlow = false,
+  deferAvailability = false,
+  availabilityBar = false,
+  initialDate,
+  initialTime = "",
+  initialGuests,
 }: {
   tables: DiningTable[];
   /** Manila business date, from the server. */
@@ -60,6 +66,15 @@ export function TablePicker({
   visitor?: boolean;
   /** Shown in place of the booking button, e.g. a sign-in link. */
   instead?: ReactNode;
+  /** Label the customer request action as a saved reservation draft. */
+  draftFlow?: boolean;
+  /** Show only the slot search until the guest checks availability. */
+  deferAvailability?: boolean;
+  /** Keep the slot controls in the booking bar on the table-selection page. */
+  availabilityBar?: boolean;
+  initialDate?: string;
+  initialTime?: string;
+  initialGuests?: number;
 }) {
   const [now] = useState(() => Date.now());
   // Guests book ahead; staff may seat a walk-in into a seating under way.
@@ -69,13 +84,21 @@ export function TablePicker({
       return walkIn ? start + SEATING_MS > now : start > now;
     });
   const [date, setDate] = useState(() =>
-    slotsOn(today).length ? today : addDays(today, 1),
+    initialDate && initialDate >= today && initialDate <= addDays(today, BOOKING_WINDOW_DAYS)
+      ? initialDate
+      : deferAvailability
+        ? ""
+        : slotsOn(today).length ? today : addDays(today, 1),
   );
-  const [chosenTime, setChosenTime] = useState("");
-  const [guests, setGuests] = useState(2);
+  const [chosenTime, setChosenTime] = useState(initialTime);
+  const [guests, setGuests] = useState<number | "">(
+    initialGuests ?? (deferAvailability ? "" : 2),
+  );
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [booked, setBooked] = useState<Set<string>>(new Set());
   const [refresh, setRefresh] = useState(0);
+  const [showPlan, setShowPlan] = useState(!deferAvailability);
+  const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: ReactNode }>();
   const [pending, startTransition] = useTransition();
   const requestKey = useRef<string | null>(null);
@@ -85,16 +108,24 @@ export function TablePicker({
 
   const lastDay = addDays(today, BOOKING_WINDOW_DAYS);
   const slots = slotsOn(date);
-  const time = slots.includes(chosenTime) ? chosenTime : (slots[0] ?? "");
+  const time = slots.includes(chosenTime)
+    ? chosenTime
+    : deferAvailability || availabilityBar
+      ? ""
+      : (slots[0] ?? "");
+  const dateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(date) &&
+    !Number.isNaN(Date.parse(date)) &&
+    new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
   const placed = tables.filter((t) => LAYOUT[t.table_number]);
   const fits = (t: DiningTable) =>
     t.operational_state === "available" &&
+    typeof guests === "number" &&
     t.capacity >= guests &&
     !booked.has(t.id);
   const selected = placed.find((t) => t.id === selectedId && fits(t));
 
   useEffect(() => {
-    if (!time || date < today || date > lastDay) return;
+    if ((deferAvailability && !showPlan) || !time || date < today || date > lastDay) return;
     let live = true;
     bookedTablesAction({ date, time }).then(
       (ids) => live && setBooked(new Set(ids)),
@@ -102,11 +133,18 @@ export function TablePicker({
     return () => {
       live = false;
     };
-  }, [date, time, today, lastDay, refresh]);
+  }, [date, time, today, lastDay, refresh, deferAvailability, showPlan]);
+
+  function checkAvailability() {
+    if (!dateIsValid || date < today || date > lastDay || !time || typeof guests !== "number") return;
+    setChecking(true);
+    const query = new URLSearchParams({ date, time, guests: String(guests) });
+    window.location.assign(`/dining/availability?${query.toString()}`);
+  }
 
   function submit(e: FormEvent<HTMLFormElement>) {
     e.preventDefault();
-    if (!selected) return;
+    if (!selected || typeof guests !== "number") return;
     const form = e.currentTarget;
     const f = new FormData(form);
     requestKey.current ??= crypto.randomUUID();
@@ -161,20 +199,28 @@ export function TablePicker({
 
   return (
     <form className="table-picker" onSubmit={submit}>
-      <div className="table-picker-fields">
+      <div className={
+        deferAvailability
+          ? "search booking-bar dining-table-search has-submit"
+          : availabilityBar
+            ? "search booking-bar dining-table-search fields-only"
+            : "table-picker-fields"
+      }>
         <DatePicker
           name="date"
           label="Date"
           value={date}
           onChange={setDate}
+          readOnly={deferAvailability || availabilityBar}
           required
-          unavailable={(d) =>
-            d < today
-              ? "This date has passed."
-              : d > lastDay
-                ? `Tables can be booked up to ${BOOKING_WINDOW_DAYS} days ahead.`
-                : ""
-          }
+          unavailable={(d) => {
+            if (d < today) return "This date has passed.";
+            if (d > lastDay) return `Tables can be booked up to ${BOOKING_WINDOW_DAYS} days ahead.`;
+            const dateSlots = slotsOn(d);
+            if (chosenTime && !dateSlots.includes(chosenTime)) return "That time is unavailable on this date.";
+            if (!dateSlots.length) return "No times remain on this date.";
+            return "";
+          }}
         />
         <label>
           Time
@@ -182,21 +228,22 @@ export function TablePicker({
             name="time"
             value={time}
             onChange={(e) => setChosenTime(e.target.value)}
-            disabled={!slots.length}
+            className={!time ? "unselected" : undefined}
           >
-            {slots.length ? (
-              slots.map((t) => <option key={t}>{t}</option>)
-            ) : (
-              <option value="">No times left on this day</option>
-            )}
+            <option value="">00:00</option>
+            {diningSlots.map((t) => (
+              <option key={t} value={t} disabled={!!date && !slots.includes(t)}>{t}</option>
+            ))}
           </select>
         </label>
         <label>
           Party size
           <select
             value={guests}
-            onChange={(e) => setGuests(Number(e.target.value))}
+            className={guests === "" ? "unselected" : undefined}
+            onChange={(e) => setGuests(e.target.value ? Number(e.target.value) : "")}
           >
+            <option value="">Select party size</option>
             {[1, 2, 3, 4, 5, 6].map((n) => (
               <option key={n} value={n}>
                 {n} {n === 1 ? "guest" : "guests"}
@@ -204,7 +251,13 @@ export function TablePicker({
             ))}
           </select>
         </label>
+        {deferAvailability && !showPlan && (
+          <button className="primary" type="button" onClick={checkAvailability} disabled={checking || !dateIsValid || !time || typeof guests !== "number" || date < today || date > lastDay}>
+            {checking ? "Loading tables…" : "Check Availability"}
+          </button>
+        )}
       </div>
+      {showPlan && <>
       <div className="table-picker-map">
         <Image
           src="/design/dining/floor-plan.jpg"
@@ -290,7 +343,16 @@ export function TablePicker({
           {message.text}
         </div>
       )}
-      {instead ?? (
+      {instead ?? (draftFlow ? (
+        <div className="actions table-picker-actions">
+          <button className="primary gold" disabled={!selected || pending || (visitor && !captcha)}>
+            {pending ? "Saving…" : "Save reservation draft"}
+          </button>
+          <Link className="button secondary" href={visitor ? "/find-reservation" : "/reservations"}>
+            Back to reservations
+          </Link>
+        </div>
+      ) : (
         <button
           className="button"
           disabled={!selected || pending || (visitor && !captcha)}
@@ -301,7 +363,8 @@ export function TablePicker({
               ? "Book walk-in"
               : "Request this table"}
         </button>
-      )}
+      ))}
+      </>}
     </form>
   );
 }
