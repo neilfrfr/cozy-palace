@@ -106,3 +106,16 @@ it("checkout requires identity with a safe return destination", async () => {
     `/reservations/${reservation.id}/checkout`,
   );
 });
+it("online payment is offered only for a held or confirmed stay that is not paid yet", async () => {
+  const { canPayOnline } = await import("@/lib/reservations/normalize");
+  const now = new Date("2026-11-02T00:00:00Z");
+  const held = { ...reservation, hold_expires_at: "2026-11-09T16:00:00Z" };
+  expect(canPayOnline(held, now)).toBe(true);
+  expect(canPayOnline({ ...held, status: "confirmed", hold_expires_at: null }, now)).toBe(true);
+  for (const status of ["draft", "cancelled", "expired", "checked_in", "completed"] as const)
+    expect(canPayOnline({ ...held, status }, now)).toBe(false);
+  expect(canPayOnline({ ...held, hold_expires_at: "2026-11-01T00:00:00Z" }, now)).toBe(false);
+  expect(canPayOnline({ ...held, total: 0 }, now)).toBe(false);
+  expect(canPayOnline({ ...held, payments: [{ status: "paid" }] }, now)).toBe(false);
+  expect(canPayOnline({ ...held, payments: [{ status: "open" }, { status: "review" }] }, now)).toBe(true);
+});

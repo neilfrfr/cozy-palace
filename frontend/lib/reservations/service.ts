@@ -114,7 +114,7 @@ export async function getReservation(id: string): Promise<Reservation | null> {
   const { db, userId } = await requireCustomer();
   const { data, error } = await db
     .from("reservations")
-    .select("*,room_bookings(*)")
+    .select("*,room_bookings(*),payments(status)")
     .eq("id", id)
     .eq("customer_id", userId)
     .maybeSingle();

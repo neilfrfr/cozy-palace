@@ -12,6 +12,8 @@ import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
 import { formatLabel } from "@/lib/format";
+import { canPayOnline, isPaid } from "@/lib/reservations/normalize";
+import { xenditKey } from "@/lib/payments/xendit";
 export const dynamic = "force-dynamic";
 export default async function Details({
   params,
@@ -61,15 +63,18 @@ export default async function Details({
           you until your check-in day.
         </div>
       )}
+      {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
       <ReservationControls reservation={r} />
-      <div className="actions">
-        <Link
-          className="button secondary"
-          href={`/reservations/${r.id}/checkout`}
-        >
-          E-wallet checkout
-        </Link>
-      </div>
+      {xenditKey() && canPayOnline(r) && (
+        <div className="actions">
+          <Link
+            className="button secondary"
+            href={`/reservations/${r.id}/checkout`}
+          >
+            E-wallet checkout
+          </Link>
+        </div>
+      )}
       {["draft", "pending", "confirmed"].includes(r.status) && (
         <section className="section reservation-update">
           <h2>Update your details</h2>
