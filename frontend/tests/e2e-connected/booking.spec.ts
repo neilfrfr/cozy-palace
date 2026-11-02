@@ -12,7 +12,7 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await page.getByLabel("Email address").fill(email!);
   await page.getByLabel("Password", { exact: true }).fill(password!);
   await page.getByLabel("I agree to the Terms and Conditions").check();
-  await page.getByRole("button", { name: "Sign in", exact: true }).click();
+  await page.getByRole("button", { name: "Log in", exact: true }).click();
   await expect(page).toHaveURL(/^https?:\/\/[^/]+\/$/);
   await page.goto("/reservations/new");
   await page.getByLabel("Check-in", { exact: true }).fill("2027-06-01");

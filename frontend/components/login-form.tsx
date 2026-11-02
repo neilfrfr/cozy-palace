@@ -1,6 +1,7 @@
 "use client";
 import Link from "next/link";
 import { useActionState, useState } from "react";
+import { ArrowRight } from "lucide-react";
 import { PasswordInput } from "@/components/password-input";
 import { loginAction } from "@/app/login/actions";
 export function LoginForm({
@@ -54,23 +55,27 @@ export function LoginForm({
         </p>
       )}
       <div className="actions">
-        <button className="primary" disabled={pending || !configured || !accepted}>
-          {pending ? "Signing in…" : "Sign in"}
+        <button
+          className="primary login-submit"
+          disabled={pending || !configured || !accepted}
+        >
+          {pending ? "Signing in…" : "Log in"}
+          <ArrowRight size={20} aria-hidden="true" />
         </button>
       </div>
       <p className="subtle login-register-link">
         New here?{" "}
-        <a href={"/register?next=" + encodeURIComponent(next)}>
+        <Link href={"/register?next=" + encodeURIComponent(next)}>
           Create an Account
-        </a>
+        </Link>
       </p>
       <p className="subtle login-staff-note">
-        Team members: <a href="/staff/register">Staff Registration</a> using
-        the email approved by your administrator.
+        Team members: <Link href="/staff/register">Staff Registration</Link>{" "}
+        using the email approved by your administrator.
       </p>
       <p>
-        <a href="/forgot-password">Forgot password?</a> ·{" "}
-        <a href="/forgot-password?mode=resend">Resend confirmation</a>
+        <Link href="/forgot-password">Forgot password?</Link> ·{" "}
+        <Link href="/forgot-password?mode=resend">Resend confirmation</Link>
       </p>
     </form>
   );
