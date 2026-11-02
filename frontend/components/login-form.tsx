@@ -2,6 +2,7 @@
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { PasswordInput } from "@/components/password-input";
+import { Turnstile } from "@/components/turnstile";
 import { loginAction } from "@/app/login/actions";
 export function LoginForm({
   next,
@@ -12,9 +13,21 @@ export function LoginForm({
 }) {
   const [state, action, pending] = useActionState(loginAction, { message: "" });
   const [accepted, setAccepted] = useState(false);
+  // Supabase's CAPTCHA check; each token works once, so every submit gets a fresh widget.
+  const [captcha, setCaptcha] = useState("");
+  const [round, setRound] = useState(0);
+  const needsCaptcha = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   return (
-    <form action={action} className="form-panel">
+    <form
+      action={action}
+      onSubmit={() => {
+        setCaptcha("");
+        setRound((n) => n + 1);
+      }}
+      className="form-panel"
+    >
       <input type="hidden" name="next" value={next} />
+      <input type="hidden" name="captchaToken" value={captcha} />
       <div className="form-grid">
         <label className="full">
           Email address
@@ -48,13 +61,19 @@ export function LoginForm({
           I agree to the <Link href="/terms">Terms and Conditions</Link>
         </span>
       </label>
+      <Turnstile key={round} action="sign_in" onToken={setCaptcha} />
       {state.message && (
         <p className="notice error" role="alert">
           {state.message}
         </p>
       )}
       <div className="actions">
-        <button className="primary" disabled={pending || !configured || !accepted}>
+        <button
+          className="primary"
+          disabled={
+            pending || !configured || !accepted || (needsCaptcha && !captcha)
+          }
+        >
           {pending ? "Signing in…" : "Sign in"}
         </button>
       </div>
@@ -65,8 +84,8 @@ export function LoginForm({
         </a>
       </p>
       <p className="subtle login-staff-note">
-        Team members: <a href="/staff/register">Staff Registration</a> using
-        the email approved by your administrator.
+        Team members: <a href="/staff/register">Staff Registration</a> using the
+        email approved by your administrator.
       </p>
       <p>
         <a href="/forgot-password">Forgot password?</a> ·{" "}

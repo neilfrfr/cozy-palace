@@ -4,7 +4,9 @@ vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: mocks.rpc }),
 }));
-vi.mock("@/lib/accounts/site-url", () => ({ siteOrigin: () => "https://cozy.test" }));
+vi.mock("@/lib/accounts/site-url", () => ({
+  siteOrigin: () => "https://cozy.test",
+}));
 const token = "xnd_webhook_token";
 const paymentId = "20000000-0000-4000-8000-000000000001";
 const invoice = (status = "PAID", paid_amount: unknown = 12345.67) =>
@@ -45,7 +47,12 @@ it("accepts only the exact callback token", async () => {
 });
 it("reads a paid or settled invoice and ignores other statuses", async () => {
   const { readPaidInvoice } = await import("@/lib/payments/xendit");
-  const paid = { paymentId, providerPaymentId: "inv_1", amount: 12345.67, currency: "PHP" };
+  const paid = {
+    paymentId,
+    providerPaymentId: "inv_1",
+    amount: 12345.67,
+    currency: "PHP",
+  };
   expect(readPaidInvoice(invoice())).toEqual(paid);
   expect(readPaidInvoice(invoice("SETTLED"))).toEqual(paid);
   expect(readPaidInvoice(invoice("EXPIRED"))).toBeNull();
@@ -53,16 +60,28 @@ it("reads a paid or settled invoice and ignores other statuses", async () => {
   expect(readPaidInvoice(invoice("PAID", "12345.67"))).toBe("INVALID");
   expect(readPaidInvoice("not json")).toBe("INVALID");
   // Xendit's "Test and save" sample and dashboard-made invoices.
-  expect(readPaidInvoice(invoice().replace(paymentId, "invoice_123124123"))).toBeNull();
+  expect(
+    readPaidInvoice(invoice().replace(paymentId, "invoice_123124123")),
+  ).toBeNull();
 });
 it("never uses a production key outside Production, or without every secret", async () => {
   const { xenditKey } = await import("@/lib/payments/xendit");
-  const env = { XENDIT_SECRET_KEY: "xnd_production_x", XENDIT_WEBHOOK_TOKEN: "w", SUPABASE_SECRET_KEY: "s" };
+  const env = {
+    XENDIT_SECRET_KEY: "xnd_production_x",
+    XENDIT_WEBHOOK_TOKEN: "w",
+    SUPABASE_SECRET_KEY: "s",
+  };
   expect(xenditKey({ ...env, VERCEL_ENV: "preview" })).toBeNull();
   expect(xenditKey(env)).toBeNull();
-  expect(xenditKey({ ...env, VERCEL_ENV: "production" })).toBe("xnd_production_x");
-  expect(xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_development_x" })).toBe("xnd_development_x");
-  expect(xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_public_development_x" })).toBeNull();
+  expect(xenditKey({ ...env, VERCEL_ENV: "production" })).toBe(
+    "xnd_production_x",
+  );
+  expect(xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_development_x" })).toBe(
+    "xnd_development_x",
+  );
+  expect(
+    xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_public_development_x" }),
+  ).toBeNull();
   expect(xenditKey({ ...env, SUPABASE_SECRET_KEY: "" })).toBeNull();
 });
 it("webhook records a paid invoice with the amount Xendit collected", async () => {
@@ -75,33 +94,56 @@ it("webhook records a paid invoice with the amount Xendit collected", async () =
   });
 });
 it("webhook acknowledges invoices it did not create without touching the database", async () => {
-  expect((await post(invoice().replace(paymentId, "invoice_123124123"), token)).status).toBe(200);
+  expect(
+    (await post(invoice().replace(paymentId, "invoice_123124123"), token))
+      .status,
+  ).toBe(200);
   expect(mocks.rpc).not.toHaveBeenCalled();
 });
 it("checkout asks Xendit for the stored total in pesos, keyed by the payment id", async () => {
   const { createCheckout } = await import("@/lib/payments/xendit");
   const fetchMock = vi.fn().mockResolvedValue(
-    new Response(JSON.stringify({ invoice_url: "https://checkout-staging.xendit.co/web/inv_1" })),
+    new Response(
+      JSON.stringify({
+        invoice_url: "https://checkout-staging.xendit.co/web/inv_1",
+        expiry_date: "2026-11-04T01:00:00.000Z",
+      }),
+    ),
   );
   vi.stubGlobal("fetch", fetchMock);
-  const args = { paymentId, returnPath: "/reservations/r1/checkout", reference: "CP-1", amount: 1500.5 };
-  await expect(createCheckout("xnd_development_key", args)).resolves.toBe(
-    "https://checkout-staging.xendit.co/web/inv_1",
-  );
+  const args = {
+    paymentId,
+    returnPath: "/reservations/r1/checkout",
+    reference: "CP-1",
+    amount: 1500.5,
+  };
+  await expect(createCheckout("xnd_development_key", args)).resolves.toEqual({
+    url: "https://checkout-staging.xendit.co/web/inv_1",
+    expiresAt: "2026-11-04T01:00:00.000Z",
+  });
   const [url, init] = fetchMock.mock.calls[0];
   expect(url).toBe("https://api.xendit.co/v2/invoices");
-  expect(init.headers.authorization).toBe("Basic " + Buffer.from("xnd_development_key:").toString("base64"));
+  expect(init.headers.authorization).toBe(
+    "Basic " + Buffer.from("xnd_development_key:").toString("base64"),
+  );
   expect(JSON.parse(init.body)).toMatchObject({
     external_id: paymentId,
     amount: 1500.5,
     currency: "PHP",
     success_redirect_url: "https://cozy.test/reservations/r1/checkout?paid=1",
     failure_redirect_url: "https://cozy.test/reservations/r1/checkout",
+    invoice_duration: 86400,
   });
-  fetchMock.mockResolvedValueOnce(new Response(JSON.stringify({ invoice_url: "http://evil.test" })));
-  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow("XENDIT_RESPONSE");
+  fetchMock.mockResolvedValueOnce(
+    new Response(JSON.stringify({ invoice_url: "http://evil.test" })),
+  );
+  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow(
+    "XENDIT_RESPONSE",
+  );
   fetchMock.mockResolvedValueOnce(new Response("{}", { status: 401 }));
-  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow("XENDIT_401");
+  await expect(createCheckout("xnd_development_key", args)).rejects.toThrow(
+    "XENDIT_401",
+  );
   vi.unstubAllGlobals();
 });
 it("webhook rejects missing or wrong tokens without touching the database", async () => {
@@ -112,9 +154,15 @@ it("webhook rejects missing or wrong tokens without touching the database", asyn
 it("webhook ignores other statuses, asks for a retry on database errors, and stays off when unconfigured", async () => {
   expect((await post(invoice("EXPIRED"), token)).status).toBe(200);
   expect(mocks.rpc).not.toHaveBeenCalled();
-  mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "NOT_FOUND" } });
+  mocks.rpc.mockResolvedValueOnce({
+    data: null,
+    error: { message: "NOT_FOUND" },
+  });
   expect((await post(invoice(), token)).status).toBe(200);
-  mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "timeout" } });
+  mocks.rpc.mockResolvedValueOnce({
+    data: null,
+    error: { message: "timeout" },
+  });
   vi.spyOn(console, "error").mockImplementation(() => {});
   expect((await post(invoice(), token)).status).toBe(500);
   vi.stubEnv("XENDIT_WEBHOOK_TOKEN", "");
