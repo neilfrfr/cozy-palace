@@ -4,6 +4,7 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { safeRedirect } from "@/lib/auth/redirect";
+import { authFailure, captchaToken } from "@/lib/auth/captcha";
 export async function loginAction(_state: { message: string }, form: FormData) {
   if (!isConfigured())
     return { message: "Booking is not connected yet. Please try again later." };
@@ -14,11 +15,11 @@ export async function loginAction(_state: { message: string }, form: FormData) {
   if (form.get("acceptTerms") !== "on")
     return { message: "Agree to the Terms and Conditions to sign in." };
   const db = await createClient();
-  const { error } = await db.auth.signInWithPassword(p.data);
-  if (error)
-    return {
-      message: "We could not sign you in. Check your email and password.",
-    };
+  const { error } = await db.auth.signInWithPassword({
+    ...p.data,
+    options: { captchaToken: captchaToken(form) },
+  });
+  if (error) return { message: authFailure(error) };
   await db.rpc("accept_staff_invitation");
   const requested = String(form.get("next") || "");
   const next = requested ? safeRedirect(requested) : "/";

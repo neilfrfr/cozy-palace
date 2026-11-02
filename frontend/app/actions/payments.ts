@@ -6,6 +6,7 @@ import { after } from "next/server";
 import { requireStaff } from "@/lib/auth/authorize";
 import { deliverNotifications } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
+import { createAdminClient } from "@/lib/supabase/admin";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
 import { createCheckout, xenditKey } from "@/lib/payments/xendit";
@@ -22,10 +23,17 @@ export async function startCheckoutAction(
     await createClient()
   ).rpc("open_payment", { p_reservation_id: id.data });
   if (error) return { code: publicError(error) };
-  const p = data as { id: string; amount: number; reference: string };
-  let url: string;
+  const p = data as {
+    id: string;
+    amount: number;
+    reference: string;
+    checkout_url: string | null;
+  };
+  // The booking's invoice is still live: send the customer back to it, never open a second one.
+  if (p.checkout_url) redirect(p.checkout_url);
+  let checkout: Awaited<ReturnType<typeof createCheckout>>;
   try {
-    url = await createCheckout(key, {
+    checkout = await createCheckout(key, {
       paymentId: p.id,
       returnPath: `/reservations/${id.data}/checkout`,
       reference: p.reference,
@@ -34,13 +42,26 @@ export async function startCheckoutAction(
   } catch {
     return { code: "PAYMENT_UNAVAILABLE" };
   }
-  redirect(url);
+  const { error: saveError } = await createAdminClient().rpc("save_checkout", {
+    p_payment_id: p.id,
+    p_checkout_url: checkout.url,
+    p_expires_at: checkout.expiresAt,
+  });
+  // The invoice works anyway; the next click would just open a fresh one.
+  if (saveError)
+    console.error("Saving the checkout link failed", saveError.message);
+  redirect(checkout.url);
 }
 /** Records a refund staff already sent from the Xendit dashboard. */
 export async function markRefundedAction(form: FormData) {
   const { db } = await requireStaff();
   const id = z.uuid().safeParse(form.get("id"));
-  const reference = z.string().trim().min(1).max(200).safeParse(form.get("reference"));
+  const reference = z
+    .string()
+    .trim()
+    .min(1)
+    .max(200)
+    .safeParse(form.get("reference"));
   if (!id.success || !reference.success)
     redirect("/staff/payments?error=INVALID_INPUT");
   const { error } = await db.rpc("mark_payment_refunded", {
@@ -49,5 +70,8 @@ export async function markRefundedAction(form: FormData) {
   });
   for (const p of ["/staff/payments", "/admin/activity"]) revalidatePath(p);
   if (!error) after(() => deliverNotifications());
-  redirect("/staff/payments?" + (error ? "error=" + publicError(error) : "notice=refunded"));
+  redirect(
+    "/staff/payments?" +
+      (error ? "error=" + publicError(error) : "notice=refunded"),
+  );
 }

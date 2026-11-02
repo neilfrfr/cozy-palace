@@ -1,6 +1,7 @@
 "use client";
-import { useActionState } from "react";
+import { useActionState, useState } from "react";
 import { PasswordInput } from "@/components/password-input";
+import { Turnstile } from "@/components/turnstile";
 import {
   registerAction,
   emailAction,
@@ -28,9 +29,22 @@ export function AccountAuthForm({
     message: "",
     success: false,
   });
+  // Supabase's CAPTCHA check guards every form here that sends email; each token works once.
+  const [captcha, setCaptcha] = useState("");
+  const [round, setRound] = useState(0);
+  const needsCaptcha =
+    mode !== "password" && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
   return (
-    <form action={submit} className="form-panel">
+    <form
+      action={submit}
+      onSubmit={() => {
+        setCaptcha("");
+        setRound((n) => n + 1);
+      }}
+      className="form-panel"
+    >
       <input type="hidden" name="mode" value={mode} />
+      <input type="hidden" name="captchaToken" value={captcha} />
       <input type="hidden" name="next" value={next} />
       <div className="form-grid">
         {mode === "register" && (
@@ -100,6 +114,13 @@ export function AccountAuthForm({
           </>
         )}
       </div>
+      {needsCaptcha && (
+        <Turnstile
+          key={round}
+          action={mode === "register" ? "sign_up" : "email_link"}
+          onToken={setCaptcha}
+        />
+      )}
       {state.message && (
         <p
           role={state.success ? "status" : "alert"}
@@ -108,7 +129,10 @@ export function AccountAuthForm({
           {state.message}
         </p>
       )}
-      <button className="primary" disabled={pending || !configured}>
+      <button
+        className="primary"
+        disabled={pending || !configured || (needsCaptcha && !captcha)}
+      >
         {pending
           ? "Please wait…"
           : mode === "register"
