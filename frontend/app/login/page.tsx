@@ -4,7 +4,6 @@ import { ArrowLeft } from "lucide-react";
 import { isConfigured } from "@/lib/supabase/config";
 import { safeRedirect } from "@/lib/auth/redirect";
 import { LoginForm } from "@/components/login-form";
-import { SetupNotice } from "@/components/setup-notice";
 export default async function Login({
   searchParams,
 }: {
@@ -25,7 +24,6 @@ export default async function Login({
             Cozy Palace
           </h1>
           <p className="intro">Log in to manage your stays and table bookings.</p>
-          {!isConfigured() && <SetupNotice />}
           {p.notice === "invalid-link" && (
             <div className="notice error" role="alert">
               This link is invalid or expired. Request a fresh confirmation or
