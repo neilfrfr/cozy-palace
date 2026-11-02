@@ -126,3 +126,32 @@ it("customers can read their own payments but never record one", async () => {
   expect((await customer(other, "select id from payments where id=$1", [p.id])).rows).toHaveLength(0);
   await expect(record(crypto.randomUUID(), "pay_unknown", 1)).rejects.toThrow("NOT_FOUND");
 });
+const refund = (user: string, p: string, ref = "Xendit dashboard refund") =>
+  as("authenticated", user, "select mark_payment_refunded($1,$2) as p", [p, ref]);
+it("staff mark a paid payment on a cancelled stay refunded, and it is logged", async () => {
+  const r = await pendingStay(60);
+  const p = await open(r.id);
+  expect(await record(p.id, "pay_refund", Number(r.total))).toBe("paid");
+  // A stay still going ahead keeps its money.
+  await expect(refund(staff, p.id)).rejects.toThrow("INVALID_TRANSITION");
+  await db.query("update reservations set status='cancelled',hold_expires_at=null where id=$1", [r.id]);
+  await expect(refund(owner, p.id)).rejects.toThrow("FORBIDDEN");
+  await expect(refund(staff, p.id, "  ")).rejects.toThrow("INVALID_INPUT");
+  await refund(staff, p.id, " RF-123 ");
+  const row = (await db.query("select status,refunded_by,refund_reference from payments where id=$1", [p.id])).rows[0];
+  expect(row).toEqual({ status: "refunded", refunded_by: staff, refund_reference: "RF-123" });
+  const log = (await db.query("select actor_role,action,before_values->>'status' b from audit_logs where record_id=$1 order by occurred_at desc limit 1", [r.id])).rows[0];
+  expect(log).toEqual({ actor_role: "staff", action: "payment_refunded", b: "paid" });
+  const notices = (await db.query("select recipient_id,delivery from notifications where reservation_id=$1 and event='refunded'", [r.id])).rows;
+  expect(notices).toEqual([{ recipient_id: owner, delivery: expect.any(String) }]);
+  // Twice is refused, and a replayed webhook leaves it refunded.
+  await expect(refund(staff, p.id)).rejects.toThrow("INVALID_TRANSITION");
+  expect(await record(p.id, "pay_refund", Number(r.total))).toBe("refunded");
+});
+it("review money can be refunded even while the stay goes ahead", async () => {
+  const r = await pendingStay(70);
+  const p = await open(r.id);
+  expect(await record(p.id, "pay_review_refund", 1)).toBe("review");
+  await refund(staff, p.id);
+  expect(await status(r.id)).toBe("pending");
+});
