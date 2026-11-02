@@ -3,7 +3,12 @@ import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth/authorize";
 import { publicError } from "@/lib/reservations/errors";
-import { menuItemSchema, orderLines, orderSchema } from "@/lib/orders";
+import {
+  menuItemSchema,
+  orderLines,
+  orderPaymentSchema,
+  orderSchema,
+} from "@/lib/orders";
 
 // Plain form posts; the outcome comes back as ?notice= or ?error= so the pages need no client code.
 function done(
@@ -50,6 +55,24 @@ export async function transitionOrderAction(form: FormData) {
     p_status: status,
   });
   done("/staff/orders", error);
+}
+
+export async function markOrderPaidAction(form: FormData) {
+  const { db } = await requireStaff();
+  const p = orderPaymentSchema.safeParse({
+    id: form.get("id"),
+    version: form.get("version"),
+    method: form.get("method"),
+    reference: form.get("reference") ?? "",
+  });
+  if (!p.success) redirect("/staff/orders?error=INVALID_INPUT");
+  const { error } = await db.rpc("mark_order_paid", {
+    p_id: p.data.id,
+    p_version: p.data.version,
+    p_method: p.data.method,
+    p_reference: p.data.reference || null,
+  });
+  done("/staff/orders", error, "paid");
 }
 
 export async function saveMenuItemAction(form: FormData) {
