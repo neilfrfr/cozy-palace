@@ -46,3 +46,19 @@ grant execute on function private.save_checkout(uuid,text,timestamptz) to servic
 create function public.save_checkout(p_payment_id uuid,p_checkout_url text,p_expires_at timestamptz) returns void language sql security invoker set search_path='' as $$select private.save_checkout(p_payment_id,p_checkout_url,p_expires_at)$$;
 revoke execute on function public.save_checkout(uuid,text,timestamptz) from public,anon,authenticated;
 grant execute on function public.save_checkout(uuid,text,timestamptz) to service_role;
+
+-- The daily job clears rate-limit records once they no longer count (the longest window is one hour).
+create function private.prune_rate_limits() returns integer language plpgsql security definer set search_path='' as $$
+declare a integer; b integer;
+begin
+ delete from private.guest_booking_attempts where at<now()-interval '1 day';
+ get diagnostics a=row_count;
+ delete from private.guest_lookup_attempts where at<now()-interval '1 day';
+ get diagnostics b=row_count;
+ return a+b;
+end $$;
+revoke execute on function private.prune_rate_limits() from public,anon,authenticated;
+grant execute on function private.prune_rate_limits() to service_role;
+create function public.prune_rate_limits() returns integer language sql security invoker set search_path='' as $$select private.prune_rate_limits()$$;
+revoke execute on function public.prune_rate_limits() from public,anon,authenticated;
+grant execute on function public.prune_rate_limits() to service_role;

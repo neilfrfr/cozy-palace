@@ -147,3 +147,19 @@ it("repeat Pay clicks reuse the live invoice; an expired or stale one gets a new
   expect(fresh.id).not.toBe(first.id);
   expect(fresh.checkout_url).toBeNull();
 });
+
+it("the daily job prunes rate-limit records older than a day; customers can't call it", async () => {
+  await db.exec(
+    `insert into private.guest_booking_attempts(ip,at) values('1.1.1.1',now()-interval '2 days'),('1.1.1.1',now());
+     insert into private.guest_lookup_attempts(ip,at) values('2.2.2.2',now()-interval '2 days'),('2.2.2.2',now());`,
+  );
+  await expect(
+    as("authenticated", owner, "select prune_rate_limits()"),
+  ).rejects.toThrow();
+  const r = await as("service_role", null, "select prune_rate_limits() as n");
+  expect((r.rows[0] as { n: number }).n).toBe(2);
+  const left = await db.query(
+    "select (select count(*) from private.guest_booking_attempts)::int+(select count(*) from private.guest_lookup_attempts)::int as n",
+  );
+  expect((left.rows[0] as { n: number }).n).toBe(2);
+});
