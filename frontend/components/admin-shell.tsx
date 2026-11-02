@@ -11,6 +11,7 @@ const links = [
   ["/admin/tables", "Restaurant Tables"],
   ["/admin/menu", "Menu"],
   ["/admin/staff", "Staff Directory"],
+  ["/admin/reports", "Reports"],
   ["/admin/activity", "Activity Log"],
   ["/admin/profile", "My Profile"],
   ["/", "Public Website"],

@@ -11,6 +11,7 @@ const codes = [
   "POLICY_RESTRICTED",
   "AVAILABILITY_CONFLICT",
   "RATE_LIMITED",
+  "RESOURCE_HAS_BOOKINGS",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
