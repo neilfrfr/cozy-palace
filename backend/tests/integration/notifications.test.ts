@@ -9,7 +9,8 @@ const owner = "e0000000-0000-4000-8000-000000000001",
 const room = "10000000-0000-4000-8000-000000000001";
 let n = 0;
 const key = () => `e1000000-0000-4000-8000-${String(++n).padStart(12, "0")}`;
-const day = (d: number) => new Date(Date.now() + d * 864e5).toISOString().slice(0, 10);
+// Manila calendar date (UTC+8, no DST), matching the database's "check-in must be after today" rule.
+const day = (d: number) => new Date(Date.now() + 8 * 36e5 + d * 864e5).toISOString().slice(0, 10);
 async function as(role: string, user: string | null, sql: string, args: unknown[] = []) {
   await db.exec(`set role ${role}`);
   await db.query("select set_config('request.jwt.claim.sub',$1,false)", [user ?? ""]);
