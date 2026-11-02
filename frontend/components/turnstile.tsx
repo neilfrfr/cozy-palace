@@ -23,7 +23,7 @@ export function Turnstile({
   action,
   onToken,
 }: {
-  action: "book_room" | "book_table";
+  action: "book_room" | "book_table" | "sign_in" | "sign_up" | "email_link";
   onToken: (token: string) => void;
 }) {
   const box = useRef<HTMLDivElement>(null);
