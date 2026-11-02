@@ -1,6 +1,6 @@
 import { PGlite } from "@electric-sql/pglite";
 import { btree_gist } from "@electric-sql/pglite/contrib/btree_gist";
-import { beforeAll, afterAll, it, expect } from "vitest";
+import { beforeAll, beforeEach, afterAll, it, expect } from "vitest";
 import { readFileSync, readdirSync } from "node:fs";
 let db: PGlite;
 const customer = "e0000000-0000-4000-8000-000000000001",
@@ -46,6 +46,14 @@ beforeAll(async () => {
 }, 60000);
 afterAll(async () => {
   await db?.close();
+});
+// The shared test customer may hold at most 3 live pending requests (TOO_MANY_PENDING),
+// so expire earlier tests' holds and start each test with none.
+beforeEach(async () => {
+  await db?.query(
+    "update reservations set hold_expires_at=now()-interval '1 minute' where customer_id=$1 and status='pending'",
+    [customer],
+  );
 });
 
 it("a closed room cannot be booked, searched or picked, and reopening frees it", async () => {
