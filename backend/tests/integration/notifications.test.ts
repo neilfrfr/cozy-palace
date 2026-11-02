@@ -49,9 +49,9 @@ it("records a notice with each booking step in the same transaction, privately",
   const { r } = (
     await as("authenticated", owner, "select create_reservation($1,$2::date,$3::date,2,$4) as r", [
       room,
-      // day() is a UTC date; two days ahead is still in the future in Manila.
-      day(2),
-      day(4),
+      // Tomorrow in Manila (UTC+8), so the reminder job below picks it up at any hour; day() is a UTC date.
+      new Date(Date.now() + 8 * 36e5 + 864e5).toISOString().slice(0, 10),
+      new Date(Date.now() + 8 * 36e5 + 3 * 864e5).toISOString().slice(0, 10),
       key(),
     ])
   ).rows[0] as { r: { id: string; version: number } };
