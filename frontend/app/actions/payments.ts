@@ -2,7 +2,9 @@
 import { z } from "zod";
 import { redirect } from "next/navigation";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { requireStaff } from "@/lib/auth/authorize";
+import { deliverNotifications } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
@@ -46,5 +48,6 @@ export async function markRefundedAction(form: FormData) {
     p_reference: reference.data,
   });
   for (const p of ["/staff/payments", "/admin/activity"]) revalidatePath(p);
+  if (!error) after(() => deliverNotifications());
   redirect("/staff/payments?" + (error ? "error=" + publicError(error) : "notice=refunded"));
 }
