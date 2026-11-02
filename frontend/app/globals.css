@@ -1553,6 +1553,36 @@ body:has(.staff-layout) .footer {
   align-items: center;
   margin: 0;
 }
+/* Small forms inside table cells (rates, seats, order payments). */
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.inline-form label {
+  min-width: 7rem;
+  flex: 1;
+}
+.report-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 16px;
+  margin: 0 0 12px;
+}
+.report-figures div {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.report-figures dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.report-figures dd {
+  margin: 4px 0 0;
+  font-size: 24px;
+}
 .queue-caption {
   display: flex;
   justify-content: space-between;
