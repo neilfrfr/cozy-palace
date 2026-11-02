@@ -1381,7 +1381,6 @@ body:has(.staff-layout) .footer {
   max-width: none;
   padding: 40px 44px 64px;
 }
-.operations-content h1,
 .operations-content h2,
 .operations-content h3 {
   font-family: Inter, sans-serif;
@@ -1389,6 +1388,7 @@ body:has(.staff-layout) .footer {
   overflow-wrap: anywhere;
 }
 .operations-content h1 {
+  overflow-wrap: anywhere;
   font-size: 32px;
   line-height: 1.2;
   margin: 0 0 10px;
@@ -1843,8 +1843,15 @@ button.primary:hover {
 .work-links a:hover strong {
   color: var(--navy);
 }
+/* Center on the h1's first line (global h1 size x 1.18 line-height), not the title + subtitle block. */
 .operations-heading > .manage-staff-button {
-  align-self: center;
+  align-self: flex-start;
+  transform: translateY(calc(clamp(32px, 4vw, 48px) * 1.18 / 2 - 50%));
+}
+@media (max-width: 760px) {
+  .operations-heading > .manage-staff-button {
+    transform: none;
+  }
 }
 .pending-registrations {
   color: var(--navy);
@@ -1954,9 +1961,6 @@ button.primary:hover {
 }
 .booking-review {
   text-align: left;
-}
-.guest-workflow {
-  margin-inline: auto;
 }
 .guest-workflow .form-panel {
   width: 100%;
@@ -2072,11 +2076,10 @@ button.primary:hover {
 }
 .saving-status {
   display: flex;
-  flex: 1 0 100%;
+  flex: 0 0 auto;
   min-height: 44px;
-  justify-content: center;
   align-items: center;
-  text-align: center;
+  color: var(--muted);
 }
 .status-ledger a strong {
   text-decoration: none;
