@@ -13,10 +13,12 @@ export function ReservationControls({
   reservation: r,
   staff = false,
   businessDay,
+  children,
 }: {
   reservation: Reservation;
   staff?: boolean;
   businessDay?: string;
+  children?: React.ReactNode;
 }) {
   const [pending, start] = useTransition(),
     [error, setError] = useState("");
@@ -120,6 +122,7 @@ export function ReservationControls({
             Cancel booking
           </button>
         )}
+        {children}
         {pending && <span className="saving-status" role="status">Saving changes…</span>}
       </div>
     </>
