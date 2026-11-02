@@ -1104,3 +1104,9 @@ body {
   margin: 12px 0 0;
   font-weight: 600;
 }
+/* No room for a second header button on phones; Log in page and footer link to sign-up. */
+@media (max-width: 520px) {
+  .site-header .nav-signup {
+    display: none;
+  }
+}
