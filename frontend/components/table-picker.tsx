@@ -271,7 +271,8 @@ export function TablePicker({
         <p className="subtle">
           No account needed. We email your booking details to you.{" "}
           <Link href="/login?next=/dining">Sign in</Link> instead to see your
-          bookings in your account.
+          bookings in your account. Read our{" "}
+          <Link href="/privacy">Privacy Notice</Link>.
         </p>
       )}
       {visitor && (
