@@ -4,7 +4,13 @@ import { createClient } from "@/lib/supabase/server";
 import { emailConfigured, sendEmail } from "@/lib/email";
 
 export type NoticeEvent =
-  "received" | "confirmed" | "changed" | "cancelled" | "expired" | "reminder";
+  | "received"
+  | "confirmed"
+  | "changed"
+  | "cancelled"
+  | "expired"
+  | "reminder"
+  | "refunded";
 type Booking = {
   reference: string;
   kind: "hotel" | "dining";
@@ -64,6 +70,10 @@ export function noticeText(event: NoticeEvent, b: Booking) {
       room ? "Your stay starts tomorrow" : "Your table is tomorrow",
       "We look forward to welcoming you.",
     ],
+    refunded: [
+      "Your payment was refunded",
+      "We sent it back to the GCash or Maya account you paid with. It can take a few days to appear.",
+    ],
   };
   const [title, next] = text[event];
   return { title, next, booking: describe(b) };
@@ -81,7 +91,9 @@ export function emailFor(
       `Hello ${b.customer?.full_name ?? b.guest_full_name ?? "there"},`,
       `${t.title}. ${t.booking}.`,
       t.next,
-      `To change or cancel it, contact the front desk and quote ${b.reference}.`,
+      n.event === "refunded"
+        ? `For questions, contact the front desk and quote ${b.reference}.`
+        : `To change or cancel it, contact the front desk and quote ${b.reference}.`,
       "Cozy Palace Hotel and Restaurant",
     ],
     id: "notice-" + n.id,
