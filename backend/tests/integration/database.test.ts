@@ -183,6 +183,11 @@ it("records trustworthy employee identity and admin-only logs", async () => {
   ]);
   const { result: r } = await create(a, "2027-03-01", "2027-03-03");
   await as(a, "select submit_reservation($1,1)", [r.id]);
+  // Online room requests are confirmed only once paid.
+  await db.query(
+    "insert into payments(reservation_id,amount,status,amount_paid,paid_at) select id,total,'paid',total,now() from reservations where id=$1",
+    [r.id],
+  );
   await as(staff, "select transition_reservation($1,2,'confirmed')", [r.id]);
   expect((await as(a, "select * from audit_logs")).rows).toHaveLength(0);
   const rows = await as(

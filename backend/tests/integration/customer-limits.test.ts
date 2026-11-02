@@ -101,6 +101,11 @@ it("a customer can have only 3 requests waiting for staff; confirming one frees 
     "select update_reservation($1,$2,$3,$4::date,$5::date,1)",
     [held[0].id, held[0].version, rooms[0], day(40), day(41)],
   );
+  // Online room requests are confirmed only once paid.
+  await db.query(
+    "insert into payments(reservation_id,amount,status,amount_paid,paid_at) select id,total,'paid',total,now() from reservations where id=$1",
+    [held[1].id],
+  );
   await as(
     "authenticated",
     staff,
@@ -113,7 +118,7 @@ it("a customer can have only 3 requests waiting for staff; confirming one frees 
 it("repeat Pay clicks reuse the live invoice; an expired or stale one gets a new payment", async () => {
   const r = (
     await db.query(
-      "select id from reservations where customer_id=$1 and status='confirmed'",
+      "select id from reservations where customer_id=$1 and status='pending' and kind='hotel' limit 1",
       [owner],
     )
   ).rows[0] as { id: string };
