@@ -8,7 +8,7 @@ export function PayButton({ id }: { id: string }) {
     <form action={submit}>
       <input type="hidden" name="id" value={id} />
       <button className="primary gold" type="submit" disabled={pending}>
-        {pending ? "Opening PayMongo…" : "Pay with PayMongo"}
+        {pending ? "Opening Xendit…" : "Pay with Xendit"}
       </button>
       {state && (
         <p className="notice error" role="alert">

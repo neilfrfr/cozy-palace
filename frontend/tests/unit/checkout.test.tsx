@@ -69,19 +69,19 @@ it("checkout presents actual booking data and never offers a working payment or 
     expect(html).not.toContain("Pay &amp; Confirm");
   }
 });
-it("an open hold offers the PayMongo button, and a return hides it while the payment is reported", async () => {
+it("an open hold offers the Xendit button, and a return hides it while the payment is reported", async () => {
   const { CheckoutSummary } = await import("@/components/checkout-summary");
   const open = renderToStaticMarkup(
     createElement(CheckoutSummary, { reservation, room: null, payment: "open" }),
   );
-  expect(open).toContain("Pay with PayMongo");
+  expect(open).toContain("Pay with Xendit");
   expect(open).toContain(`value="${reservation.id}"`);
   expect(open).not.toContain("not available yet");
   const back = renderToStaticMarkup(
     createElement(CheckoutSummary, { reservation, room: null, payment: "open", returned: true }),
   );
-  expect(back).not.toContain("Pay with PayMongo");
-  expect(back).toContain("PayMongo reports the payment");
+  expect(back).not.toContain("Pay with Xendit");
+  expect(back).toContain("Xendit reports the payment");
 });
 it("checkout refuses invalid IDs and missing or foreign owned-query results", async () => {
   const { default: Page } = await import(

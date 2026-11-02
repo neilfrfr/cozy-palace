@@ -58,7 +58,7 @@ export function CheckoutSummary({
             <dd>
               {payment === "unavailable"
                 ? "E-wallet · unavailable"
-                : "GCash, Maya or card · PayMongo"}
+                : "GCash, Maya or card · Xendit"}
             </dd>
           </div>
           <div className="total">
@@ -74,7 +74,7 @@ export function CheckoutSummary({
       </section>
       {returned && (
         <p className="notice" role="status">
-          Thank you. PayMongo reports the payment to us, usually within a
+          Thank you. Xendit reports the payment to us, usually within a
           minute. Our staff confirm your reservation if they haven&apos;t
           already.
         </p>

@@ -4,7 +4,7 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
-import { createCheckout, paymongoKey } from "@/lib/payments/paymongo";
+import { createCheckout, xenditKey } from "@/lib/payments/xendit";
 /** Online payment is for signed-in customers; visitors without an account pay through staff. */
 export async function startCheckoutAction(
   _: { code: string } | null,
@@ -12,7 +12,7 @@ export async function startCheckoutAction(
 ): Promise<{ code: string }> {
   const id = z.uuid().safeParse(form.get("id"));
   if (!id.success) return { code: "INVALID_INPUT" };
-  const key = paymongoKey();
+  const key = xenditKey();
   if (!key || !isConfigured()) return { code: "PAYMENT_UNAVAILABLE" };
   const { data, error } = await (
     await createClient()

@@ -1,7 +1,7 @@
 import "server-only";
 import { createClient } from "@supabase/supabase-js";
 import { config, isConfigured } from "./config";
-// Bypasses the signed-in user and RLS. Only for the PayMongo webhook and token-checked visitor bookings.
+// Bypasses the signed-in user and RLS. Only for the Xendit webhook and token-checked visitor bookings.
 export function createAdminClient() {
   const secret = process.env.SUPABASE_SECRET_KEY;
   if (!secret) throw new Error("SETUP_REQUIRED");
