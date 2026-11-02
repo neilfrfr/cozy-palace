@@ -183,7 +183,7 @@ export function GuestReservationForm({
               ? "Update the guest’s stay"
               : visitor
                 ? "Your details and stay"
-                : "Guest and stay details"}
+                : "Guest and Stay Details"}
           </legend>
           <div className="form-grid">
             {!online && (
@@ -271,6 +271,12 @@ export function GuestReservationForm({
               ? "No account needed. We email your booking details to you; our staff confirm it and arrange payment."
               : "No customer account is created for a walk-in guest."}{" "}
             Room availability and the final price are checked when you confirm.
+            {visitor && (
+              <>
+                {" "}
+                Read our <Link href="/privacy">Privacy Notice</Link>.
+              </>
+            )}
           </p>
           <button className="primary" disabled={pending || !rooms.length}>
             {pending ? "Checking…" : "Review booking"}

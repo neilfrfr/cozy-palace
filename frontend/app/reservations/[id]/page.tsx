@@ -64,17 +64,16 @@ export default async function Details({
         </div>
       )}
       {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
-      <ReservationControls reservation={r} />
-      {xenditKey() && canPayOnline(r) && (
-        <div className="actions">
+      <ReservationControls reservation={r}>
+        {xenditKey() && canPayOnline(r) && (
           <Link
             className="button secondary"
             href={`/reservations/${r.id}/checkout`}
           >
             E-wallet checkout
           </Link>
-        </div>
-      )}
+        )}
+      </ReservationControls>
       {["draft", "pending", "confirmed"].includes(r.status) && (
         <section className="section reservation-update">
           <h2>Update your details</h2>
