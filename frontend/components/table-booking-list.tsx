@@ -11,11 +11,13 @@ import {
   type TableBooking,
 } from "@/lib/dining";
 import { bookedAt, formatLabel } from "@/lib/format";
+import { useConfirm } from "@/components/confirm-dialog";
 
 function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
   const [pending, startTransition] = useTransition();
   const [error, setError] = useState("");
   const [now] = useState(() => Date.now());
+  const [ask, dialog] = useConfirm();
   const run = (action: () => ReturnType<typeof cancelTableBookingAction>) =>
     startTransition(async () => {
       setError("");
@@ -27,6 +29,7 @@ function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
     Date.parse(row.table_bookings.start_at) > now;
   return (
     <>
+      {dialog}
       {staff ? (
         <select
           aria-label={`Change status of ${row.reference}`}
@@ -57,12 +60,23 @@ function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
           <button
             className="text-link"
             disabled={pending}
-            onClick={() =>
-              confirm("Cancel this table booking?") &&
-              run(() =>
-                cancelTableBookingAction({ id: row.id, version: row.version }),
+            onClick={async () => {
+              if (
+                await ask({
+                  title: "Cancel this table booking?",
+                  message: `${row.reference} will be cancelled and the table released.`,
+                  confirmLabel: "Cancel booking",
+                  cancelLabel: "Keep booking",
+                  danger: true,
+                })
               )
-            }
+                run(() =>
+                  cancelTableBookingAction({
+                    id: row.id,
+                    version: row.version,
+                  }),
+                );
+            }}
           >
             {pending ? "Cancelling…" : "Cancel"}
           </button>

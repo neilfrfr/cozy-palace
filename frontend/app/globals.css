@@ -2291,3 +2291,40 @@ button.primary:hover {
 .inline-form input {
   width: 100%;
 }
+.confirm-dialog {
+  margin: auto;
+  width: min(440px, calc(100vw - 32px));
+  padding: 28px;
+  border: 0;
+  border-radius: 16px;
+  background: var(--surface);
+  color: var(--ink);
+  box-shadow: 0 24px 60px rgba(9, 14, 22, 0.3);
+}
+.confirm-dialog::backdrop {
+  background: rgba(9, 14, 22, 0.55);
+}
+.confirm-dialog h2 {
+  margin: 0 0 10px;
+  font-size: 22px;
+}
+.confirm-dialog p {
+  margin: 0;
+  color: var(--muted);
+  line-height: 1.6;
+}
+.confirm-dialog-actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+  gap: 12px;
+  margin-top: 24px;
+}
+button.primary.danger {
+  background: var(--danger);
+  border-color: var(--danger);
+  color: #fff;
+}
+button.primary.danger:hover {
+  background: #a14740;
+}
