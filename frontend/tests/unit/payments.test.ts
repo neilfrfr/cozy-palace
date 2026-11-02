@@ -1,114 +1,89 @@
-import { createHmac } from "node:crypto";
 import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: mocks.rpc }),
 }));
-const secret = "whsk_test_secret";
+const token = "xnd_webhook_token";
 const paymentId = "20000000-0000-4000-8000-000000000001";
-const event = (type = "checkout_session.payment.paid", amount = 1234567) =>
+const invoice = (status = "PAID", paid_amount: unknown = 12345.67) =>
   JSON.stringify({
-    data: {
-      id: "evt_1",
-      type: "event",
-      attributes: {
-        type,
-        livemode: false,
-        data: {
-          id: "cs_1",
-          type: "checkout_session",
-          attributes: {
-            reference_number: paymentId,
-            payments: [
-              { id: "pay_1", attributes: { amount, currency: "PHP", status: "paid" } },
-            ],
-          },
-        },
-      },
-    },
+    id: "inv_1",
+    external_id: paymentId,
+    status,
+    amount: 12345.67,
+    paid_amount,
+    currency: "PHP",
+    payment_channel: "GCASH",
   });
-const sign = (body: string, key = secret, t = "1761700000") =>
-  `t=${t},te=${createHmac("sha256", key).update(`${t}.${body}`).digest("hex")},li=`;
-const post = async (body: string, signature: string | null) => {
-  const { POST } = await import("@/app/api/paymongo/webhook/route");
+const post = async (body: string, header: string | null) => {
+  const { POST } = await import("@/app/api/xendit/webhook/route");
   return POST(
-    new Request("http://localhost/api/paymongo/webhook", {
+    new Request("http://localhost/api/xendit/webhook", {
       method: "POST",
       body,
-      headers: signature ? { "paymongo-signature": signature } : {},
+      headers: header ? { "x-callback-token": header } : {},
     }),
   );
 };
 beforeEach(() => {
   vi.clearAllMocks();
-  vi.stubEnv("PAYMONGO_SECRET_KEY", "sk_test_key");
-  vi.stubEnv("PAYMONGO_WEBHOOK_SECRET", secret);
+  vi.stubEnv("XENDIT_SECRET_KEY", "xnd_development_key");
+  vi.stubEnv("XENDIT_WEBHOOK_TOKEN", token);
   vi.stubEnv("SUPABASE_SECRET_KEY", "sb_secret_test");
   vi.stubEnv("VERCEL_ENV", "preview");
   mocks.rpc.mockResolvedValue({ data: "paid", error: null });
 });
-it("verifies the test-mode signature over the raw body", async () => {
-  const { verifySignature } = await import("@/lib/payments/paymongo");
-  const body = event();
-  expect(verifySignature(sign(body), body, secret, false)).toBe(true);
-  expect(verifySignature(sign(body), body.replace("1234567", "100"), secret, false)).toBe(false);
-  expect(verifySignature(sign(body, "wrong"), body, secret, false)).toBe(false);
-  expect(verifySignature(sign(body), body, secret, true)).toBe(false);
-  expect(verifySignature(null, body, secret, false)).toBe(false);
-  expect(verifySignature("t=1,te=abc", body, secret, false)).toBe(false);
+it("accepts only the exact callback token", async () => {
+  const { verifyToken } = await import("@/lib/payments/xendit");
+  expect(verifyToken(token, token)).toBe(true);
+  expect(verifyToken("wrong", token)).toBe(false);
+  expect(verifyToken(token + "x", token)).toBe(false);
+  expect(verifyToken(null, token)).toBe(false);
+  expect(verifyToken("", "")).toBe(false);
 });
-it("reads the paid checkout and converts centavos to pesos", async () => {
-  const { readPaidCheckout, centavos } = await import("@/lib/payments/paymongo");
-  expect(readPaidCheckout(event())).toEqual({
-    paymentId,
-    providerPaymentId: "pay_1",
-    amount: 12345.67,
-    currency: "PHP",
-  });
-  expect(readPaidCheckout(event("payment.failed"))).toBeNull();
-  expect(readPaidCheckout(event("checkout_session.payment.paid", -5))).toBe("INVALID");
-  expect(readPaidCheckout("not json")).toBe("INVALID");
-  expect(centavos(12345.67)).toBe(1234567);
-  expect(centavos(0.1 + 0.2)).toBe(30);
+it("reads a paid or settled invoice and ignores other statuses", async () => {
+  const { readPaidInvoice } = await import("@/lib/payments/xendit");
+  const paid = { paymentId, providerPaymentId: "inv_1", amount: 12345.67, currency: "PHP" };
+  expect(readPaidInvoice(invoice())).toEqual(paid);
+  expect(readPaidInvoice(invoice("SETTLED"))).toEqual(paid);
+  expect(readPaidInvoice(invoice("EXPIRED"))).toBeNull();
+  expect(readPaidInvoice(invoice("PAID", -5))).toBe("INVALID");
+  expect(readPaidInvoice(invoice("PAID", "12345.67"))).toBe("INVALID");
+  expect(readPaidInvoice("not json")).toBe("INVALID");
 });
-it("never uses a live key outside Production, or without every secret", async () => {
-  const { paymongoKey } = await import("@/lib/payments/paymongo");
-  const env = { PAYMONGO_SECRET_KEY: "sk_live_x", PAYMONGO_WEBHOOK_SECRET: "w", SUPABASE_SECRET_KEY: "s" };
-  expect(paymongoKey({ ...env, VERCEL_ENV: "preview" })).toBeNull();
-  expect(paymongoKey(env)).toBeNull();
-  expect(paymongoKey({ ...env, VERCEL_ENV: "production" })).toBe("sk_live_x");
-  expect(paymongoKey({ ...env, PAYMONGO_SECRET_KEY: "sk_test_x" })).toBe("sk_test_x");
-  expect(paymongoKey({ ...env, PAYMONGO_SECRET_KEY: "pk_test_x" })).toBeNull();
-  expect(paymongoKey({ ...env, SUPABASE_SECRET_KEY: "" })).toBeNull();
+it("never uses a production key outside Production, or without every secret", async () => {
+  const { xenditKey } = await import("@/lib/payments/xendit");
+  const env = { XENDIT_SECRET_KEY: "xnd_production_x", XENDIT_WEBHOOK_TOKEN: "w", SUPABASE_SECRET_KEY: "s" };
+  expect(xenditKey({ ...env, VERCEL_ENV: "preview" })).toBeNull();
+  expect(xenditKey(env)).toBeNull();
+  expect(xenditKey({ ...env, VERCEL_ENV: "production" })).toBe("xnd_production_x");
+  expect(xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_development_x" })).toBe("xnd_development_x");
+  expect(xenditKey({ ...env, XENDIT_SECRET_KEY: "xnd_public_development_x" })).toBeNull();
+  expect(xenditKey({ ...env, SUPABASE_SECRET_KEY: "" })).toBeNull();
 });
-it("webhook records a signed paid checkout with the amount PayMongo charged", async () => {
-  const body = event();
-  expect((await post(body, sign(body))).status).toBe(204);
+it("webhook records a paid invoice with the amount Xendit collected", async () => {
+  expect((await post(invoice(), token)).status).toBe(200);
   expect(mocks.rpc).toHaveBeenCalledWith("record_payment", {
     p_payment_id: paymentId,
-    p_provider_payment_id: "pay_1",
+    p_provider_payment_id: "inv_1",
     p_amount: 12345.67,
     p_currency: "PHP",
   });
 });
-it("webhook rejects unsigned, forged and live-signed events without touching the database", async () => {
-  const body = event();
-  expect((await post(body, null)).status).toBe(401);
-  expect((await post(body, sign(body, "forged"))).status).toBe(401);
-  expect((await post(body, sign(body).replace("te=", "li="))).status).toBe(401);
+it("webhook rejects missing or wrong tokens without touching the database", async () => {
+  expect((await post(invoice(), null)).status).toBe(401);
+  expect((await post(invoice(), "forged")).status).toBe(401);
   expect(mocks.rpc).not.toHaveBeenCalled();
 });
-it("webhook ignores other events, asks for a retry on database errors, and stays off when unconfigured", async () => {
-  const other = event("payment.failed");
-  expect((await post(other, sign(other))).status).toBe(204);
+it("webhook ignores other statuses, asks for a retry on database errors, and stays off when unconfigured", async () => {
+  expect((await post(invoice("EXPIRED"), token)).status).toBe(200);
   expect(mocks.rpc).not.toHaveBeenCalled();
-  const body = event();
   mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "NOT_FOUND" } });
-  expect((await post(body, sign(body))).status).toBe(204);
+  expect((await post(invoice(), token)).status).toBe(200);
   mocks.rpc.mockResolvedValueOnce({ data: null, error: { message: "timeout" } });
   vi.spyOn(console, "error").mockImplementation(() => {});
-  expect((await post(body, sign(body))).status).toBe(500);
-  vi.stubEnv("PAYMONGO_WEBHOOK_SECRET", "");
-  expect((await post(body, sign(body))).status).toBe(503);
+  expect((await post(invoice(), token)).status).toBe(500);
+  vi.stubEnv("XENDIT_WEBHOOK_TOKEN", "");
+  expect((await post(invoice(), token)).status).toBe(503);
 });

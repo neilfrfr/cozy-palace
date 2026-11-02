@@ -3,7 +3,7 @@ import { z } from "zod";
 import { requireCustomer } from "@/lib/auth/authorize";
 import { getReservation } from "@/lib/reservations/service";
 import { getRoom } from "@/lib/inventory/service";
-import { paymongoKey } from "@/lib/payments/paymongo";
+import { xenditKey } from "@/lib/payments/xendit";
 import { CheckoutSummary } from "@/components/checkout-summary";
 export const dynamic = "force-dynamic";
 export default async function Checkout({
@@ -21,7 +21,7 @@ export default async function Checkout({
   const allocation = reservation.room_bookings[0];
   const room = allocation ? await getRoom(allocation.room_id) : null;
   // The database re-checks all of this when the payment is opened.
-  const payment = !paymongoKey()
+  const payment = !xenditKey()
     ? "unavailable"
     : reservation.status === "confirmed" ||
         (reservation.status === "pending" &&

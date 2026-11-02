@@ -1,8 +1,7 @@
-// Stands in for PayMongo while sign-up is closed: signs a checkout_session.payment.paid
-// event the same way PayMongo does and posts it to the running app's webhook.
+// Stands in for Xendit's invoice callback: posts a PAID invoice with the webhook token
+// the same way Xendit does, to the running app's webhook.
 // Usage: npm run simulate:payment -- CP-XXXXXXXXXXXX [amount-in-pesos] [--url http://localhost:3000]
-// Click "Pay with PayMongo" on the reservation first: that opens the payment row this pays.
-import { createHmac } from "node:crypto";
+// Click "Pay with Xendit" on the reservation first: that opens the payment row this pays.
 import { createClient } from "@supabase/supabase-js";
 
 try {
@@ -20,14 +19,14 @@ if (
   !reference ||
   !env.NEXT_PUBLIC_SUPABASE_URL ||
   !env.SUPABASE_SECRET_KEY ||
-  !env.PAYMONGO_WEBHOOK_SECRET
+  !env.XENDIT_WEBHOOK_TOKEN
 ) {
   console.error(
-    "Usage: npm run simulate:payment -- <CP-reference> [amount]\nNeeds NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and PAYMONGO_WEBHOOK_SECRET in frontend/.env.local.",
+    "Usage: npm run simulate:payment -- <CP-reference> [amount]\nNeeds NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and XENDIT_WEBHOOK_TOKEN in frontend/.env.local.",
   );
   process.exit(1);
 }
-// Sending a signed event to a deployed site would let anyone holding its secret confirm stays.
+// Sending a signed event to a deployed site would let anyone holding its token confirm stays.
 if (
   !/^http:\/\/(localhost|127\.0\.0\.1)(:\d+)?$/.test(base) &&
   !env.SIMULATE_ALLOW_REMOTE
@@ -54,43 +53,25 @@ const payment = reservation.payments
   .sort((a, b) => b.created_at.localeCompare(a.created_at))[0];
 if (!payment) {
   console.error(
-    `${reference} has no open payment. Click "Pay with PayMongo" on its checkout page first.`,
+    `${reference} has no open payment. Click "Pay with Xendit" on its checkout page first.`,
   );
   process.exit(1);
 }
-const amount = Math.round(Number(amountArg ?? payment.amount) * 100);
 const body = JSON.stringify({
-  data: {
-    id: "evt_sim_" + Date.now(),
-    type: "event",
-    attributes: {
-      type: "checkout_session.payment.paid",
-      livemode: false,
-      data: {
-        id: "cs_sim_" + Date.now(),
-        type: "checkout_session",
-        attributes: {
-          reference_number: payment.id,
-          payments: [
-            {
-              id: "pay_sim_" + payment.id,
-              attributes: { amount, currency: "PHP", status: "paid" },
-            },
-          ],
-        },
-      },
-    },
-  },
+  id: "inv_sim_" + Date.now(),
+  external_id: payment.id,
+  status: "PAID",
+  amount: Number(payment.amount),
+  paid_amount: Number(amountArg ?? payment.amount),
+  currency: "PHP",
+  payment_method: "EWALLET",
+  payment_channel: "GCASH",
 });
-const t = Math.floor(Date.now() / 1000);
-const te = createHmac("sha256", env.PAYMONGO_WEBHOOK_SECRET)
-  .update(`${t}.${body}`)
-  .digest("hex");
-const res = await fetch(new URL("/api/paymongo/webhook", base), {
+const res = await fetch(new URL("/api/xendit/webhook", base), {
   method: "POST",
   headers: {
     "content-type": "application/json",
-    "paymongo-signature": `t=${t},te=${te},li=`,
+    "x-callback-token": env.XENDIT_WEBHOOK_TOKEN,
   },
   body,
 });
