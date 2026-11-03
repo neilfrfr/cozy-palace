@@ -16,10 +16,12 @@ export const readNavState = cache(async () => {
   if (isConfigured()) {
     try {
       const db = await createClient();
-      const { data, error } = await db.auth.getUser();
-      signedIn = !error && !!data.user;
-      if (data.user) {
-        const role = await readRole(db, data.user.id);
+      // getClaims verifies the JWT locally (proxy.ts already refreshed it); display-only, so no Auth round trip.
+      const { data, error } = await db.auth.getClaims();
+      const userId = !error && data?.claims.sub;
+      signedIn = !!userId;
+      if (userId) {
+        const role = await readRole(db, userId);
         home = roleHome(role);
         employee = role !== "customer";
       }
