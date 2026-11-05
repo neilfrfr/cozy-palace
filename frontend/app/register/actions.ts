@@ -11,6 +11,7 @@ import {
 import { siteOrigin } from "@/lib/accounts/site-url";
 import { requireIdentity } from "@/lib/auth/authorize";
 import { authFailure, captchaToken } from "@/lib/auth/captcha";
+import { isPwned, pwnedMessage } from "@/lib/accounts/pwned";
 export type AccountState = { message: string; success: boolean };
 const unavailable = {
   message: "Account services are not connected yet. Please try again later.",
@@ -36,6 +37,8 @@ export async function registerAction(
     };
   const origin = siteOrigin();
   if (!isConfigured() || !origin) return unavailable;
+  if (await isPwned(p.data.password))
+    return { message: pwnedMessage, success: false };
   const db = await createClient();
   const next = safeRedirect(String(form.get("next") || ""));
   const { data, error } = await db.auth.signUp({
@@ -118,6 +121,8 @@ export async function passwordAction(
       message: "Use matching passwords of 8–128 characters.",
       success: false,
     };
+  if (await isPwned(p.data.password))
+    return { message: pwnedMessage, success: false };
   const { error } = await identity.db.auth.updateUser({
     password: p.data.password,
     // Supabase checks it when "Require current password when updating" is on.

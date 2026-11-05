@@ -994,59 +994,106 @@ main:has(.admin-layout) {
   overflow-wrap: anywhere;
 }
 .auth-layout {
+  position: relative;
+  isolation: isolate;
   min-height: 100vh;
   min-height: 100dvh;
   display: grid;
   place-items: center;
-  padding: 48px 24px;
-  background:
-    radial-gradient(circle at 12% 22%, rgba(201, 162, 75, 0.22), transparent 30%),
-    radial-gradient(circle at 88% 78%, rgba(21, 34, 56, 0.12), transparent 34%),
-    radial-gradient(circle at 70% 8%, rgba(201, 162, 75, 0.14), transparent 26%),
-    var(--paper);
+  padding: 32px 24px;
+  background: radial-gradient(circle at 50% 120%, #1f3150, transparent 60%),
+    var(--navy);
+}
+.login-backdrop {
+  position: fixed;
+  inset: 0;
+  z-index: -1;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
 }
 .auth-card {
   width: min(1080px, 100%);
-  min-height: 640px;
+  min-height: 620px;
   display: grid;
   grid-template-columns: minmax(0, 1fr) minmax(0, 1.1fr);
   border-radius: 18px;
   overflow: hidden;
   background: var(--paper);
-  box-shadow: 0 30px 70px rgba(21, 34, 56, 0.16);
+  box-shadow:
+    0 0 0 1px rgba(201, 162, 75, 0.18),
+    0 40px 90px rgba(4, 8, 16, 0.45);
 }
 .auth-content.login {
-  position: relative;
   max-width: none;
   width: 100%;
   margin: 0;
-  padding: 96px 56px 120px;
+  padding: 32px 56px 32px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
+}
+.auth-top {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+  margin-bottom: auto;
+  padding-bottom: 28px;
+}
+.auth-content.login .auth-top a.brand {
+  font-size: 20px;
+  line-height: 1.1;
+  text-decoration: none;
+}
+.auth-top .brand span {
+  display: block;
+  margin-top: 4px;
+  font-family: Inter, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a6d2c;
 }
 .auth-content.login a.auth-home {
-  position: absolute;
-  top: 28px;
-  left: 46px;
   display: inline-flex;
   align-items: center;
   gap: 8px;
-  padding: 8px 10px;
+  padding: 6px 12px;
   border-radius: 999px;
+  color: var(--muted);
+  font-size: 14px;
   text-decoration: none;
+  transition: color 0.2s ease, background-color 0.2s ease;
+}
+.auth-content.login a.auth-home:hover {
+  color: var(--navy);
+  background: rgba(21, 34, 56, 0.06);
+}
+.auth-eyebrow {
+  margin: 0 0 6px;
+  font-size: 11px !important;
+  font-weight: 600;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: #8a6d2c;
 }
 .auth-content h1 {
+  margin: 0 0 8px;
   font-size: clamp(30px, 3vw, 40px);
   line-height: 1.15;
+}
+.auth-content .intro {
+  margin: 0 0 20px;
+  font-size: 15px;
 }
 .auth-content .form-panel {
   border: 0;
   padding: 0;
+  margin-bottom: auto;
   background: transparent;
 }
 .auth-content .form-grid {
-  gap: 22px;
+  gap: 16px;
 }
 .auth-content input:not([type="checkbox"]) {
   border: 0;
@@ -1063,30 +1110,49 @@ main:has(.admin-layout) {
 .auth-content p {
   font-size: 13px;
 }
-.auth-content .login-submit {
-  position: absolute;
-  right: 0;
-  bottom: 0;
-  min-width: 230px;
-  min-height: 68px;
-  display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  gap: 12px;
-  border-radius: 32px 0 0 0;
-  font-size: 16px;
+.login-forgot {
+  display: block;
+  width: fit-content;
+  margin: 8px 0 0 auto;
+  font-size: 13px;
+  color: var(--muted);
 }
-.auth-content .login-submit:not(:disabled) {
+.login-forgot:hover {
+  color: var(--navy);
+}
+.auth-content .login-submit {
+  width: 100%;
+  min-height: 52px;
+  margin-top: 18px;
+  gap: 10px;
+  border-radius: 999px;
+  font-size: 16px;
+  transition: background-color 0.2s ease, color 0.2s ease, border-color 0.2s ease;
+}
+.auth-content .login-submit:disabled {
+  opacity: 0.45;
+}
+.auth-content .login-submit:not(:disabled):hover {
   background: var(--gold);
   border-color: var(--gold);
   color: var(--navy);
 }
-.auth-content .login-submit:not(:disabled):hover {
-  background: #d5b46b;
+.login-foot {
+  margin-top: 20px;
+  padding-top: 16px;
+  border-top: 1px solid var(--line);
+  color: var(--muted);
+}
+.login-foot p {
+  margin: 0 0 4px;
+  line-height: 1.6;
+}
+.login-foot a {
+  color: var(--ink);
 }
 .auth-photo {
   position: relative;
-  min-height: 640px;
+  min-height: 620px;
   color: #fff;
 }
 .auth-photo img {
@@ -1098,9 +1164,10 @@ main:has(.admin-layout) {
   inset: 0;
   background: linear-gradient(
     180deg,
-    rgba(9, 14, 22, 0.62),
-    rgba(9, 14, 22, 0.05) 38%,
-    rgba(9, 14, 22, 0.5)
+    rgba(21, 34, 56, 0.45),
+    rgba(21, 34, 56, 0) 35%,
+    rgba(21, 34, 56, 0.2) 60%,
+    rgba(21, 34, 56, 0.9)
   );
 }
 .auth-photo-nav {
@@ -1120,34 +1187,31 @@ main:has(.admin-layout) {
   text-decoration: none;
   padding-bottom: 4px;
   border-bottom: 1.5px solid transparent;
+  transition: border-color 0.2s ease;
 }
 .auth-photo-nav a:hover {
   border-bottom-color: var(--gold);
-}
-.auth-photo-nav .brand {
-  margin-left: 10px;
-  color: #fff;
-  font-size: 20px;
-  line-height: 1.1;
-  border: 0;
-}
-.auth-photo-nav .brand span {
-  display: block;
-  font-family: Inter, sans-serif;
-  font-size: 10px;
-  letter-spacing: 0.16em;
-  text-transform: uppercase;
-  color: #e9d6a6;
 }
 .auth-photo-caption {
   position: absolute;
   z-index: 1;
   left: 36px;
-  bottom: 30px;
+  right: 36px;
+  bottom: 34px;
+}
+.auth-photo-caption p {
   margin: 0;
-  font-family: "Playfair Display", Georgia, serif;
-  font-size: 22px;
   color: #fff;
+}
+.auth-photo-caption p:first-child {
+  font-family: "Playfair Display", Georgia, serif;
+  font-size: 24px;
+  line-height: 1.25;
+}
+.auth-photo-caption p + p {
+  margin-top: 6px;
+  font-size: 14px;
+  color: rgba(255, 255, 255, 0.8);
 }
 .signup-modal {
   margin: auto;
@@ -1503,11 +1567,7 @@ body:has(.admin-layout) .footer {
     display: none;
   }
   .auth-content.login {
-    padding: 84px 20px 120px;
-  }
-  .auth-content.login a.auth-home {
-    left: 10px;
-    top: 20px;
+    padding: 24px 20px 32px;
   }
   .signup-modal,
   .signup-page .signup-card {
@@ -1754,6 +1814,19 @@ body:has(.staff-layout) .footer {
 .operations-content .section-subheading {
   margin-top: 32px;
 }
+/* Admin overview: buttons sit close to their description; Inventory gets room above. */
+.management-columns .actions {
+  margin-top: 12px;
+}
+.operations-section .inventory-heading {
+  margin-top: 44px;
+}
+/* A bare filter button would stretch to fill its grid cell. */
+.operations-filters > .button {
+  align-self: end;
+  justify-self: start;
+  padding-inline: 24px;
+}
 .operations-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
@@ -1780,6 +1853,36 @@ body:has(.staff-layout) .footer {
   justify-content: flex-end;
   align-items: center;
   margin: 0;
+}
+/* Small forms inside table cells (rates, seats, order payments). */
+.inline-form {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: 8px;
+}
+.inline-form label {
+  min-width: 7rem;
+  flex: 1;
+}
+.report-figures {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(10rem, 1fr));
+  gap: 16px;
+  margin: 0 0 12px;
+}
+.report-figures div {
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.report-figures dt {
+  color: var(--muted);
+  font-size: 13px;
+}
+.report-figures dd {
+  margin: 4px 0 0;
+  font-size: 24px;
 }
 .queue-caption {
   display: flex;
@@ -1985,11 +2088,6 @@ button.primary:hover {
   margin-bottom: 28px;
   max-width: 68ch;
   line-height: 1.6;
-}
-.login-register-link,
-.login-staff-note {
-  line-height: 1.65;
-  margin: 18px 0 0;
 }
 .terms-check {
   display: flex;

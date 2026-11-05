@@ -12,6 +12,11 @@ vi.mock("@/lib/auth/authorize", () => ({
   requireIdentity: async () => ({ db }),
 }));
 vi.mock("server-only", () => ({}));
+const pwned = vi.hoisted(() => vi.fn());
+vi.mock("@/lib/accounts/pwned", () => ({
+  isPwned: pwned,
+  pwnedMessage: "breached",
+}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: async () => db }));
 vi.mock("@/lib/supabase/config", () => ({ isConfigured: () => true }));
 vi.mock("next/navigation", () => ({
@@ -32,6 +37,7 @@ beforeEach(() => {
   db.auth.signUp.mockResolvedValue({ data: { session: null }, error: null });
   db.auth.resetPasswordForEmail.mockResolvedValue({ error: null });
   db.auth.resend.mockResolvedValue({ error: null });
+  pwned.mockResolvedValue(false);
 });
 it("signup sends only validated customer metadata and a same-site callback", async () => {
   const f = new FormData();
@@ -101,4 +107,26 @@ it("password change sends the current password and explains when it is missing",
     password: "A-new-password-123",
     current_password: "Old-password-1",
   });
+});
+
+it("refuses a breached password on sign-up and password change", async () => {
+  pwned.mockResolvedValue(true);
+  const f = new FormData();
+  for (const [k, v] of Object.entries({
+    fullName: "Guest",
+    email: "guest@example.test",
+    password: "password123",
+    confirmPassword: "password123",
+  }))
+    f.set(k, v);
+  expect(await registerAction(initial, f)).toEqual({
+    message: "breached",
+    success: false,
+  });
+  expect(db.auth.signUp).not.toHaveBeenCalled();
+  expect(await passwordAction(initial, f)).toEqual({
+    message: "breached",
+    success: false,
+  });
+  expect(db.auth.updateUser).not.toHaveBeenCalled();
 });

@@ -3,6 +3,7 @@ import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { isConfigured } from "@/lib/supabase/config";
 import { safeRedirect } from "@/lib/auth/redirect";
+import { LoginBackdrop } from "@/components/login-backdrop";
 import { LoginForm } from "@/components/login-form";
 export default async function Login({
   searchParams,
@@ -12,8 +13,10 @@ export default async function Login({
   const p = await searchParams;
   return (
     <div className="auth-layout">
+      <LoginBackdrop />
       <div className="auth-card">
         <div className="login auth-content">
+<<<<<<< HEAD
           <Link className="auth-home" href="/">
             <ArrowLeft size={18} aria-hidden="true" />
             Back to home
@@ -24,6 +27,23 @@ export default async function Login({
             Cozy Palace
           </h1>
           <p className="intro">Log in to manage your stays and table bookings.</p>
+=======
+          <div className="auth-top">
+            <Link className="brand" href="/">
+              Cozy Palace<span>Hotel and Restaurant</span>
+            </Link>
+            <Link className="auth-home" href="/">
+              <ArrowLeft size={18} aria-hidden="true" />
+              Back to home
+            </Link>
+          </div>
+          <p className="auth-eyebrow">Guest login</p>
+          <h1>Welcome back</h1>
+          <p className="intro">
+            Sign in to view your stays, table bookings and receipts.
+          </p>
+          {!isConfigured() && <SetupNotice />}
+>>>>>>> origin/main
           {p.notice === "invalid-link" && (
             <div className="notice error" role="alert">
               This link is invalid or expired. Request a fresh confirmation or
@@ -48,13 +68,11 @@ export default async function Login({
             <Link href="/rooms">Rooms</Link>
             <Link href="/dining">Dining</Link>
             <Link href="/about">About</Link>
-            <Link className="brand" href="/">
-              Cozy Palace<span>Hotel and Restaurant</span>
-            </Link>
           </nav>
-          <p className="auth-photo-caption">
-            Beautiful stays. Memorable tables.
-          </p>
+          <div className="auth-photo-caption">
+            <p>Beautiful stays. Memorable tables.</p>
+            <p>Garden Deluxe room</p>
+          </div>
         </aside>
       </div>
     </div>

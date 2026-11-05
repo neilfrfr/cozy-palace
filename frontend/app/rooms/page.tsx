@@ -25,12 +25,13 @@ export default async function Rooms({
     .safeParse(p);
   let bookedNights: string[] = [];
   if (configured) {
-    try {
-      rooms = await getRooms(filters.success ? filters.data : undefined);
-    } catch {
-      error = "We could not load the rooms. Please refresh and try again.";
-    }
-    bookedNights = await getFullyBookedNights();
+    const [loaded, nights] = await Promise.all([
+      getRooms(filters.success ? filters.data : undefined).catch(() => null),
+      getFullyBookedNights(),
+    ]);
+    if (loaded) rooms = loaded;
+    else error = "We could not load the rooms. Please refresh and try again.";
+    bookedNights = nights;
   }
   return (
     <div className="public-page">

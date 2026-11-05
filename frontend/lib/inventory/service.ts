@@ -65,3 +65,25 @@ export async function getAdminCounts() {
     throw new Error("Dashboard counts could not be loaded. Please try again.");
   return names.map((name, i) => ({ name, count: results[i].count ?? 0 }));
 }
+export type Closure = {
+  id: string;
+  room_id: string | null;
+  table_id: string | null;
+  starts_on: string;
+  ends_on: string;
+  reason: string;
+};
+/** Closures that have not ended yet, oldest first. */
+export async function getClosures(): Promise<Closure[]> {
+  const { db } = await requireStaff(true);
+  const today = new Date().toLocaleDateString("en-CA", {
+    timeZone: "Asia/Manila",
+  });
+  const { data, error } = await db
+    .from("resource_blocks")
+    .select("id,room_id,table_id,starts_on,ends_on,reason")
+    .gt("ends_on", today)
+    .order("starts_on");
+  if (error) throw new Error("Closures could not be loaded. Please try again.");
+  return data ?? [];
+}

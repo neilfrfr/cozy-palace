@@ -1,6 +1,11 @@
-import { transitionOrderAction } from "@/app/actions/orders";
+import {
+  markOrderPaidAction,
+  transitionOrderAction,
+} from "@/app/actions/orders";
 import { bookedAt, formatLabel } from "@/lib/format";
-import { peso, type Order } from "@/lib/orders";
+import { paymentMethods, peso, type Order } from "@/lib/orders";
+
+const methodLabel = (m: string) => (m === "gcash" ? "GCash" : formatLabel(m));
 
 /** Orders with their item snapshots; staff also get Complete/Cancel on open orders. */
 export function OrderList({
@@ -22,6 +27,7 @@ export function OrderList({
             <th>Items</th>
             <th>Total</th>
             <th>Status</th>
+            <th>Payment</th>
             {staff && <th>Actions</th>}
           </tr>
         </thead>
@@ -54,23 +60,65 @@ export function OrderList({
                   {formatLabel(o.status)}
                 </span>
               </td>
+              <td>
+                {o.paid_at ? (
+                  <>
+                    <span className="status confirmed">Paid</span>
+                    <div className="subtle">
+                      {methodLabel(o.payment_method!)}
+                      {o.payment_reference && " · " + o.payment_reference}
+                    </div>
+                  </>
+                ) : o.status === "cancelled" ? (
+                  "—"
+                ) : (
+                  <span className="status pending">Unpaid</span>
+                )}
+              </td>
               {staff && (
                 <td>
+                  {!o.paid_at && o.status !== "cancelled" && (
+                    <form action={markOrderPaidAction} className="inline-form">
+                      <input type="hidden" name="id" value={o.id} />
+                      <input type="hidden" name="version" value={o.version} />
+                      <label>
+                        Method
+                        <select name="method" defaultValue="cash">
+                          {paymentMethods.map((m) => (
+                            <option key={m} value={m}>
+                              {methodLabel(m)}
+                            </option>
+                          ))}
+                        </select>
+                      </label>
+                      <label>
+                        Reference (optional)
+                        <input name="reference" maxLength={100} />
+                      </label>
+                      <button className="button">Mark paid</button>
+                    </form>
+                  )}
                   {o.status === "open" &&
-                    (["completed", "cancelled"] as const).map((s) => (
-                      <form key={s} action={transitionOrderAction}>
-                        <input type="hidden" name="id" value={o.id} />
-                        <input type="hidden" name="version" value={o.version} />
-                        <input type="hidden" name="status" value={s} />
-                        <button
-                          className={
-                            s === "completed" ? "button" : "button secondary"
-                          }
-                        >
-                          {s === "completed" ? "Complete" : "Cancel"}
-                        </button>
-                      </form>
-                    ))}
+                    (["completed", "cancelled"] as const)
+                      .filter((s) => s === "completed" || !o.paid_at)
+                      .map((s) => (
+                        <form key={s} action={transitionOrderAction}>
+                          <input type="hidden" name="id" value={o.id} />
+                          <input
+                            type="hidden"
+                            name="version"
+                            value={o.version}
+                          />
+                          <input type="hidden" name="status" value={s} />
+                          <button
+                            className={
+                              s === "completed" ? "button" : "button secondary"
+                            }
+                          >
+                            {s === "completed" ? "Complete" : "Cancel"}
+                          </button>
+                        </form>
+                      ))}
                 </td>
               )}
             </tr>

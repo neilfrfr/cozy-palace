@@ -11,7 +11,9 @@ const codes = [
   "POLICY_RESTRICTED",
   "AVAILABILITY_CONFLICT",
   "RATE_LIMITED",
+  "RESOURCE_HAS_BOOKINGS",
   "TOO_MANY_PENDING",
+  "PAYMENT_REQUIRED",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -41,6 +43,8 @@ export const errorMessages: Record<string, string> = {
     "Too many booking requests. Please wait a while or contact the hotel.",
   TOO_MANY_PENDING:
     "You already have 3 requests waiting for staff. Wait for one to be confirmed, or cancel one, before sending another.",
+  PAYMENT_REQUIRED:
+    "This booking is not paid yet. It can be confirmed once the guest pays online.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",
