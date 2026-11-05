@@ -16,18 +16,6 @@ export default async function Login({
       <LoginBackdrop />
       <div className="auth-card">
         <div className="login auth-content">
-<<<<<<< HEAD
-          <Link className="auth-home" href="/">
-            <ArrowLeft size={18} aria-hidden="true" />
-            Back to home
-          </Link>
-          <h1>
-            Welcome back to
-            <br />
-            Cozy Palace
-          </h1>
-          <p className="intro">Log in to manage your stays and table bookings.</p>
-=======
           <div className="auth-top">
             <Link className="brand" href="/">
               Cozy Palace<span>Hotel and Restaurant</span>
@@ -43,7 +31,6 @@ export default async function Login({
             Sign in to view your stays, table bookings and receipts.
           </p>
           {!isConfigured() && <SetupNotice />}
->>>>>>> origin/main
           {p.notice === "invalid-link" && (
             <div className="notice error" role="alert">
               This link is invalid or expired. Request a fresh confirmation or
