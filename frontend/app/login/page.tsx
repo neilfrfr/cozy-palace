@@ -4,6 +4,7 @@ import { ArrowLeft } from "lucide-react";
 import { isConfigured } from "@/lib/supabase/config";
 import { safeRedirect } from "@/lib/auth/redirect";
 import { LoginBackdrop } from "@/components/login-backdrop";
+import { SetupNotice } from "@/components/setup-notice";
 import { LoginForm } from "@/components/login-form";
 export default async function Login({
   searchParams,
@@ -11,6 +12,7 @@ export default async function Login({
   searchParams: Promise<{ next?: string; notice?: string }>;
 }) {
   const p = await searchParams;
+  const configured = await isConfigured();
   return (
     <div className="auth-layout">
       <LoginBackdrop />
