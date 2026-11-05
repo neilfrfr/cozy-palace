@@ -77,8 +77,7 @@ export default async function ManagementDashboard() {
           </div>
           <h2 className="section-subheading inventory-heading">Inventory</h2>
           <p>
-            Review live rooms and restaurant tables. Inventory lists are
-            read-only in this increment.
+            Edit room rates, table seats and closures.
           </p>
           <div className="actions">
             <Link className="button secondary" href="/admin/rooms">Rooms</Link>

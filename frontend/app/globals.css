@@ -1804,6 +1804,19 @@ body:has(.staff-layout) .footer {
 .operations-content .section-subheading {
   margin-top: 32px;
 }
+/* Admin overview: buttons sit close to their description; Inventory gets room above. */
+.management-columns .actions {
+  margin-top: 12px;
+}
+.operations-section .inventory-heading {
+  margin-top: 44px;
+}
+/* A bare filter button would stretch to fill its grid cell. */
+.operations-filters > .button {
+  align-self: end;
+  justify-self: start;
+  padding-inline: 24px;
+}
 .operations-filters {
   display: grid;
   grid-template-columns: repeat(4, minmax(0, 1fr));
