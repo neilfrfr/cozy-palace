@@ -25,9 +25,6 @@ export function SignupCard({
         Already have an account?{" "}
         <Link href={"/login?next=" + encodeURIComponent(next)}>Log in</Link>
       </p>
-      <p className="signup-switch">
-        Joining the team? <Link href="/staff/register">Staff Registration</Link>
-      </p>
       <p className="subtle signup-fine">
         By continuing, you agree to the{" "}
         <Link href="/terms">Terms and Conditions</Link> and the{" "}
