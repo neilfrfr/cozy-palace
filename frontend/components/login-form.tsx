@@ -4,15 +4,20 @@ import { useActionState, useState } from "react";
 import { ArrowRight } from "lucide-react";
 import { PasswordInput } from "@/components/password-input";
 import { Turnstile } from "@/components/turnstile";
-import { loginAction } from "@/app/login/actions";
+import { loginAction, staffLoginAction } from "@/app/login/actions";
 export function LoginForm({
   next,
   configured,
+  portal = "guest",
 }: {
   next: string;
   configured: boolean;
+  portal?: "guest" | "staff";
 }) {
-  const [state, action, pending] = useActionState(loginAction, { message: "" });
+  const [state, action, pending] = useActionState(
+    portal === "staff" ? staffLoginAction : loginAction,
+    { message: "" },
+  );
   const [accepted, setAccepted] = useState(false);
   // Supabase's CAPTCHA check; each token works once, so every submit gets a fresh widget.
   const [captcha, setCaptcha] = useState("");
@@ -80,22 +85,20 @@ export function LoginForm({
         {pending ? "Signing in…" : "Log in"}
         <ArrowRight size={20} aria-hidden="true" />
       </button>
-      <div className="login-foot">
-        <p>
-          New here?{" "}
-          <Link href={"/register?next=" + encodeURIComponent(next)}>
-            Create an Account
-          </Link>
-        </p>
-        <p>
-          Team members: <Link href="/staff/register">Staff Registration</Link>{" "}
-          using the email approved by your administrator.
-        </p>
-        <p>
-          Didn&apos;t get the email?{" "}
-          <Link href="/forgot-password?mode=resend">Resend confirmation</Link>
-        </p>
-      </div>
+      {portal === "guest" && (
+        <div className="login-foot">
+          <p>
+            New here?{" "}
+            <Link href={"/register?next=" + encodeURIComponent(next)}>
+              Create an Account
+            </Link>
+          </p>
+          <p>
+            Didn&apos;t get the email?{" "}
+            <Link href="/forgot-password?mode=resend">Resend confirmation</Link>
+          </p>
+        </div>
+      )}
     </form>
   );
 }

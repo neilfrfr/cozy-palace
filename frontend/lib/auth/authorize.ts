@@ -3,16 +3,19 @@ import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeRedirect } from "@/lib/auth/redirect";
 import { isConfigured } from "@/lib/supabase/config";
-export async function requireIdentity(next = "/reservations") {
+export async function requireIdentity(next = "/reservations", login = "/login") {
   if (!isConfigured()) redirect("/setup");
   const db = await createClient();
   const { data, error } = await db.auth.getUser();
   if (error || !data.user)
-    redirect("/login?next=" + encodeURIComponent(safeRedirect(next)));
+    redirect(login + "?next=" + encodeURIComponent(safeRedirect(next)));
   return { userId: data.user.id, email: data.user.email, db };
 }
 export async function requireStaff(adminOnly = false) {
-  const identity = await requireIdentity();
+  const identity = await requireIdentity(
+    adminOnly ? "/admin" : "/staff",
+    "/staff/login",
+  );
   const { data, error } = await identity.db
     .from("staff_roles")
     .select("role")
