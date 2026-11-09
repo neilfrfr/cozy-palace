@@ -1,6 +1,7 @@
 import { requireStaff } from "@/lib/auth/authorize";
 import { StaffSidebar } from "@/components/staff-shell";
 import { AdminSidebar } from "@/components/admin-shell";
+import { IdleLogout } from "@/components/idle-logout";
 export default async function OperationsLayout({
   children,
 }: {
@@ -15,6 +16,7 @@ export default async function OperationsLayout({
           : "staff-layout operations-layout"
       }
     >
+      <IdleLogout />
       {role === "admin" ? <AdminSidebar /> : <StaffSidebar />}
       <div className="admin-content operations-content">{children}</div>
     </div>

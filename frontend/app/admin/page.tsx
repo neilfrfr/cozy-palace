@@ -61,18 +61,14 @@ export default async function ManagementDashboard() {
         <section className="operations-section">
           <h2>Staff access</h2>
           <p className="access-count pending-registrations">
-            <strong>{data.pendingStaff}</strong> pending registrations
+            <strong>{data.pendingStaff}</strong> pending invitations
           </p>
           <p>
-            Review onboarding records and share the staff registration portal
-            with approved employees.
+            Invite employees and review their onboarding records.
           </p>
           <div className="actions">
             <Link className="button secondary" href="/admin/staff">
               Staff Directory
-            </Link>
-            <Link className="button secondary" href="/staff/register">
-            Registration Portal
             </Link>
           </div>
           <h2 className="section-subheading inventory-heading">Inventory</h2>
