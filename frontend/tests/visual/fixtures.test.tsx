@@ -56,6 +56,10 @@ const data = vi.hoisted(() => ({
     },
   ],
 }));
+vi.mock("@/lib/orders", async (original) => ({
+  ...(await original<typeof import("@/lib/orders")>()),
+  getRoomCharges: async () => [],
+}));
 vi.mock("@/lib/reservations/service", () => ({
   getRooms: async () => data.rooms,
   getBookedNightsByRoom: async () => ({}),
@@ -120,15 +124,12 @@ it("renders production staff/admin pages as explicitly synthetic fixtures", asyn
   const { default: Layout } = await import("@/app/staff/(operations)/layout");
   const { default: Staff } = await import("@/app/staff/(operations)/page");
   const { default: Admin } = await import("@/app/admin/page");
-  const { default: Queue } = await import(
-    "@/app/staff/(operations)/reservations/page"
-  );
-  const { default: New } = await import(
-    "@/app/staff/(operations)/reservations/new/page"
-  );
-  const { default: Detail } = await import(
-    "@/app/staff/(operations)/reservations/[id]/page"
-  );
+  const { default: Queue } =
+    await import("@/app/staff/(operations)/reservations/page");
+  const { default: New } =
+    await import("@/app/staff/(operations)/reservations/new/page");
+  const { default: Detail } =
+    await import("@/app/staff/(operations)/reservations/[id]/page");
   const css = readFileSync("app/globals.css", "utf8").replace(
     '@import "tailwindcss";',
     "",
@@ -148,7 +149,11 @@ it("renders production staff/admin pages as explicitly synthetic fixtures", asyn
       "guest-detail",
       "/staff/reservations/id",
       "staff",
-      () => Detail({ params: Promise.resolve({ id: data.reservation.id }) }),
+      () =>
+        Detail({
+          params: Promise.resolve({ id: data.reservation.id }),
+          searchParams: Promise.resolve({}),
+        }),
     ],
   ] as const) {
     state.role = role;

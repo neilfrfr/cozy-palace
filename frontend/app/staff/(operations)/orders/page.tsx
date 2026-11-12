@@ -29,8 +29,9 @@ export default async function Orders({
           <h1>Orders</h1>
           <p>
             Record food and drink orders. Prices come from the menu. Add a
-            booking reference to save the order to that guest&apos;s account;
-            leave it blank for walk-ins.
+            booking reference to save the order to that guest&apos;s account, or
+            a room number to charge it to the room bill of the guest checked in
+            there. Leave both blank for walk-ins.
           </p>
         </div>
       </header>
@@ -74,6 +75,10 @@ export default async function Orders({
           <label>
             Booking number (optional)
             <input name="reservation" maxLength={20} placeholder="e.g. 1042" />
+          </label>
+          <label>
+            Charge to room (optional)
+            <input name="room" maxLength={10} placeholder="e.g. 101" />
           </label>
           <label>
             Note (optional)

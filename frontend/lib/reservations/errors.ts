@@ -16,6 +16,7 @@ const codes = [
   "PAYMENT_REQUIRED",
   "CANCEL_CUTOFF",
   "REFUND_PENDING",
+  "NO_CURRENT_STAY",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
