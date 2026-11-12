@@ -24,6 +24,7 @@ export async function GET(request: NextRequest) {
     }
     if (verified) {
       await db.rpc("accept_staff_invitation");
+      await db.rpc("log_sign_in"); // no-op for customers
       const next = safeRedirect(
         p.get("next") ||
           (type === "recovery" ? "/account/password?reset=1" : "/reservations"),
