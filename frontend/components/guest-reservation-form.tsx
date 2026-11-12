@@ -16,6 +16,14 @@ import { StayDates } from "@/components/stay-dates";
 import { Turnstile } from "@/components/turnstile";
 import { errorMessages } from "@/lib/reservations/errors";
 import { PhoneField } from "@/components/phone-field";
+import { ExtrasPicker } from "@/components/extras-picker";
+import {
+  extrasFromForm,
+  extrasSummary,
+  type BookedExtra,
+  type Extra,
+  type ExtrasInput,
+} from "@/lib/extras";
 import type { Room } from "@/lib/reservations/types";
 import type { OperationalReservation } from "@/lib/operations/service";
 type Input = {
@@ -27,6 +35,7 @@ type Input = {
   guestEmail: string;
   guestPhone: string;
   idempotencyKey?: string;
+  extras?: ExtrasInput;
   id?: string;
   version?: number;
 };
@@ -38,8 +47,11 @@ export function GuestReservationForm({
   bookedNights,
   visitor = false,
   defaults,
+  extras = [],
 }: {
   rooms: Room[];
+  /** Active extras a visitor can add to a new booking. */
+  extras?: Extra[];
   requestKey: string;
   today: string;
   existing?: OperationalReservation;
@@ -60,7 +72,13 @@ export function GuestReservationForm({
     [error, setError] = useState(""),
     [review, setReview] = useState<{
       input: Input;
-      quote: { total: number; nights: number; rate: number; room: string };
+      quote: {
+        total: number;
+        nights: number;
+        rate: number;
+        room: string;
+        extras: BookedExtra[];
+      };
     } | null>(null);
   const [booked, setBooked] = useState<{
     reference: string;
@@ -97,6 +115,7 @@ export function GuestReservationForm({
       input.id = existing.id;
       input.version = existing.version;
     } else input.idempotencyKey = requestKey;
+    if (visitor) input.extras = extrasFromForm(f);
     setError("");
     start(async () => {
       const result = visitor
@@ -265,6 +284,7 @@ export function GuestReservationForm({
                 }
               />
             </label>
+            {visitor && <ExtrasPicker extras={extras} />}
           </div>
           <p className="subtle">
             {visitor
@@ -315,6 +335,12 @@ export function GuestReservationForm({
                 {review.quote.rate.toLocaleString("en-PH")}
               </dd>
             </div>
+            {review.quote.extras.length > 0 && (
+              <div>
+                <dt>Extras</dt>
+                <dd>{extrasSummary(review.quote.extras)}</dd>
+              </div>
+            )}
           </dl>
           <p>
             {visitor

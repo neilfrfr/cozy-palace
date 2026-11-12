@@ -1,13 +1,16 @@
 "use server";
 import { revalidatePath } from "next/cache";
+import { after } from "next/server";
 import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth/authorize";
+import { deliverNotifications } from "@/lib/notifications";
 import { publicError } from "@/lib/reservations/errors";
 import {
   menuItemSchema,
   orderLines,
   orderPaymentSchema,
   orderSchema,
+  roomBillSchema,
 } from "@/lib/orders";
 
 // Plain form posts; the outcome comes back as ?notice= or ?error= so the pages need no client code.
@@ -23,6 +26,8 @@ function done(
     "/admin/activity",
   ])
     revalidatePath(p);
+  // Order and room bill changes email the guest (FR09); sending never blocks the page.
+  if (!error) after(() => deliverNotifications());
   redirect(path + (error ? "?error=" + publicError(error) : "?notice=" + ok));
 }
 
@@ -31,6 +36,7 @@ export async function createOrderAction(form: FormData) {
   const p = orderSchema.safeParse({
     items: orderLines(form),
     reservation: form.get("reservation") ?? "",
+    room: form.get("room") ?? "",
     note: form.get("note") ?? "",
     key: form.get("key"),
   });
@@ -40,6 +46,7 @@ export async function createOrderAction(form: FormData) {
     p_reservation_reference: p.data.reservation || null,
     p_note: p.data.note || null,
     p_idempotency_key: p.data.key,
+    p_room_number: p.data.room || null,
   });
   done("/staff/orders", error, "created");
 }
@@ -73,6 +80,23 @@ export async function markOrderPaidAction(form: FormData) {
     p_reference: p.data.reference || null,
   });
   done("/staff/orders", error, "paid");
+}
+
+/** Front desk takes payment for all of a stay's open room charges at check-out. */
+export async function settleRoomBillAction(form: FormData) {
+  const { db } = await requireStaff();
+  const p = roomBillSchema.safeParse({
+    id: form.get("id"),
+    method: form.get("method"),
+    reference: form.get("reference") ?? "",
+  });
+  if (!p.success) redirect("/staff/reservations?error=INVALID_INPUT");
+  const { error } = await db.rpc("settle_room_bill", {
+    p_reservation_id: p.data.id,
+    p_method: p.data.method,
+    p_reference: p.data.reference || null,
+  });
+  done("/staff/reservations/" + p.data.id, error, "settled");
 }
 
 export async function saveMenuItemAction(form: FormData) {

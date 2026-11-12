@@ -167,7 +167,7 @@ The test creates the schema/fixtures and sends overlapping submissions from two 
 
 ### Connected browser test
 
-After setting real development Supabase configuration, provide `TEST_CUSTOMER_EMAIL` and `TEST_CUSTOMER_PASSWORD` for a disposable account and run `npm run test:e2e:connected`. Optionally set `TEST_APP_URL` to a Vercel Preview URL. This creates, reloads, edits and deletes an unpaid draft. It cannot run without that infrastructure. Also verify that customers cannot access another customer’s reservations, staff actions require an employee role, and activity logs require an administrator role.
+After setting real development Supabase configuration, provide `TEST_CUSTOMER_EMAIL` and `TEST_CUSTOMER_PASSWORD` for a disposable account and run `npm run test:e2e:connected`. Optionally set `TEST_APP_URL` to a Vercel Preview URL. This creates, reloads, edits and deletes an unpaid draft. It cannot run without that infrastructure. Also verify that customers cannot access another customer’s reservations, staff actions require an employee role, and the full activity log requires an administrator role (staff read only their own rows).
 
 ## Database design
 
@@ -213,6 +213,8 @@ Staff CRUD includes creating/listing onboarding records, updating names and job 
 
 Hotel reservation create/read/update/delete remains under `/reservations` (deletion is limited to unpaid drafts). Staff process reservation status at `/staff/reservations`; administrators review account/staff/reservation events at `/admin/activity`. Dining, payment posting, and financial reports remain outside this increment.
 
+The activity log (`/admin/activity`) filters by employee and action type through the URL (`?employee=<user id>&type=tables`). Staff and admin sign-ins are logged as `signed_in`; a shift runs from an employee's first sign-in of the Manila day to midnight. Staff see their own sign-in time and actions for today on **My Activity** (`/staff/activity`) and on the Work overview; they can read only their own log rows, while admins read everyone's. Migration: `backend/supabase/migrations/20261112200000_staff_sign_in_log.sql`. Tests: `frontend/tests/unit/activity.test.ts`.
+
 Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` and `TEST_ONBOARD_EMAIL` / `TEST_ONBOARD_PASSWORD`. The onboarding account must be verified, disposable, and have no existing staff-directory record. `npm run test:e2e:connected` then checks staff create/read/update/delete, email-verified activation, and rejection of a still-signed-in staff session after revocation. Use only isolated test accounts. This test is skipped without those variables; hosted signup/email delivery must also be verified manually.
 
 ### Public pages and checkout
@@ -234,10 +236,12 @@ Test mode moves no real money and costs nothing:
 1. Apply `backend/supabase/migrations/20261029090000_payments.sql` and `20261102120000_xendit_payments.sql`.
 2. Sign up at Xendit and stay in **Test mode**. Under Settings > API Keys, create a secret key (`xnd_development_…`) with write access to Money-in. Under Settings > Webhooks, copy the verification token.
 3. Locally, set `XENDIT_SECRET_KEY`, `XENDIT_WEBHOOK_TOKEN` and `SUPABASE_SECRET_KEY` in `frontend/.env.local`. The button then opens Xendit, but callbacks cannot reach localhost, so the stay stays pending; use the simulator below.
-4. On Vercel, set the same variables for **Preview** (and Production while the team tests in test mode). In Settings > Webhooks, set the Invoices **paid** URL to `https://<host>/api/xendit/webhook`. If Deployment Protection is on, the webhook needs a protection bypass.
+4. On Vercel, set the same variables for **Preview** (and Production while the team tests in test mode). In Settings > Webhooks, set the Invoices **paid** URL and the **Refund** URL to `https://<host>/api/xendit/webhook`. If Deployment Protection is on, the webhook needs a protection bypass.
 5. On Xendit's test checkout, pick GCash or Maya and complete the simulated payment, or pay with a test card from Xendit's docs.
 
-Run `npm run simulate:payment -- CP-XXXXXXXXXXXX` while `npm run dev` is running to send a paid invoice callback to the local webhook. Click **Pay with Xendit** first: that opens the payment row the simulator pays. Add an amount in pesos after the reference (for example `1`) to check that a wrong amount goes to `review`. The script only posts to localhost.
+Refunds: under Staff > Payments, any staff member can refund a refundable payment in full or in part with **Refund via Xendit** (Xendit's Refund API, `POST /refunds` against the invoice; the secret key needs write access to Money-in refunds). The refund shows as pending until Xendit's refund callback (`refund.succeeded` or `refund.failed`, matched by our refund id in `reference_id`) arrives; when everything paid has been refunded the payment becomes `refunded` and the guest is notified. Only one refund per payment can be pending, so double clicks and callback retries never refund twice. Cancelling a booking never refunds automatically. If a refund was sent from the Xendit dashboard instead, record it with **Mark refunded**.
+
+Run `npm run simulate:payment -- <booking number>` while `npm run dev` is running to send a paid invoice callback to the local webhook. Click **Pay with Xendit** first: that opens the payment row the simulator pays. Add an amount in pesos after the reference (for example `1`) to check that a wrong amount goes to `review`. The script only posts to localhost.
 
 `xnd_production_` keys are ignored outside Vercel Production. Covered by `tests/unit/payments.test.ts` (token check, parsing, key guard, webhook responses) and `backend/tests/integration/payments.test.ts` (ownership, amounts, replays, holds, permissions).
 
@@ -252,7 +256,7 @@ Apply the new migrations in filename order after the existing three migrations:
 
 These migrations preserve existing reservation owners/references and add staff-entered guest snapshots and employee attribution to the same reservation ledger. A staff guest booking has no customer Auth account and no employee customer ownership. Confirming it atomically blocks the room and records the employee; customer online bookings and guest bookings share conflict protection. Guest name is required; email/phone are optional. Same-day staff arrivals are supported. Confirmation is not a payment record.
 
-Demo: sign in as staff, open New guest booking, enter guest/stay details, review the server quote and confirm. Reload its CP-reference detail, edit a permitted future/current booking, then cancel or progress through check-in and completion as allowed. A future reservation cannot be checked in early. Use disposable guest data. Administrators review the source, employee actor and resulting activity without using customer checkout.
+Demo: sign in as staff, open New guest booking, enter guest/stay details, review the server quote and confirm. Reload its booking-number detail, edit a permitted future/current booking, then cancel or progress through check-in and completion as allowed. A future reservation cannot be checked in early. Use disposable guest data. Administrators review the source, employee actor and resulting activity without using customer checkout.
 
 The dashboard shows actual pending confirmations, arrivals, checked-in stays, status totals, staff records and inventory counts. The hotel queue is shared; it does not claim individual task assignment. Inventory lists remain read-only. Payments, financial reports and restaurant booking operations remain outside this increment. Migrations must be installed before using these screens.
 

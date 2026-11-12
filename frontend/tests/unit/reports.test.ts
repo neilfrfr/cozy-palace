@@ -2,6 +2,7 @@ import { expect, it } from "vitest";
 import {
   occupancy,
   periodSchema,
+  revenueByRoomType,
   thisMonth,
   toCsv,
   totals,
@@ -109,4 +110,49 @@ it("writes CSV that quotes commas and quotes and never starts a cell with a form
       ],
     ),
   ).toBe('a,b\r\n"x,y","say ""hi"""\r\n\'=HYPERLINK(1),-5\r\n');
+});
+
+it("sums revenue per room type: room and extras from payments, room charges, refunds and net", () => {
+  const r = revenueByRoomType(
+    ["Family Suite", "Garden Deluxe"],
+    [
+      { type: "Garden Deluxe", paid: 7400, extras: 1000 },
+      // Money that does not cover the extras is counted as extras first.
+      { type: "Garden Deluxe", paid: 500, extras: 800 },
+      { type: "No room", paid: 0.1, extras: 0 },
+    ],
+    [{ type: "Garden Deluxe", amount: 300.2 }],
+    [
+      { type: "Garden Deluxe", amount: 360 },
+      { type: "No room", amount: 0.2 },
+    ],
+  );
+  const zero = { room: 0, extras: 0, charges: 0, refunds: 0, net: 0 };
+  expect(r.rows).toEqual([
+    { roomType: "Family Suite", ...zero },
+    {
+      roomType: "Garden Deluxe",
+      room: 6400,
+      extras: 1500,
+      charges: 360,
+      refunds: 300.2,
+      net: 7959.8,
+    },
+    {
+      roomType: "No room",
+      room: 0.1,
+      extras: 0,
+      charges: 0.2,
+      refunds: 0,
+      net: 0.3,
+    },
+  ]);
+  expect(r.total).toEqual({
+    roomType: "Total",
+    room: 6400.1,
+    extras: 1500,
+    charges: 360.2,
+    refunds: 300.2,
+    net: 7960.1,
+  });
 });

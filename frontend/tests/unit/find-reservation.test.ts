@@ -28,6 +28,11 @@ it("passes all three fields and the visitor's IP to the server-only lookup", asy
     p_client_ip: "203.0.113.9",
   });
 });
+it("accepts the new booking number", async () => {
+  rpc.mockResolvedValueOnce({ data: null, error: null });
+  await findReservationAction({}, form({ ...full, reference: " #0042 " }));
+  expect(rpc.mock.calls[0][1].p_reference).toBe("42");
+});
 it("gives one message for any miss, and says when the limit is hit", async () => {
   expect(
     (await findReservationAction({}, form({ ...full, last: "" }))).message,

@@ -3,6 +3,7 @@ import { z } from "zod";
 import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
 import { clientIp } from "@/lib/client-ip";
 import { publicError } from "@/lib/reservations/errors";
+import { normalizeReference } from "@/lib/format";
 
 export type FoundBooking = {
   reference: string;
@@ -21,12 +22,12 @@ const lookupSchema = z
   .object({
     first: z.string().trim().min(1).max(50),
     last: z.string().trim().min(1).max(50),
-    reference: z.string().trim().min(4).max(20),
+    reference: z.string().trim().min(1).max(20).transform(normalizeReference),
   })
   .strict();
 // One message for every miss, so the form never reveals which of the three fields was wrong.
 const notFound =
-  "We couldn't find a booking with those details. Check the spelling and the reference in your email.";
+  "We couldn't find a booking with those details. Check the spelling and the booking number in your email.";
 
 /** Guest lookup for bookings made without an account (PRD FR05): all three fields must match. */
 export async function findReservationAction(
@@ -40,7 +41,7 @@ export async function findReservationAction(
   });
   if (!p.success)
     return {
-      message: "Enter your first name, last name and booking reference.",
+      message: "Enter your first name, last name and booking number.",
     };
   if (!adminConfigured())
     return {

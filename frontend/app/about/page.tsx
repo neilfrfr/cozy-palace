@@ -1,12 +1,15 @@
 import { PageBanner } from "@/components/page-banner";
 import Link from "next/link";
-export default function About() {
+import { getSiteContent, photo, text } from "@/lib/site-content";
+export default async function About() {
+  const content = await getSiteContent();
   return (
     <div className="public-page">
       <PageBanner
         eyebrow="About"
-        title="Your Stay, in One Place."
-        intro="Manage your hotel reservations and find information about dining at Cozy Palace Hotel and Restaurant."
+        title={text(content, "about.title")}
+        intro={text(content, "about.intro")}
+        image={photo(content, "photo.about")}
         position="center 65%"
       />
       <div className="grid">

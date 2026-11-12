@@ -1,10 +1,18 @@
 import Link from "next/link";
 import { RoomPhoto } from "@/components/room-photo";
 import type { Room } from "@/lib/reservations/types";
-export function RoomCard({ room, query = "" }: { room: Room; query?: string }) {
+export function RoomCard({
+  room,
+  query = "",
+  photo,
+}: {
+  room: Room;
+  query?: string;
+  photo?: string;
+}) {
   return (
     <article className="room">
-      <RoomPhoto name={room.room_types.name} inCard />
+      <RoomPhoto name={room.room_types.name} inCard photo={photo} />
       <div className="room-card-top">
         <span className="eyebrow">{room.room_types.code}</span>
         <span className="room-number">Room {room.room_number}</span>

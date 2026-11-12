@@ -7,13 +7,15 @@ import {
   getReservation,
   getRooms,
 } from "@/lib/reservations/service";
-import { businessDate } from "@/lib/operations/schema";
+import { businessDate, guestCanCancel } from "@/lib/operations/schema";
+import { errorMessages } from "@/lib/reservations/errors";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { canPayOnline, isPaid } from "@/lib/reservations/normalize";
 import { xenditKey } from "@/lib/payments/xendit";
+import { extrasSummary } from "@/lib/extras";
 export const dynamic = "force-dynamic";
 export default async function Details({
   params,
@@ -47,6 +49,10 @@ export default async function Details({
           <dd>{r.guests}</dd>
         </div>
         <div>
+          <dt>Extras</dt>
+          <dd>{extrasSummary(r.reservation_extras)}</dd>
+        </div>
+        <div>
           <dt>Total in PHP</dt>
           <dd>₱{Number(r.total).toLocaleString("en-PH")}</dd>
         </div>
@@ -66,6 +72,13 @@ export default async function Details({
         </div>
       )}
       {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
+      {["pending", "confirmed"].includes(r.status) && (
+        <div className="notice">
+          {guestCanCancel(allocation?.check_in ?? "")
+            ? "You can cancel online until 11:59 PM (Manila time) two days before check-in."
+            : errorMessages.CANCEL_CUTOFF}
+        </div>
+      )}
       {r.payments
         ?.filter((p) => p.status === "refunded")
         .map((p) => (

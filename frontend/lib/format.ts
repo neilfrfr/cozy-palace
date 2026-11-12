@@ -17,3 +17,8 @@ export function sourceLabel(source?: string): string {
       ? "Online guest (no account)"
       : "Customer online";
 }
+/** Booking and order references: new ones are plain numbers ("#0042" is read as "42"); older CP-/OR- codes pass through. */
+export function normalizeReference(input: string): string {
+  const ref = input.trim().toUpperCase();
+  return /^#?\d+$/.test(ref) ? ref.replace(/^#?0*(?=\d)/, "") : ref;
+}
