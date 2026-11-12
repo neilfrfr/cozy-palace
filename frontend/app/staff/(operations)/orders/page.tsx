@@ -72,8 +72,8 @@ export default async function Orders({
             );
           })}
           <label>
-            Booking reference (optional)
-            <input name="reservation" maxLength={20} placeholder="CP-…" />
+            Booking number (optional)
+            <input name="reservation" maxLength={20} placeholder="e.g. 1042" />
           </label>
           <label>
             Note (optional)

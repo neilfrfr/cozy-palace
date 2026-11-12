@@ -39,7 +39,7 @@ export default async function Reservations({
             name="q"
             defaultValue={q}
             maxLength={20}
-            placeholder="Booking reference, e.g. CP-84347528"
+            placeholder="Booking number, e.g. 1042"
           />
         </label>
         <div className="actions">

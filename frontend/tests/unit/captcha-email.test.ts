@@ -75,7 +75,7 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
   const message = emailFor(
     { id: "n1", event: "confirmed", email: "walk@example.test" },
     {
-      reference: "CP-ABC",
+      reference: "42",
       kind: "hotel",
       guests: 2,
       guest_full_name: "<script>x</script>",
@@ -97,19 +97,19 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
   );
   const sent = mail.sendMail.mock.calls[0][0];
   expect(sent.to).toBe("walk@example.test");
-  expect(sent.subject).toBe("Your booking is confirmed · CP-ABC");
+  expect(sent.subject).toBe("Your booking is confirmed · Booking 42");
   expect(sent.messageId).toBe("<notice-n1@cozypalace>");
   expect(sent.html).toContain("&lt;script&gt;");
   expect(sent.html).not.toContain("<script>");
   expect(sent.text).toContain(
-    "CP-ABC: a stay from 2027-01-10 to 2027-01-12, 2 guests",
+    "Booking 42: a stay from 2027-01-10 to 2027-01-12, 2 guests",
   );
   expect(sent.text).not.toContain("http");
   const refund = emailFor(
     { id: "n2", event: "refunded", email: "walk@example.test" },
-    { reference: "CP-ABC", kind: "hotel", guests: 2, guest_full_name: "Ana", customer: null, room_bookings: [], table_bookings: [] },
+    { reference: "42", kind: "hotel", guests: 2, guest_full_name: "Ana", customer: null, room_bookings: [], table_bookings: [] },
   );
-  expect(refund.subject).toBe("Your payment was refunded · CP-ABC");
+  expect(refund.subject).toBe("Your payment was refunded · Booking 42");
   expect(refund.lines.join(" ")).not.toContain("change or cancel");
   vi.spyOn(console, "error").mockImplementation(() => {});
   mail.sendMail.mockRejectedValueOnce(new Error("535 bad credentials"));

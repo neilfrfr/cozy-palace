@@ -1,6 +1,7 @@
 import "server-only";
 import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
+import { normalizeReference } from "@/lib/format";
 
 export const menuSections = [
   "Appetizers",
@@ -88,7 +89,7 @@ export const orderSchema = z
       )
       .min(1)
       .max(30),
-    reservation: z.string().trim().max(20),
+    reservation: z.string().trim().max(20).transform(normalizeReference),
     note: z.string().trim().max(200),
     key: z.uuid(),
   })

@@ -13,7 +13,7 @@ export default async function FindReservation() {
         <h1>Find a Reservation</h1>
         <p className="intro">
           Booked without an account? Enter your name as you gave it when booking
-          and the reference from your confirmation email.
+          and the booking number from your confirmation email.
         </p>
         <FindReservationForm />
         <p className="subtle">

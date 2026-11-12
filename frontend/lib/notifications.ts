@@ -37,7 +37,7 @@ function describe(b: Booking) {
     : table
       ? `a table on ${manila(table.start_at)}`
       : "your booking";
-  return `${b.reference}: ${what}, ${b.guests} guest${b.guests === 1 ? "" : "s"}`;
+  return `Booking ${b.reference}: ${what}, ${b.guests} guest${b.guests === 1 ? "" : "s"}`;
 }
 
 /** One sentence per event, shared by the in-app list and the email. */
@@ -86,14 +86,14 @@ export function emailFor(
   const t = noticeText(n.event, b);
   return {
     to: n.email,
-    subject: `${t.title} · ${b.reference}`,
+    subject: `${t.title} · Booking ${b.reference}`,
     lines: [
       `Hello ${b.customer?.full_name ?? b.guest_full_name ?? "there"},`,
       `${t.title}. ${t.booking}.`,
       t.next,
       n.event === "refunded"
-        ? `For questions, contact the front desk and quote ${b.reference}.`
-        : `To change or cancel it, contact the front desk and quote ${b.reference}.`,
+        ? `For questions, contact the front desk and quote booking number ${b.reference}.`
+        : `To change or cancel it, contact the front desk and quote booking number ${b.reference}.`,
       "Cozy Palace Hotel and Restaurant",
     ],
     id: "notice-" + n.id,
