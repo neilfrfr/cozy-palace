@@ -11,6 +11,12 @@ import {
   type BookedRange,
 } from "./availability";
 import { businessDate } from "@/lib/operations/schema";
+import {
+  activityTypes,
+  manilaDay,
+  shiftOf,
+  type ActivityFilter,
+} from "@/lib/activity";
 /** Nights with no room left at all, for the public availability search. */
 export async function getFullyBookedNights(): Promise<string[]> {
   try {
@@ -123,14 +129,46 @@ export async function getReservation(id: string): Promise<Reservation | null> {
   if (error) throw new Error("Reservation could not be loaded.");
   return data ? normalizeReservation(data) : null;
 }
-export async function getActivity(page = 1) {
+export async function getActivity(f: ActivityFilter) {
   const { db } = await requireStaff(true);
-  const from = (page - 1) * 25;
+  const from = (f.page - 1) * 25;
+  let q = db
+    .from("audit_logs")
+    .select("id,actor_id,actor_name,actor_role,action,record_id,occurred_at");
+  if (f.employee) q = q.eq("actor_id", f.employee);
+  if (f.type) q = q.in("action", [...activityTypes[f.type].actions]);
+  const [{ data, error }, employees] = await Promise.all([
+    q.order("occurred_at", { ascending: false }).range(from, from + 24),
+    db.from("staff_roles").select("user_id,profiles(full_name)"),
+  ]);
+  if (error || employees.error)
+    throw new Error("Activity could not be loaded.");
+  type Named = { full_name: string } | { full_name: string }[] | null;
+  return {
+    rows: data ?? [],
+    employees: (employees.data ?? [])
+      .map((e) => {
+        const p = e.profiles as Named;
+        return {
+          id: e.user_id as string,
+          name: (Array.isArray(p) ? p[0] : p)?.full_name ?? "Staff",
+        };
+      })
+      .sort((a, b) => a.name.localeCompare(b.name)),
+  };
+}
+/** The signed-in employee's own log rows for today's shift (FR11). */
+export async function getMyShift() {
+  const { db, userId } = await requireStaff();
+  const { start, end } = manilaDay();
   const { data, error } = await db
     .from("audit_logs")
-    .select("id,actor_id,actor_name,actor_role,action,record_id,occurred_at")
-    .order("occurred_at", { ascending: false })
-    .range(from, from + 24);
-  if (error) throw new Error("Activity could not be loaded.");
-  return data ?? [];
+    .select("id,action,record_id,occurred_at")
+    .eq("actor_id", userId)
+    .gte("occurred_at", start.toISOString())
+    .lt("occurred_at", end.toISOString())
+    .order("occurred_at", { ascending: true })
+    .limit(1000);
+  if (error) throw new Error("Your activity could not be loaded.");
+  return shiftOf(data ?? []);
 }

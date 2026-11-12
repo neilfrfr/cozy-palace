@@ -59,6 +59,7 @@ const data = vi.hoisted(() => ({
 vi.mock("@/lib/reservations/service", () => ({
   getRooms: async () => data.rooms,
   getBookedNightsByRoom: async () => ({}),
+  getMyShift: async () => ({ signedInAt: null, actions: [], counts: [] }),
 }));
 vi.mock("@/lib/operations/service", () => ({
   getStaffDashboard: async () => ({
