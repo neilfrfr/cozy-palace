@@ -11,6 +11,8 @@ export type LedgerPayment = {
   refunded_at: string | null;
   refund_reference: string | null;
   refunder: { full_name: string } | null;
+  provider_payment_id: string | null;
+  refunds: { amount: number; status: "pending" | "succeeded" | "failed" }[];
   reservations: {
     id: string;
     reference: string;
@@ -21,13 +23,34 @@ export type LedgerPayment = {
 };
 
 const columns =
-  "id,status,amount,amount_paid,created_at,paid_at,refunded_at,refund_reference,refunder:profiles!payments_refunded_by_fkey(full_name),reservations!inner(id,reference,status,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name))";
+  "id,status,amount,amount_paid,created_at,paid_at,refunded_at,refund_reference,provider_payment_id,refunds(amount,status),refunder:profiles!payments_refunded_by_fkey(full_name),reservations!inner(id,reference,status,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name))";
 
 /** Mirrors private.mark_payment_refunded; the database re-checks. */
 export const refundable = (p: LedgerPayment) =>
   p.status === "review" ||
   (p.status === "paid" &&
     ["cancelled", "expired"].includes(p.reservations.status));
+
+export const refundPending = (p: LedgerPayment) =>
+  p.refunds.some((r) => r.status === "pending");
+
+/** Paid amount not yet sent back through Xendit, in pesos (two decimals). Mirrors private.request_refund. */
+export const remainingRefundable = (p: LedgerPayment) =>
+  Math.round(
+    p.refunds.reduce(
+      (left, r) =>
+        r.status === "succeeded" ? left - Number(r.amount) * 100 : left,
+      Number(p.amount_paid ?? 0) * 100,
+    ),
+  ) / 100;
+
+/** A peso amount with at most two decimals, above zero and at most `max`; null otherwise. The database re-checks. */
+export function parseRefundAmount(input: unknown, max = Infinity) {
+  const text = String(input ?? "").trim();
+  if (!/^\d{1,10}(\.\d{1,2})?$/.test(text)) return null;
+  const amount = Number(text);
+  return amount > 0 && amount <= max ? amount : null;
+}
 
 export async function getLedger() {
   const { db } = await requireStaff();

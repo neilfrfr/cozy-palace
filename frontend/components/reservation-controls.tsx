@@ -59,7 +59,7 @@ export function ReservationControls({
       !(await ask({
         title: "Cancel a paid booking?",
         message:
-          "This booking has been paid. Cancelling it does not refund the guest: send the refund from the Xendit dashboard, then mark it refunded under Payments.",
+          "This booking has been paid. Cancelling it does not refund the guest: send the refund under Payments afterwards.",
         confirmLabel: "Cancel booking",
         cancelLabel: "Keep booking",
         danger: true,
@@ -145,16 +145,20 @@ export function ReservationControls({
         )}
         {(staff || guestCanCancel(r.room_bookings[0]?.check_in ?? "")) &&
           ["pending", "confirmed"].includes(r.status) && (
-          <button
-            className="button secondary"
-            disabled={pending}
-            onClick={() => act("cancelled")}
-          >
-            Cancel booking
-          </button>
-        )}
+            <button
+              className="button secondary"
+              disabled={pending}
+              onClick={() => act("cancelled")}
+            >
+              Cancel booking
+            </button>
+          )}
         {children}
-        {pending && <span className="saving-status" role="status">Saving changes…</span>}
+        {pending && (
+          <span className="saving-status" role="status">
+            Saving changes…
+          </span>
+        )}
       </div>
     </>
   );

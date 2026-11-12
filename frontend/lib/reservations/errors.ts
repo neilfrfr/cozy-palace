@@ -15,6 +15,7 @@ const codes = [
   "TOO_MANY_PENDING",
   "PAYMENT_REQUIRED",
   "CANCEL_CUTOFF",
+  "REFUND_PENDING",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
