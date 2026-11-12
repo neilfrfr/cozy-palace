@@ -44,6 +44,8 @@ async function signIn(form: FormData, portal: "guest" | "staff") {
       message: "This login is for staff and admin. Guests sign in at /login.",
     };
   }
+  // FR11: the first sign-in of the Manila day starts the shift. A failed log never blocks sign-in.
+  if (employee) await db.rpc("log_sign_in");
   const requested = String(form.get("next") || "");
   redirect(
     requested

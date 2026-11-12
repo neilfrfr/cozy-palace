@@ -167,7 +167,7 @@ The test creates the schema/fixtures and sends overlapping submissions from two 
 
 ### Connected browser test
 
-After setting real development Supabase configuration, provide `TEST_CUSTOMER_EMAIL` and `TEST_CUSTOMER_PASSWORD` for a disposable account and run `npm run test:e2e:connected`. Optionally set `TEST_APP_URL` to a Vercel Preview URL. This creates, reloads, edits and deletes an unpaid draft. It cannot run without that infrastructure. Also verify that customers cannot access another customer’s reservations, staff actions require an employee role, and activity logs require an administrator role.
+After setting real development Supabase configuration, provide `TEST_CUSTOMER_EMAIL` and `TEST_CUSTOMER_PASSWORD` for a disposable account and run `npm run test:e2e:connected`. Optionally set `TEST_APP_URL` to a Vercel Preview URL. This creates, reloads, edits and deletes an unpaid draft. It cannot run without that infrastructure. Also verify that customers cannot access another customer’s reservations, staff actions require an employee role, and the full activity log requires an administrator role (staff read only their own rows).
 
 ## Database design
 
@@ -212,6 +212,8 @@ Guests sign in at `/login` and staff and admin at `/staff/login`; each page refu
 Staff CRUD includes creating/listing onboarding records, updating names and job titles, and deleting records to revoke employee privileges immediately. Email addresses are immutable; remove a pending record and create a new one to correct an address. Administrator roles cannot be demoted through this interface. Removing staff access does not delete the person's Auth account, customer bookings, or append-only audit history. Customer `/account` supports viewing/editing their own profile and changing their password; customer Auth-account deletion is not implemented.
 
 Hotel reservation create/read/update/delete remains under `/reservations` (deletion is limited to unpaid drafts). Staff process reservation status at `/staff/reservations`; administrators review account/staff/reservation events at `/admin/activity`. Dining, payment posting, and financial reports remain outside this increment.
+
+The activity log (`/admin/activity`) filters by employee and action type through the URL (`?employee=<user id>&type=tables`). Staff and admin sign-ins are logged as `signed_in`; a shift runs from an employee's first sign-in of the Manila day to midnight. Staff see their own sign-in time and actions for today on **My Activity** (`/staff/activity`) and on the Work overview; they can read only their own log rows, while admins read everyone's. Migration: `backend/supabase/migrations/20261112200000_staff_sign_in_log.sql`. Tests: `frontend/tests/unit/activity.test.ts`.
 
 Optional connected staff verification uses `TEST_ADMIN_EMAIL` / `TEST_ADMIN_PASSWORD` and `TEST_ONBOARD_EMAIL` / `TEST_ONBOARD_PASSWORD`. The onboarding account must be verified, disposable, and have no existing staff-directory record. `npm run test:e2e:connected` then checks staff create/read/update/delete, email-verified activation, and rejection of a still-signed-in staff session after revocation. Use only isolated test accounts. This test is skipped without those variables; hosted signup/email delivery must also be verified manually.
 

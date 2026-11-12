@@ -17,6 +17,7 @@ export function StaffSidebar() {
           ["/staff/tables", "Table Service"],
           ["/staff/orders", "Orders"],
           ["/staff/payments", "Payments"],
+          ["/staff/activity", "My Activity"],
           ["/staff/profile", "My Profile"],
         ].map(([href, label]) => (
           <Link
