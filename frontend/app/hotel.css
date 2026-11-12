@@ -522,6 +522,22 @@ main:has(.homepage) {
   margin: 0;
 }
 
+/* ---------- Contacts ---------- */
+.home-contact {
+  max-width: 1280px;
+  margin: 96px auto;
+  padding: 0 40px;
+}
+@media (max-width: 760px) {
+  .home-contact {
+    padding: 0 16px;
+  }
+}
+/* Admin-edited text keeps the line breaks it was typed with. */
+.pre-line {
+  white-space: pre-line;
+}
+
 /* ---------- Dining split ---------- */
 .home-dining {
   display: grid;
