@@ -101,6 +101,42 @@ export default async function Reports({
         <a href={csv("dining")}>Download CSV</a>
       </p>
 
+      <h2>Revenue by room type</h2>
+      <div className="table-wrap">
+        <table>
+          <caption className="hidden-label">Revenue by room type</caption>
+          <thead>
+            <tr>
+              <th>Room type</th>
+              <th>Room</th>
+              <th>Extras</th>
+              <th>Room charges</th>
+              <th>Refunds</th>
+              <th>Net</th>
+            </tr>
+          </thead>
+          <tbody>
+            {[...report.revenue.rows, report.revenue.total].map((r) => (
+              <tr key={r.roomType}>
+                <td>{r.roomType}</td>
+                <td>{peso(r.room)}</td>
+                <td>{peso(r.extras)}</td>
+                <td>{peso(r.charges)}</td>
+                <td>{peso(r.refunds)}</td>
+                <td>{peso(r.net)}</td>
+              </tr>
+            ))}
+          </tbody>
+        </table>
+      </div>
+      <p className="subtle">
+        Money counts on the day it moved: online payments when paid, room
+        charges when the room bill is settled, refunds when completed. Each
+        payment is split into its booking&apos;s extras and the room. The
+        payment filters above don&apos;t apply here.{" "}
+        <a href={csv("revenue")}>Download CSV</a>
+      </p>
+
       <h2>Payments</h2>
       <dl className="report-figures">
         <div>

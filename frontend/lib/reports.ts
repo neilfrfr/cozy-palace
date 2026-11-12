@@ -91,6 +91,65 @@ export function totals(rows: Transaction[]) {
   };
 }
 
+export type RevenueRow = {
+  roomType: string;
+  room: number;
+  extras: number;
+  charges: number;
+  refunds: number;
+  net: number;
+};
+const cents = (n: number) => Math.round(n * 100) / 100;
+/**
+ * Revenue per room type. Each payment is split into its booking's extras (up to what was paid) and room;
+ * refunds and room charges are summed as given. Every room type gets a row, even with nothing in it.
+ */
+export function revenueByRoomType(
+  types: string[],
+  payments: { type: string; paid: number; extras: number }[],
+  refunds: { type: string; amount: number }[],
+  charges: { type: string; amount: number }[],
+) {
+  const rows = new Map<string, Omit<RevenueRow, "net">>();
+  const row = (roomType: string) => {
+    if (!rows.has(roomType))
+      rows.set(roomType, {
+        roomType,
+        room: 0,
+        extras: 0,
+        charges: 0,
+        refunds: 0,
+      });
+    return rows.get(roomType)!;
+  };
+  types.forEach(row);
+  for (const p of payments) {
+    const extras = Math.min(p.paid, p.extras);
+    row(p.type).extras += extras;
+    row(p.type).room += p.paid - extras;
+  }
+  for (const r of refunds) row(r.type).refunds += r.amount;
+  for (const c of charges) row(c.type).charges += c.amount;
+  const total: RevenueRow = {
+    roomType: "Total",
+    room: 0,
+    extras: 0,
+    charges: 0,
+    refunds: 0,
+    net: 0,
+  };
+  const keys = ["room", "extras", "charges", "refunds", "net"] as const;
+  const list = [...rows.values()].map((r) => {
+    const out = { ...r, net: r.room + r.extras + r.charges - r.refunds };
+    for (const k of keys) {
+      out[k] = cents(out[k]);
+      total[k] = cents(total[k] + out[k]);
+    }
+    return out;
+  });
+  return { rows: list, total };
+}
+
 /** RFC 4180 CSV; a leading = + - @ is quoted with ' so spreadsheets never run it as a formula. */
 export function toCsv(header: string[], rows: (string | number)[][]) {
   const cell = (v: string | number) => {
