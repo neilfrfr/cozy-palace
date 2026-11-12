@@ -10,6 +10,8 @@ import { errorMessages } from "@/lib/reservations/errors";
 import type { Room, Reservation } from "@/lib/reservations/types";
 import { addDays } from "@/lib/reservations/availability";
 import { StayDates } from "@/components/stay-dates";
+import { ExtrasPicker } from "@/components/extras-picker";
+import { extrasFromForm, type Extra } from "@/lib/extras";
 export function ReservationForm({
   rooms,
   existing,
@@ -17,8 +19,11 @@ export function ReservationForm({
   requestKey,
   bookedNights,
   today,
+  extras = [],
 }: {
   rooms: Room[];
+  /** Active extras a new booking can add; an existing booking keeps the ones it has. */
+  extras?: Extra[];
   existing?: Reservation;
   /** Booked nights per room id, greyed out in the calendars. */
   bookedNights: Record<string, string[]>;
@@ -57,6 +62,7 @@ export function ReservationForm({
         : await createReservationAction({
             ...input,
             idempotencyKey: requestKey,
+            extras: extrasFromForm(form),
           });
       if (!result.ok) {
         setError(
@@ -111,6 +117,7 @@ export function ReservationForm({
             required
           />
         </label>
+        {!existing && <ExtrasPicker extras={extras} />}
       </div>
       <p className="subtle">
         This prototype accepts future check-in dates only. Saving creates a

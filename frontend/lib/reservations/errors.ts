@@ -49,6 +49,8 @@ export const errorMessages: Record<string, string> = {
     "This booking is not paid yet. It can be confirmed once the guest pays online.",
   CANCEL_CUTOFF:
     "Online cancellation closes at 11:59 PM (Manila time) two days before the booking date. Please contact the front desk to cancel.",
+  EXTRAS_UNAVAILABLE:
+    "One of the extras you picked is no longer offered or is over its limit. Choose again.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",

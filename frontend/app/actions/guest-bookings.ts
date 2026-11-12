@@ -13,28 +13,37 @@ import { deliverNotifications } from "@/lib/notifications";
 import { visitorSchema } from "@/lib/operations/schema";
 import { slotStart, visitorTableSchema } from "@/lib/dining";
 import { publicError } from "@/lib/reservations/errors";
-import { nights, roomQuote } from "@/lib/reservations/quote";
+import { extrasQuote, nights, roomQuote } from "@/lib/reservations/quote";
+import type { BookedExtra } from "@/lib/extras";
 import type { ActionResult } from "@/lib/reservations/types";
 type Booked = ActionResult<{ reference: string }>;
-export async function quoteStayAction(
-  input: unknown,
-): Promise<
-  ActionResult<{ total: number; nights: number; rate: number; room: string }>
+export async function quoteStayAction(input: unknown): Promise<
+  ActionResult<{
+    total: number;
+    nights: number;
+    rate: number;
+    room: string;
+    extras: BookedExtra[];
+  }>
 > {
   const parsed = visitorSchema.safeParse(input);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
   if (!visitorBookingEnabled()) return { ok: false, code: "REQUEST_FAILED" };
   const p = parsed.data;
-  const quote = await roomQuote(await createClient(), p.roomId, p.guests);
+  const db = await createClient();
+  const quote = await roomQuote(db, p.roomId, p.guests);
   if (!quote.ok) return quote;
   const count = nights(p.checkIn, p.checkOut);
+  const extras = await extrasQuote(db, p.extras, count);
+  if (!extras) return { ok: false, code: "EXTRAS_UNAVAILABLE" };
   return {
     ok: true,
     data: {
-      total: quote.rate * count,
+      total: quote.rate * count + extras.reduce((s, e) => s + e.line_total, 0),
       nights: count,
       rate: quote.rate,
       room: quote.room,
+      extras,
     },
   };
 }
@@ -84,6 +93,7 @@ export async function bookAsGuestAction(
     p_guest_email: p.guestEmail,
     p_guest_phone: p.guestPhone,
     p_idempotency_key: p.idempotencyKey,
+    p_extras: p.extras,
   });
 }
 export async function bookTableAsGuestAction(

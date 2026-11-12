@@ -43,7 +43,7 @@ export async function getOperationalReservation(
   const { data, error } = await db
     .from("reservations")
     .select(
-      "*,customer:profiles!reservations_customer_id_fkey(full_name),creator:profiles!reservations_created_by_fkey(full_name),room_bookings(*,rooms(room_number,room_types(name))),payments(status)",
+      "*,customer:profiles!reservations_customer_id_fkey(full_name),creator:profiles!reservations_created_by_fkey(full_name),room_bookings(*,rooms(room_number,room_types(name))),reservation_extras(*),payments(status)",
     )
     .eq("id", id)
     .neq("status", "draft")

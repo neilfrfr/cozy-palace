@@ -59,6 +59,7 @@ export async function createReservationAction(
     p_check_out: p.checkOut,
     p_guests: p.guests,
     p_idempotency_key: p.idempotencyKey,
+    p_extras: p.extras,
   });
 }
 export async function updateReservationAction(

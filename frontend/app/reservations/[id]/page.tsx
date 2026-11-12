@@ -15,6 +15,7 @@ import { ReservationControls } from "@/components/reservation-controls";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { canPayOnline, isPaid } from "@/lib/reservations/normalize";
 import { xenditKey } from "@/lib/payments/xendit";
+import { extrasSummary } from "@/lib/extras";
 export const dynamic = "force-dynamic";
 export default async function Details({
   params,
@@ -46,6 +47,10 @@ export default async function Details({
         <div>
           <dt>Guests</dt>
           <dd>{r.guests}</dd>
+        </div>
+        <div>
+          <dt>Extras</dt>
+          <dd>{extrasSummary(r.reservation_extras)}</dd>
         </div>
         <div>
           <dt>Total in PHP</dt>

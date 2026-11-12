@@ -8,8 +8,9 @@ import {
   roomTypeSchema,
   tableSchema,
 } from "@/lib/inventory/forms";
+import { extraSchema } from "@/lib/extras";
 
-type Page = "/admin/rooms" | "/admin/tables";
+type Page = "/admin/rooms" | "/admin/tables" | "/admin/extras";
 const page = (form: FormData): Page =>
   form.get("page") === "/admin/tables" ? "/admin/tables" : "/admin/rooms";
 
@@ -80,4 +81,30 @@ export async function removeClosureAction(form: FormData) {
   const id = String(form.get("id") ?? "");
   const { error } = await db.rpc("remove_block", { p_id: id });
   done(path, error, "reopened");
+}
+
+export async function saveExtraAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const p = extraSchema.safeParse({
+    id: form.get("id") || null,
+    name: form.get("name"),
+    description: form.get("description") ?? "",
+    kind: form.get("kind"),
+    price: form.get("price"),
+    pricing: form.get("pricing"),
+    maxQuantity: form.get("maxQuantity"),
+    active: form.get("active") === "on",
+  });
+  if (!p.success) redirect("/admin/extras?error=INVALID_INPUT");
+  const { error } = await db.rpc("save_extra", {
+    p_id: p.data.id,
+    p_name: p.data.name,
+    p_description: p.data.description,
+    p_kind: p.data.kind,
+    p_price: p.data.price,
+    p_pricing: p.data.pricing,
+    p_max_quantity: p.data.maxQuantity,
+    p_active: p.data.active,
+  });
+  done("/admin/extras", error, "saved");
 }

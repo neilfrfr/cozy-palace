@@ -2,6 +2,7 @@ import "server-only";
 import { createClient } from "@/lib/supabase/server";
 import { requireStaff } from "@/lib/auth/authorize";
 import type { Room } from "@/lib/reservations/types";
+import type { Extra } from "@/lib/extras";
 export type DiningTable = {
   id: string;
   table_number: string;
@@ -11,6 +12,18 @@ export type DiningTable = {
 export type InventoryRoom = Room & {
   operational_state: "available" | "out_of_service";
 };
+/** All extras for the admin page; booking forms show only the active ones. */
+export async function getExtras(activeOnly = true): Promise<Extra[]> {
+  const db = await createClient();
+  let query = db
+    .from("extras")
+    .select("id,name,description,kind,price,pricing,max_quantity,active")
+    .order("kind")
+    .order("name");
+  if (activeOnly) query = query.eq("active", true);
+  const { data } = await query;
+  return (data ?? []) as Extra[];
+}
 export async function getDiningTables(): Promise<DiningTable[]> {
   const db = await createClient();
   const { data, error } = await db

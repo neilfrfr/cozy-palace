@@ -8,6 +8,7 @@ import { businessDate } from "@/lib/operations/schema";
 import { GuestReservationForm } from "@/components/guest-reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
 import { sourceLabel } from "@/lib/format";
+import { extrasSummary } from "@/lib/extras";
 export const dynamic = "force-dynamic";
 export default async function OperationalDetail({
   params,
@@ -45,6 +46,7 @@ export default async function OperationalDetail({
           ["Room", `${r.room_type_name} · Room ${r.room_number}`],
           ["Stay", `${a?.check_in} to ${a?.check_out}`],
           ["Guests", String(r.guests)],
+          ["Extras", extrasSummary(r.reservation_extras)],
           ["Reservation total", `₱${Number(r.total).toLocaleString("en-PH")}`],
           ...(r.booking_source !== "customer_online"
             ? [

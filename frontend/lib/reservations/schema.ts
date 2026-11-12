@@ -1,4 +1,5 @@
 import { z } from "zod";
+import { extrasInput } from "@/lib/extras";
 const date = z
   .string()
   .regex(/^\d{4}-\d{2}-\d{2}$/)
@@ -16,7 +17,7 @@ const dates = (v: { checkIn: string; checkOut: string }) =>
   v.checkOut > v.checkIn &&
   (Date.parse(v.checkOut) - Date.parse(v.checkIn)) / 86400000 <= 365;
 export const reservationSchema = z
-  .object({ ...fields, idempotencyKey: z.uuid() })
+  .object({ ...fields, idempotencyKey: z.uuid(), extras: extrasInput })
   .strict()
   .refine(dates, {
     path: ["checkOut"],
