@@ -39,11 +39,19 @@ export const activityTypes = {
       "order_completed",
       "order_cancelled",
       "order_paid",
+      "room_bill_settled",
     ],
   },
   payments: {
     label: "Payments and refunds",
-    actions: ["payment_paid", "payment_review", "payment_refunded"],
+    actions: [
+      "payment_paid",
+      "payment_review",
+      "payment_refunded",
+      "refund_requested",
+      "refund_succeeded",
+      "refund_failed",
+    ],
   },
   inventory: {
     label: "Rates and inventory",
@@ -54,6 +62,9 @@ export const activityTypes = {
       "inventory_reopened",
       "menu_item_created",
       "menu_item_updated",
+      "extra_created",
+      "extra_updated",
+      "extra_deactivated",
     ],
   },
   staff: {
