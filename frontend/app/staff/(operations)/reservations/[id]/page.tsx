@@ -137,6 +137,7 @@ export default async function OperationalDetail({
           reservation={r}
           staff
           businessDay={businessDate()}
+          unpaidCharges={bill.unpaid > 0 ? peso(bill.unpaid) : ""}
         />
         <p className="subtle">
           Confirmation is a booking status, not proof of payment. Changes are

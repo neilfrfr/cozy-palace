@@ -124,7 +124,7 @@ it("settling the room bill pays every open charge once, records who, logs it and
   await expect(as("authenticated", staff, "select settle_room_bill($1,'cash',null)", [later.id])).rejects.toThrow("INVALID_TRANSITION");
 });
 
-it("orders by booking number, counter payments, online payments and partial refunds each email the guest", async () => {
+it("orders by booking number, online payments and partial refunds email the guest; counter payments do not", async () => {
   const r = await stay(room, 60);
   const o = ((await as("authenticated", staff, "select create_order($1,$2,null,$3) as o", [items([["Halo-halo", 1]]), r.reference, key()])).rows[0] as { o: Order }).o;
   await as("authenticated", staff, "select mark_order_paid($1,$2,'cash',null)", [o.id, o.version]);
@@ -146,7 +146,6 @@ it("orders by booking number, counter payments, online payments and partial refu
   await refund(700);
   expect((await notes(r.id)).filter((x) => x.order_id || x.amount).map((x) => [x.event, x.amount && Number(x.amount)])).toEqual([
     ["order_placed", null],
-    ["order_updated", null],
     ["paid", 1000],
     ["partially_refunded", 300],
   ]);

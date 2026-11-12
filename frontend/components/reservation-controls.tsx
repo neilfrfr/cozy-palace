@@ -15,11 +15,14 @@ export function ReservationControls({
   reservation: r,
   staff = false,
   businessDay,
+  unpaidCharges = "",
   children,
 }: {
   reservation: Reservation;
   staff?: boolean;
   businessDay?: string;
+  /** Formatted unpaid room-charge amount; empty when the room bill is settled. */
+  unpaidCharges?: string;
   children?: React.ReactNode;
 }) {
   const [pending, start] = useTransition(),
@@ -62,6 +65,18 @@ export function ReservationControls({
           "This booking has been paid. Cancelling it does not refund the guest: send the refund under Payments afterwards.",
         confirmLabel: "Cancel booking",
         cancelLabel: "Keep booking",
+        danger: true,
+      }))
+    )
+      return;
+    if (
+      kind === "completed" &&
+      unpaidCharges &&
+      !(await ask({
+        title: "Room bill not settled",
+        message: `This guest still owes ${unpaidCharges} in room charges. Settle the room bill before completing the stay, or complete it anyway and settle later.`,
+        confirmLabel: "Complete anyway",
+        cancelLabel: "Go back",
         danger: true,
       }))
     )
