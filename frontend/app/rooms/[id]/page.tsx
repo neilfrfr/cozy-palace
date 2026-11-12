@@ -5,6 +5,7 @@ import { isConfigured } from "@/lib/supabase/config";
 import { getRoom } from "@/lib/inventory/service";
 import { SetupNotice } from "@/components/setup-notice";
 import { RoomPhoto } from "@/components/room-photo";
+import { getSiteContent, itemPhoto } from "@/lib/site-content";
 export const dynamic = "force-dynamic";
 export default async function RoomDetails({
   params,
@@ -26,7 +27,11 @@ export default async function RoomDetails({
         <SetupNotice />
       </>
     );
-  const [room, search] = await Promise.all([getRoom(id), searchParams]);
+  const [room, search, content] = await Promise.all([
+    getRoom(id),
+    searchParams,
+    getSiteContent(),
+  ]);
   if (!room) notFound();
   const query = new URLSearchParams({ room: room.id });
   for (const key of ["checkIn", "checkOut", "guests"] as const)
@@ -41,7 +46,10 @@ export default async function RoomDetails({
       </p>
       <h1>{room.room_types.name}</h1>
       <p className="intro">{room.room_types.description}</p>
-      <RoomPhoto name={room.room_types.name} />
+      <RoomPhoto
+        name={room.room_types.name}
+        photo={itemPhoto(content, "room", room.room_types.id)}
+      />
       <div className="panel">
         <dl className="details">
           <div>
@@ -81,8 +89,7 @@ export default async function RoomDetails({
         </div>
       </div>
       <p className="subtle">
-        Fictional prototype inventory and rates. Room photographs have not been
-        supplied for this inventory.
+        Fictional prototype inventory and rates.
       </p>
     </>
   );

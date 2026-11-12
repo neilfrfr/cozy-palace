@@ -40,3 +40,7 @@ export const menu: MenuSection[] = [
     ],
   },
 ];
+
+/** Bundled photo for a dish on the original menu, by name. */
+export const menuImage = (name: string) =>
+  menu.flatMap((s) => s.items).find((i) => i.name === name)?.image;

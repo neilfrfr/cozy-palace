@@ -5,9 +5,12 @@ import { getFullyBookedNights, getRooms } from "@/lib/reservations/service";
 import { RoomTile } from "@/components/room-tile";
 import { AvailabilitySearch } from "@/components/availability-search";
 import { SetupNotice } from "@/components/setup-notice";
+import { ContactDetails } from "@/components/contact-details";
+import { getSiteContent, itemPhoto, photo, text } from "@/lib/site-content";
 export const dynamic = "force-dynamic";
 export default async function Home() {
   const configured = isConfigured();
+  const contentLoad = getSiteContent();
   let rooms: Awaited<ReturnType<typeof getRooms>> = [];
   let failed = false;
   let bookedNights: string[] = [];
@@ -20,11 +23,14 @@ export default async function Home() {
     failed = !loaded;
     bookedNights = nights;
   }
+  const content = await contentLoad;
+  const hero = photo(content, "photo.hero");
+  const dining = photo(content, "photo.dining");
   return (
     <div className="homepage">
       <section className="home-hero" aria-labelledby="hero-title">
         <Image
-          src="/design/hotel-hero.jpg"
+          src={hero}
           alt=""
           fill
           preload
@@ -33,14 +39,10 @@ export default async function Home() {
         />
         <div className="home-hero-copy">
           <p className="eyebrow">Cozy Palace Hotel and Restaurant</p>
-          <h1 id="hero-title">
-            Stay a little.
-            <br />
-            Savour a lot.
+          <h1 id="hero-title" className="pre-line">
+            {text(content, "home.hero.title")}
           </h1>
-          <p className="home-hero-lede">
-            Beautiful stays. Memorable tables. Your next escape starts here.
-          </p>
+          <p className="home-hero-lede">{text(content, "home.hero.lede")}</p>
           <div className="actions">
             <Link className="button gold" href="/rooms">
               Book a Stay
@@ -62,11 +64,8 @@ export default async function Home() {
 
       <section className="home-intro">
         <div className="home-intro-copy">
-          <h2>Rooms to rest in. Tables to linger at.</h2>
-          <p>
-            Choose your dates, send a reservation request, and follow it from
-            request to arrival. Then see where you can eat while you are here.
-          </p>
+          <h2>{text(content, "home.intro.title")}</h2>
+          <p>{text(content, "home.intro.body")}</p>
           <Link className="button secondary" href="/about">
             About Cozy Palace
           </Link>
@@ -74,7 +73,7 @@ export default async function Home() {
         <div className="home-intro-photos">
           <div className="home-intro-photo">
             <Image
-              src="/design/hotel-hero.jpg"
+              src={hero}
               alt="Cozy Palace at dusk"
               fill
               sizes="(max-width: 760px) 50vw, 25vw"
@@ -83,7 +82,7 @@ export default async function Home() {
           </div>
           <div className="home-intro-photo offset">
             <Image
-              src="/design/dining.jpg"
+              src={dining}
               alt="The Cozy Palace dining room"
               fill
               sizes="(max-width: 760px) 50vw, 25vw"
@@ -95,7 +94,7 @@ export default async function Home() {
       <section className="home-rooms" aria-labelledby="rooms-title">
         <div className="home-section-head">
           <p className="eyebrow">Your next stay</p>
-          <h2 id="rooms-title">A room to make your own.</h2>
+          <h2 id="rooms-title">{text(content, "home.rooms.title")}</h2>
         </div>
         <div className="home-section-notices">
           {!configured && <SetupNotice />}
@@ -111,7 +110,12 @@ export default async function Home() {
         {rooms.length > 0 && (
           <div className="room-tiles">
             {rooms.slice(0, 4).map((room, index) => (
-              <RoomTile key={room.id} room={room} index={index} />
+              <RoomTile
+                key={room.id}
+                room={room}
+                index={index}
+                photo={itemPhoto(content, "room", room.room_types.id)}
+              />
             ))}
           </div>
         )}
@@ -129,7 +133,7 @@ export default async function Home() {
       <section className="home-dining" aria-labelledby="dining-title">
         <div className="home-dining-photo">
           <Image
-            src="/design/dining.jpg"
+            src={dining}
             alt="Tables set in the Cozy Palace restaurant"
             fill
             sizes="(max-width: 760px) 100vw, 55vw"
@@ -137,19 +141,23 @@ export default async function Home() {
         </div>
         <div className="home-dining-copy">
           <p className="eyebrow">Dine with us</p>
-          <h2 id="dining-title">
-            Good food.
-            <br />
-            Great company.
+          <h2 id="dining-title" className="pre-line">
+            {text(content, "home.dining.title")}
           </h2>
-          <p>
-            See the restaurant seating before you arrive. Online table
-            reservations are coming later.
-          </p>
+          <p>{text(content, "home.dining.body")}</p>
           <Link className="button outline-light" href="/dining">
             Explore dining
           </Link>
         </div>
+      </section>
+
+      <section className="home-contact" aria-labelledby="contact-title">
+        <p className="eyebrow">Contacts</p>
+        <h2 id="contact-title">Find and reach us.</h2>
+        <ContactDetails content={content} />
+        <Link className="button secondary" href="/contact">
+          Contact page
+        </Link>
       </section>
     </div>
   );
