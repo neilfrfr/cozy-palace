@@ -7,7 +7,8 @@ import {
   getReservation,
   getRooms,
 } from "@/lib/reservations/service";
-import { businessDate } from "@/lib/operations/schema";
+import { businessDate, guestCanCancel } from "@/lib/operations/schema";
+import { errorMessages } from "@/lib/reservations/errors";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
@@ -66,6 +67,13 @@ export default async function Details({
         </div>
       )}
       {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
+      {["pending", "confirmed"].includes(r.status) && (
+        <div className="notice">
+          {guestCanCancel(allocation?.check_in ?? "")
+            ? "You can cancel online until 11:59 PM (Manila time) two days before check-in."
+            : errorMessages.CANCEL_CUTOFF}
+        </div>
+      )}
       {r.payments
         ?.filter((p) => p.status === "refunded")
         .map((p) => (

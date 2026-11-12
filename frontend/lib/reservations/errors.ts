@@ -14,6 +14,7 @@ const codes = [
   "RESOURCE_HAS_BOOKINGS",
   "TOO_MANY_PENDING",
   "PAYMENT_REQUIRED",
+  "CANCEL_CUTOFF",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -45,6 +46,8 @@ export const errorMessages: Record<string, string> = {
     "You already have 3 requests waiting for staff. Wait for one to be confirmed, or cancel one, before sending another.",
   PAYMENT_REQUIRED:
     "This booking is not paid yet. It can be confirmed once the guest pays online.",
+  CANCEL_CUTOFF:
+    "Online cancellation closes at 11:59 PM (Manila time) two days before the booking date. Please contact the front desk to cancel.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",

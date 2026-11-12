@@ -10,6 +10,7 @@ import { errorMessages } from "@/lib/reservations/errors";
 import { isPaid } from "@/lib/reservations/normalize";
 import type { Reservation } from "@/lib/reservations/types";
 import { useConfirm } from "@/components/confirm-dialog";
+import { guestCanCancel } from "@/lib/operations/schema";
 export function ReservationControls({
   reservation: r,
   staff = false,
@@ -39,6 +40,21 @@ export function ReservationControls({
       return;
     if (
       kind === "cancelled" &&
+      !staff &&
+      !(await ask({
+        title: "Cancel this booking?",
+        message: isPaid(r)
+          ? "The room will be released. Your payment is not refunded automatically: the hotel will contact you about the refund."
+          : "The room will be released. This cannot be undone.",
+        confirmLabel: "Cancel booking",
+        cancelLabel: "Keep booking",
+        danger: true,
+      }))
+    )
+      return;
+    if (
+      kind === "cancelled" &&
+      staff &&
       isPaid(r) &&
       !(await ask({
         title: "Cancel a paid booking?",
@@ -127,7 +143,8 @@ export function ReservationControls({
             Complete stay
           </button>
         )}
-        {staff && ["pending", "confirmed"].includes(r.status) && (
+        {(staff || guestCanCancel(r.room_bookings[0]?.check_in ?? "")) &&
+          ["pending", "confirmed"].includes(r.status) && (
           <button
             className="button secondary"
             disabled={pending}

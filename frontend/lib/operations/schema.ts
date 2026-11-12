@@ -61,6 +61,9 @@ export function businessDate(now = new Date()) {
   const p = (t: string) => parts.find((v) => v.type === t)!.value;
   return `${p("year")}-${p("month")}-${p("day")}`;
 }
+/** Guests may cancel until 23:59 Manila two days before `date` (YYYY-MM-DD). Keep in step with private.guest_can_cancel. */
+export const guestCanCancel = (date: string, today = businessDate()) =>
+  Date.parse(date) - Date.parse(today) >= 2 * 86_400_000;
 /** A visitor booking without an account: the email is the only way their booking reaches them. */
 export const visitorContact = {
   guestFullName: guestFields.guestFullName,

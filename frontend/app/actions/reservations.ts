@@ -24,7 +24,7 @@ async function invoke(
   const role = await readRole(db, user.user.id);
   if (
     name === "transition_reservation"
-      ? role === "customer"
+      ? role === "customer" && args.p_status !== "cancelled"
       : role !== "customer"
   )
     return { ok: false, code: "FORBIDDEN" };

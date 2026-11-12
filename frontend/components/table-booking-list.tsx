@@ -12,6 +12,8 @@ import {
 } from "@/lib/dining";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { useConfirm } from "@/components/confirm-dialog";
+import { businessDate, guestCanCancel } from "@/lib/operations/schema";
+import { errorMessages } from "@/lib/reservations/errors";
 
 function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
   const [pending, startTransition] = useTransition();
@@ -27,6 +29,12 @@ function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
   const upcoming =
     ["pending", "confirmed"].includes(row.status) &&
     Date.parse(row.table_bookings.start_at) > now;
+  const cancellable =
+    upcoming &&
+    guestCanCancel(
+      businessDate(new Date(row.table_bookings.start_at)),
+      businessDate(new Date(now)),
+    );
   return (
     <>
       {dialog}
@@ -55,8 +63,10 @@ function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
               </option>
             ))}
         </select>
+      ) : upcoming && !cancellable ? (
+        <small>{errorMessages.CANCEL_CUTOFF}</small>
       ) : (
-        upcoming && (
+        cancellable && (
           <button
             className="text-link"
             disabled={pending}
@@ -64,7 +74,7 @@ function Controls({ row, staff }: { row: TableBooking; staff: boolean }) {
               if (
                 await ask({
                   title: "Cancel this table booking?",
-                  message: `${row.reference} will be cancelled and the table released.`,
+                  message: `Booking ${row.reference} will be cancelled and the table released.`,
                   confirmLabel: "Cancel booking",
                   cancelLabel: "Keep booking",
                   danger: true,
