@@ -36,6 +36,9 @@ export type DatePickerProps = {
   onChange?: (value: string) => void;
   /** Why a date can't be picked, or "" when it can. */
   unavailable?: (date: string) => string;
+  /** Inclusive check-in and exclusive check-out range to highlight. */
+  rangeStart?: string;
+  rangeEnd?: string;
   /** Month to show when nothing is selected yet. */
   initialMonth?: string;
   required?: boolean;
@@ -54,6 +57,8 @@ export function DatePicker({
   defaultValue = "",
   onChange: notify,
   unavailable = () => "",
+  rangeStart,
+  rangeEnd,
   initialMonth,
   required,
   readOnly = false,
@@ -144,6 +149,11 @@ export function DatePicker({
   const days = Array.from({ length: 42 }, (_, i) => addDays(start, i));
   const now = today();
   const describedBy = problem ? `${id}-problem` : undefined;
+  const validRangeStart = rangeStart && isRealDate(rangeStart) ? rangeStart : "";
+  const validRangeEnd =
+    rangeEnd && isRealDate(rangeEnd) && rangeEnd > validRangeStart
+      ? rangeEnd
+      : "";
 
   return (
     <div className={"date-field" + (className ? " " + className : "")} ref={wrapper}>
@@ -223,6 +233,13 @@ export function DatePicker({
                 {days.slice(w * 7, w * 7 + 7).map((date) => {
                   const reason = unavailable(date);
                   const outside = firstOfMonth(date) !== month;
+                  const inRange =
+                    !!validRangeStart &&
+                    !!validRangeEnd &&
+                    date > validRangeStart &&
+                    date < validRangeEnd;
+                  const rangeStartDay = !!validRangeStart && !!validRangeEnd && date === validRangeStart;
+                  const rangeEndDay = !!validRangeStart && !!validRangeEnd && date === validRangeEnd;
                   return (
                     <span role="gridcell" key={date}>
                       <button
@@ -232,6 +249,9 @@ export function DatePicker({
                           "calendar-day" +
                           (outside ? " outside" : "") +
                           (date === value ? " selected" : "") +
+                          (inRange ? " in-range" : "") +
+                          (rangeStartDay ? " range-start" : "") +
+                          (rangeEndDay ? " range-end" : "") +
                           (date === now ? " today" : "")
                         }
                         tabIndex={date === active ? 0 : -1}

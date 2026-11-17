@@ -91,9 +91,7 @@ export function TablePicker({
         : slotsOn(today).length ? today : addDays(today, 1),
   );
   const [chosenTime, setChosenTime] = useState(initialTime);
-  const [guests, setGuests] = useState<number | "">(
-    initialGuests ?? (deferAvailability ? "" : 2),
-  );
+  const [guests, setGuests] = useState<number | "">(initialGuests ?? 2);
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [booked, setBooked] = useState<Set<string>>(new Set());
   const [refresh, setRefresh] = useState(0);
@@ -238,18 +236,25 @@ export function TablePicker({
         </label>
         <label>
           Party size
-          <select
+          <input
+            type="number"
+            min="1"
+            max="6"
+            step="1"
+            required
             value={guests}
             className={guests === "" ? "unselected" : undefined}
-            onChange={(e) => setGuests(e.target.value ? Number(e.target.value) : "")}
-          >
-            <option value="">Select party size</option>
-            {[1, 2, 3, 4, 5, 6].map((n) => (
-              <option key={n} value={n}>
-                {n} {n === 1 ? "guest" : "guests"}
-              </option>
-            ))}
-          </select>
+            onChange={(e) => {
+              const raw = e.currentTarget.value;
+              if (!raw) {
+                setGuests("");
+                return;
+              }
+              const next = Number(raw);
+              if (Number.isFinite(next))
+                setGuests(Math.max(1, Math.min(6, Math.trunc(next))));
+            }}
+          />
         </label>
         {deferAvailability && !showPlan && (
           <button className="primary" type="button" onClick={checkAvailability} disabled={checking || !dateIsValid || !time || typeof guests !== "number" || date < today || date > lastDay}>

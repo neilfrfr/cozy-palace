@@ -146,7 +146,7 @@ export default async function Home() {
             Explore the menu, choose a time and request a table before you
             arrive.
           </p>
-          <Link className="button outline-light" href="/dining">
+          <Link className="button outline-light explore-dining" href="/dining">
             Explore dining
           </Link>
         </div>

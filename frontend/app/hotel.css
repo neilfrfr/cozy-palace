@@ -191,14 +191,44 @@
     border-color: var(--navy);
     color: white;
   }
-  :is(.site-header, .homepage, .public-page) .button.gold:hover {
-    background: var(--gold-soft);
-    border-color: var(--gold-soft);
+  .homepage .home-dining-copy .button.explore-dining:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: white;
   }
+  :is(.site-header, .homepage, .public-page) .button.gold:hover {
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1B2A4A;
+  }
+}
+.homepage .home-dining-copy .button.explore-dining {
+  border-color: var(--gold);
+  color: white;
+}
+.homepage .home-dining-copy .button.explore-dining:focus-visible {
+  border-color: var(--gold);
+  color: white;
+  outline: 3px solid var(--gold);
+  outline-offset: 4px;
 }
 .site-header .nav-book {
   min-height: 44px;
   padding: 0 22px;
+}
+.site-header .nav-book,
+.homepage .home-hero .actions > a.button.gold {
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1B2A4A;
+}
+@media (hover: hover) and (pointer: fine) {
+  .site-header .button.nav-book:hover,
+  .homepage .home-hero .actions > a.button.gold:hover {
+    background: var(--gold-soft);
+    border-color: var(--gold);
+    color: #1B2A4A;
+  }
 }
 
 /* ---------- Shared type ---------- */
@@ -461,16 +491,16 @@ main:has(.homepage) {
 .public-page .table-picker-actions button.primary.gold {
   background: var(--gold);
   border-color: var(--gold);
-  color: var(--navy);
+  color: #1B2A4A;
 }
 .table-picker-actions {
   margin-top: 16px;
 }
 @media (hover: hover) and (pointer: fine) {
   .public-page .table-picker-actions button.primary.gold:hover:not(:disabled) {
-    background: var(--gold-soft);
-    border-color: var(--gold-soft);
-    color: var(--navy);
+    background: var(--gold);
+    border-color: var(--gold);
+    color: #1B2A4A;
   }
 }
 

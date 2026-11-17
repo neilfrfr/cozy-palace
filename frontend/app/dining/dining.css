@@ -313,6 +313,14 @@
 
 .full-menu-dish-photo img {
   object-fit: cover;
+  transition: transform 600ms var(--ease-out);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .full-menu-dish:hover .full-menu-dish-photo img,
+  .full-menu-dish-photo:hover img {
+    transform: scale(1.04);
+  }
 }
 
 .full-menu-dish-copy {

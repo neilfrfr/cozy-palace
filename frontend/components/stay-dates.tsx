@@ -53,6 +53,8 @@ export function StayDates({
         value={checkIn}
         required
         className={className}
+        rangeStart={validCheckIn}
+        rangeEnd={validCheckIn && checkOut > validCheckIn ? checkOut : ""}
         initialMonth={min}
         unavailable={checkInProblem}
         onChange={(date) => {
@@ -67,6 +69,8 @@ export function StayDates({
         value={checkOut}
         required
         className={className}
+        rangeStart={validCheckIn}
+        rangeEnd={validCheckIn && checkOut > validCheckIn ? checkOut : ""}
         initialMonth={validCheckIn ? addDays(validCheckIn, 1) : addDays(min, 1)}
         unavailable={checkOutProblem}
         onChange={setCheckOut}
