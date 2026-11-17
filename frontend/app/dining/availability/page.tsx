@@ -33,12 +33,15 @@ export default async function DiningAvailability({
   const realDate = /^\d{4}-\d{2}-\d{2}$/.test(date) &&
     !Number.isNaN(Date.parse(date)) &&
     new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
+  
+  const currentTime = Date.now();
+
   if (
     !realDate ||
     date < today ||
     date > addDays(today, BOOKING_WINDOW_DAYS) ||
     !diningSlots.includes(time) ||
-    Date.parse(slotStart(date, time)) <= Date.now() ||
+    Date.parse(slotStart(date, time)) <= currentTime ||
     !Number.isInteger(guests) ||
     guests < 1 ||
     guests > 6
