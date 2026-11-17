@@ -194,7 +194,7 @@
   .homepage .home-dining-copy .button.explore-dining:hover {
     background: var(--gold);
     border-color: var(--gold);
-    color: white;
+    color: var(--navy);
   }
   :is(.site-header, .homepage, .public-page) .button.gold:hover {
     background: var(--gold);
@@ -203,7 +203,8 @@
   }
 }
 .homepage .home-dining-copy .button.explore-dining {
-  border-color: var(--gold);
+  background: transparent;
+  border-color: #fff;
   color: white;
 }
 .homepage .home-dining-copy .button.explore-dining:focus-visible {
