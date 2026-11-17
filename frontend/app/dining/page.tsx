@@ -1,42 +1,41 @@
 import Link from "next/link";
-import Image from "next/image";
+import "./dining.css";
+import { MenuCategories } from "./menu-categories";
 import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
-import { menu } from "@/lib/menu";
 import { TablePicker } from "@/components/table-picker";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
 import { businessDate } from "@/lib/operations/schema";
 import { visitorBookingEnabled } from "@/lib/captcha";
+
 export const dynamic = "force-dynamic";
+
 async function viewerRole() {
   const db = await createClient();
   const { data } = await db.auth.getUser();
   return data.user ? readRole(db, data.user.id) : null;
 }
+
 export default async function Dining() {
   const configured = isConfigured();
   const [tables, role] = configured
     ? await Promise.all([getDiningTables(), viewerRole()])
     : [[], null];
+
   return (
-    <div className="public-page">
+    <div className="public-page dining-page">
       <PageBanner
-        eyebrow="Dining"
+        eyebrow="Dining at Cozy Palace"
         title="A Place to Gather."
-        intro="Explore our menu and restaurant seating."
+        intro="Pick a date, time and party size to explore available seating. Each booking holds your table for two hours, and our staff confirm your request before you arrive."
         image="/design/dining.jpg"
+        position="center 40%"
       />
-      <section className="section" id="table-reservations" aria-labelledby="seating-title">
-        <p className="eyebrow">Table reservations</p>
-        <h2 id="seating-title">Restaurant Seating</h2>
-        <p className="intro">
-          Pick a date, time and table. Each booking holds your table for two
-          hours, and our staff confirm your request before you arrive.
-        </p>
-        {!configured && <SetupNotice />}
+
+      <div className="dining-booking-wrap" id="table-reservations">
         <TablePicker
           tables={tables}
           today={businessDate()}
@@ -56,6 +55,10 @@ export default async function Dining() {
             ) : undefined
           }
         />
+      </div>
+
+      <section className="dining-intro" aria-label="Reservation details">
+        {!configured && <SetupNotice />}
         {configured && !tables.length && (
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
@@ -64,24 +67,13 @@ export default async function Dining() {
           11:00 to 14:00 and 17:00 to 21:00.
         </p>
       </section>
-      <section className="section dining-menu" aria-labelledby="menu-title">
-        <p className="eyebrow">Menu</p>
-        <h2 id="menu-title">From Our Kitchen</h2>
-        {menu.map((section) => (
-          <div className="menu-section" key={section.title}>
-            <h3>{section.title}</h3>
-            <ul className="menu-grid">
-              {section.items.map((dish) => (
-                <li className="menu-card" key={dish.name}>
-                  <div className="menu-photo">
-                    <Image src={dish.image} alt={dish.name} fill sizes="(max-width: 760px) 50vw, 25vw" />
-                  </div>
-                  <p>{dish.name}</p>
-                </li>
-              ))}
-            </ul>
-          </div>
-        ))}
+
+      <section className="dining-menu" aria-labelledby="menu-title">
+        <div className="dining-menu-heading">
+          <p className="eyebrow">A taste of Cozy Palace</p>
+          <h2 id="menu-title">From Our Kitchen</h2>
+        </div>
+        <MenuCategories />
       </section>
     </div>
   );
