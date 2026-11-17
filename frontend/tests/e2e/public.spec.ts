@@ -190,49 +190,26 @@ test("database headings and dashboard cards fit at 360px", async ({ page }) => {
   ).toBe(true);
 });
 
-test("staff onboarding has a discoverable registration portal", async ({
-  page,
-}) => {
+test("staff and admin sign in on their own login page", async ({ page }) => {
   await page.goto("/login");
-  await page
-    .getByRole("link", { name: "Staff Registration", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/staff\/register$/);
+  await expect(page.getByText(/staff registration/i)).toHaveCount(0);
   await expect(
-    page.getByRole("heading", {
-      name: "Create your staff account",
-      exact: true,
-    }),
+    page.getByRole("link", { name: "Create an Account", exact: true }),
   ).toBeVisible();
+  const missing = await page.goto("/staff/register");
+  expect(missing?.status()).toBe(404);
+  await page.goto("/staff/login");
+  await expect(page.getByText("Staff and admin login", { exact: true })).toBeVisible();
+  await expect(page.getByLabel("Email address")).toBeVisible();
   await expect(
-    page.getByText(/exact email approved by your administrator/),
-  ).toBeVisible();
-  await expect(
-    page.getByText(/Registration alone does not grant staff access/),
-  ).toBeVisible();
-  await expect(page.getByLabel("Full name", { exact: true })).toBeVisible();
-  await expect(page.getByLabel("Password", { exact: true })).toHaveAttribute(
-    "minlength",
-    "8",
-  );
-  await expect(
-    page.getByRole("button", { name: "Create account", exact: true }),
-  ).toBeDisabled();
-  await expect(page.locator("select[name=role], input[name=role]")).toHaveCount(
-    0,
-  );
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Sign In", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/login\?next=%2Fstaff$/);
+    page.getByRole("link", { name: "Create an Account", exact: true }),
+  ).toHaveCount(0);
+  await page.goto("/staff/login?notice=timeout");
+  await expect(page.getByText(/signed out after 5 minutes/)).toBeVisible();
   await page.goto("/register");
-  await page
-    .getByRole("main")
-    .getByRole("link", { name: "Staff Registration", exact: true })
-    .click();
-  await expect(page).toHaveURL(/\/staff\/register$/);
+  await expect(page.getByText(/staff registration/i)).toHaveCount(0);
   await page.setViewportSize({ width: 360, height: 800 });
+  await page.goto("/staff/login");
   expect(
     await page.evaluate(
       () => document.documentElement.scrollWidth <= innerWidth,
