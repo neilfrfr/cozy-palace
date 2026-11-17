@@ -222,6 +222,9 @@ button.primary:hover {
 .section {
   padding-top: 48px;
 }
+.reservation-group + .reservation-group {
+  margin-top: 80px;
+}
 .section-head {
   display: flex;
   align-items: baseline;
@@ -334,6 +337,10 @@ input:disabled {
   gap: 12px;
   flex-wrap: wrap;
   margin-top: 26px;
+}
+.overview-actions {
+  gap: 10px;
+  margin-top: 14px;
 }
 .subtle {
   color: var(--muted);
@@ -508,6 +515,9 @@ th {
   .section-head {
     flex-wrap: wrap;
   }
+  .reservation-group + .reservation-group {
+    margin-top: 56px;
+  }
   .footer {
     padding: 25px 22px;
     flex-direction: column;
@@ -630,10 +640,12 @@ button.primary,
 button.gold {
   background: var(--gold);
   border-color: var(--gold);
-  color: var(--navy);
+  color: #1B2A4A;
 }
 .button.gold:hover {
-  background: #d5b46b;
+  background: var(--gold);
+  border-color: var(--gold);
+  color: #1B2A4A;
 }
 .button.secondary {
   background: transparent;
@@ -1144,9 +1156,17 @@ main:has(.admin-layout) {
   position: relative;
   min-height: 620px;
   color: #fff;
+  background: var(--navy);
 }
 .auth-photo img {
   object-fit: cover;
+}
+.auth-photo .auth-room-image {
+  opacity: 0;
+  transition: opacity 900ms ease-in-out;
+}
+.auth-photo .auth-room-image.active {
+  opacity: 1;
 }
 .auth-photo::after {
   content: "";
@@ -1236,21 +1256,31 @@ main:has(.admin-layout) {
 .signup-close:hover {
   background: rgba(21, 34, 56, 0.08);
 }
-.signup-mark {
-  width: 56px;
-  height: 56px;
-  display: grid;
-  place-items: center;
-  border-radius: 16px;
-  background: var(--navy);
-  color: var(--gold);
-  font-family: "Playfair Display", Georgia, serif;
+.signup-brand {
+  display: block;
+  width: fit-content;
+  margin: 0 auto 18px;
+  color: var(--navy);
+  font-family: var(--display);
+  font-size: 24px;
+  line-height: 1;
+  text-align: center;
+  text-decoration: none;
+}
+.signup-brand span {
+  display: block;
+  margin-top: 6px;
+  color: #8a6d2c;
+  font-family: Inter, sans-serif;
+  font-size: 9px;
   font-weight: 600;
-  font-size: 20px;
+  letter-spacing: 0.2em;
+  line-height: 1.2;
+  text-transform: uppercase;
 }
 .signup-card h1 {
   font-size: 30px;
-  margin: 18px 0 6px;
+  margin: 0 0 6px;
 }
 .signup-card .intro {
   margin: 0 0 22px;
@@ -2534,6 +2564,16 @@ button.primary:hover {
   border-color: var(--gold);
 }
 .calendar-day.selected {
+  background: var(--navy);
+  color: #fff;
+  font-weight: 600;
+}
+.calendar-day.in-range {
+  background: #f2e8d1;
+  color: var(--navy);
+}
+.calendar-day.range-start,
+.calendar-day.range-end {
   background: var(--navy);
   color: #fff;
   font-weight: 600;

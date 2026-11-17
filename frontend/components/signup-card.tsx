@@ -12,9 +12,9 @@ export function SignupCard({
 }) {
   return (
     <div className="signup-card">
-      <span className="signup-mark" aria-hidden="true">
-        CP
-      </span>
+      <Link className="signup-brand" href="/">
+        Cozy Palace<span>HOTEL AND RESTAURANT</span>
+      </Link>
       <h1 id="signup-title">Welcome to Cozy Palace</h1>
       <p className="intro">
         Create a free account to save your reservations and manage every stay.

@@ -54,7 +54,7 @@ export function SiteHeaderFrame({
       <nav className="nav" aria-label="Main navigation">
         <div className="nav-top">
           <Link className="brand" href="/">
-            Cozy Palace<span>Hotel and Restaurant</span>
+            Cozy Palace<span>HOTEL AND RESTAURANT</span>
           </Link>
           <div className="nav-actions">
             <Link className="nav-account" href={account.href}>

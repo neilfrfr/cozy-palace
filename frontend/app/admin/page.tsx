@@ -66,7 +66,7 @@ export default async function ManagementDashboard() {
           <p>
             Invite employees and review their onboarding records.
           </p>
-          <div className="actions">
+          <div className="actions overview-actions">
             <Link className="button secondary" href="/admin/staff">
               Staff Directory
             </Link>
@@ -75,7 +75,7 @@ export default async function ManagementDashboard() {
           <p>
             Edit room rates, table seats and closures.
           </p>
-          <div className="actions">
+          <div className="actions overview-actions">
             <Link className="button secondary" href="/admin/rooms">Rooms</Link>
             <Link className="button secondary" href="/admin/tables">Restaurant Tables</Link>
           </div>

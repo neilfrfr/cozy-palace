@@ -1,8 +1,8 @@
-import Image from "next/image";
 import Link from "next/link";
 import { ArrowLeft } from "lucide-react";
 import { isConfigured } from "@/lib/supabase/config";
 import { LoginBackdrop } from "@/components/login-backdrop";
+import { LoginRoomSlideshow } from "@/components/login-room-slideshow";
 import { LoginForm } from "@/components/login-form";
 import { SetupNotice } from "@/components/setup-notice";
 /** The split login card shared by the guest (/login) and staff (/staff/login) pages. */
@@ -26,7 +26,7 @@ export function LoginScreen({
         <div className="login auth-content">
           <div className="auth-top">
             <Link className="brand" href="/">
-              Cozy Palace<span>Hotel and Restaurant</span>
+              Cozy Palace<span>HOTEL AND RESTAURANT</span>
             </Link>
             <Link className="auth-home" href="/">
               <ArrowLeft size={18} aria-hidden="true" />
@@ -45,23 +45,13 @@ export function LoginScreen({
           <LoginForm next={next} configured={isConfigured()} portal={portal} />
         </div>
         <aside className="auth-photo">
-          <Image
-            src="/design/rooms/garden-deluxe.jpg"
-            alt=""
-            fill
-            sizes="(max-width: 900px) 0px, 50vw"
-            priority
-          />
+          <LoginRoomSlideshow />
           <nav className="auth-photo-nav" aria-label="Explore">
             <Link href="/">Home</Link>
             <Link href="/rooms">Rooms</Link>
             <Link href="/dining">Dining</Link>
             <Link href="/about">About</Link>
           </nav>
-          <div className="auth-photo-caption">
-            <p>Beautiful stays. Memorable tables.</p>
-            <p>Garden Deluxe room</p>
-          </div>
         </aside>
       </div>
     </div>
