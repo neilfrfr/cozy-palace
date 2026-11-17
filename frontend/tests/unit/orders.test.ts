@@ -1,7 +1,7 @@
 import { expect, it, vi } from "vitest";
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/supabase/server", () => ({ createClient: vi.fn() }));
-import { orderLines, orderSchema } from "@/lib/orders";
+import { orderLines, orderSchema, roomBill } from "@/lib/orders";
 const id = "20000000-0000-4000-8000-000000000001";
 it("reads quantities from the order form and ignores everything else", () => {
   const f = new FormData();
@@ -26,4 +26,35 @@ it("reads quantities from the order form and ignores everything else", () => {
       total: 1,
     }).success,
   ).toBe(false);
+});
+it("totals the room bill, leaving out cancelled charges", () => {
+  const charge = (
+    total: number,
+    status: "open" | "completed" | "cancelled",
+    paid_at: string | null = null,
+  ) => ({ total, status, paid_at });
+  expect(
+    roomBill(
+      7400,
+      [{ line_total: 1000 }],
+      [
+        charge(360, "open"),
+        charge(450.5, "completed", "2027-01-11T10:00:00Z"),
+        charge(999, "cancelled"),
+      ],
+    ),
+  ).toEqual({
+    room: 6400,
+    extras: 1000,
+    charges: 810.5,
+    unpaid: 360,
+    total: 8210.5,
+  });
+  expect(roomBill(3200, [], [])).toEqual({
+    room: 3200,
+    extras: 0,
+    charges: 0,
+    unpaid: 0,
+    total: 3200,
+  });
 });

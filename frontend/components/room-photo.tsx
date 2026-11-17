@@ -3,11 +3,14 @@ import { roomPhoto } from "@/lib/room-photos";
 export function RoomPhoto({
   name,
   inCard = false,
+  photo,
 }: {
   name: string;
   inCard?: boolean;
+  /** Admin-uploaded photo; falls back to the bundled one for this room type. */
+  photo?: string;
 }) {
-  const src = roomPhoto(name);
+  const src = photo ?? roomPhoto(name);
   return (
     <div className={inCard ? "room-photo room-photo-card" : "room-photo"}>
       <Image

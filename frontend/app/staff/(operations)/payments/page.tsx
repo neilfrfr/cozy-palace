@@ -1,12 +1,30 @@
 import Link from "next/link";
-import { getLedger, refundable, type LedgerPayment } from "@/lib/payments/ledger";
-import { markRefundedAction } from "@/app/actions/payments";
+import {
+  getLedger,
+  refundable,
+  refundPending,
+  remainingRefundable,
+  type LedgerPayment,
+} from "@/lib/payments/ledger";
+import { markRefundedAction, refundAction } from "@/app/actions/payments";
+import { RefundButton } from "@/components/refund-button";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { peso } from "@/lib/orders";
 export const dynamic = "force-dynamic";
 
 const messages: Record<string, string> = {
   refunded: "Payment marked as refunded and logged in the activity log.",
+  refund_sent:
+    "Refund sent to Xendit. It shows as pending until Xendit confirms it, usually within minutes.",
+  INVALID_AMOUNT:
+    "Enter an amount above ₱0 with up to two decimals, no more than what is left to refund.",
+  REFUND_PENDING:
+    "A refund for this payment is already pending with Xendit. Wait for it to be confirmed before sending another.",
+  REFUND_UNCONFIRMED:
+    "Xendit did not answer. The refund stays pending until Xendit confirms it; check the Xendit dashboard before trying anything else.",
+  REFUND_REJECTED:
+    "Xendit rejected this refund, so nothing was sent. Check the Xendit dashboard, or refund there and mark it refunded below.",
+  PAYMENT_UNAVAILABLE: "Xendit is not set up on this site.",
   INVALID_INPUT: "Enter the Xendit refund ID or a short note (up to 200 characters).",
   INVALID_TRANSITION:
     "This payment cannot be marked refunded. Cancel the booking first, or refresh: it may already be refunded.",
@@ -71,21 +89,66 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
                     </small>
                   </>
                 ) : refundable(p) ? (
-                  <form action={markRefundedAction} className="inline-form">
-                    <input type="hidden" name="id" value={p.id} />
-                    <label>
-                      <span className="hidden-label">
-                        Xendit refund ID or note for {p.reservations.reference}
-                      </span>
-                      <input
-                        name="reference"
-                        required
-                        maxLength={200}
-                        placeholder="Xendit refund ID"
-                      />
-                    </label>
-                    <button className="button secondary">Mark refunded</button>
-                  </form>
+                  <>
+                    {remainingRefundable(p) < Number(p.amount_paid) && (
+                      <small>
+                        {peso(remainingRefundable(p))} of{" "}
+                        {peso(Number(p.amount_paid))} left to refund
+                        <br />
+                      </small>
+                    )}
+                    {refundPending(p) ? (
+                      <p>
+                        <span className="status pending">Refund pending</span>
+                        <br />
+                        <small>Waiting for Xendit to confirm.</small>
+                      </p>
+                    ) : (
+                      p.provider_payment_id && (
+                        <form action={refundAction} className="inline-form">
+                          <input type="hidden" name="id" value={p.id} />
+                          <label>
+                            <span className="hidden-label">
+                              Amount to refund for {p.reservations.reference}
+                            </span>
+                            <input
+                              name="amount"
+                              type="number"
+                              required
+                              min={0.01}
+                              step={0.01}
+                              max={remainingRefundable(p)}
+                              defaultValue={remainingRefundable(p)}
+                            />
+                          </label>
+                          <RefundButton />
+                        </form>
+                      )
+                    )}
+                    <details>
+                      <summary>
+                        Already refunded in the Xendit dashboard?
+                      </summary>
+                      <form action={markRefundedAction} className="inline-form">
+                        <input type="hidden" name="id" value={p.id} />
+                        <label>
+                          <span className="hidden-label">
+                            Xendit refund ID or note for{" "}
+                            {p.reservations.reference}
+                          </span>
+                          <input
+                            name="reference"
+                            required
+                            maxLength={200}
+                            placeholder="Xendit refund ID"
+                          />
+                        </label>
+                        <button className="button secondary">
+                          Mark refunded
+                        </button>
+                      </form>
+                    </details>
+                  </>
                 ) : (
                   "—"
                 )}
@@ -114,9 +177,10 @@ export default async function Payments({
         <div>
           <h1>Payments</h1>
           <p>
-            Every online payment. Refunds are sent from the Xendit dashboard;
-            mark the payment refunded here afterwards so it is recorded and
-            logged.
+            Every online payment. Refund a cancelled booking&apos;s payment, in
+            full or in part, with Refund via Xendit. If you refunded from the
+            Xendit dashboard instead, mark the payment refunded here so it is
+            recorded and logged.
           </p>
         </div>
       </header>

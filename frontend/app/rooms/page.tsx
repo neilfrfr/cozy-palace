@@ -4,6 +4,7 @@ import { AvailabilitySearch } from "@/components/availability-search";
 import { isConfigured } from "@/lib/supabase/config";
 import { getFullyBookedNights, getRooms } from "@/lib/reservations/service";
 import { SetupNotice } from "@/components/setup-notice";
+import { getSiteContent, itemPhoto, photo, text } from "@/lib/site-content";
 import { z } from "zod";
 export const dynamic = "force-dynamic";
 export default async function Rooms({
@@ -11,7 +12,7 @@ export default async function Rooms({
 }: {
   searchParams: Promise<Record<string, string | undefined>>;
 }) {
-  const p = await searchParams;
+  const [p, content] = await Promise.all([searchParams, getSiteContent()]);
   const configured = isConfigured();
   let rooms: Awaited<ReturnType<typeof getRooms>> = [];
   let error = "";
@@ -37,8 +38,9 @@ export default async function Rooms({
     <div className="public-page">
       <PageBanner
         eyebrow="Rooms and suites"
-        title="Find Your Place to Unwind"
-        intro="Choose your dates and who is joining you. We’ll check availability again when you submit your reservation request."
+        title={text(content, "rooms.title")}
+        intro={text(content, "rooms.intro")}
+        image={photo(content, "photo.rooms")}
         position="center 40%"
       />
       <AvailabilitySearch
@@ -70,6 +72,7 @@ export default async function Rooms({
           <RoomCard
             key={room.id}
             room={room}
+            photo={itemPhoto(content, "room", room.room_types.id)}
             query={
               filters.success
                 ? new URLSearchParams({

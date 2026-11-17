@@ -157,7 +157,7 @@ for (const width of [360, 390, 1366, 1440]) {
     }
     await page.goto("/contact");
     await expect(
-      page.getByText("Contact details are not available yet.", { exact: true }),
+      page.getByRole("link", { name: "+63 2 8123 4567" }),
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: /send message/i }),

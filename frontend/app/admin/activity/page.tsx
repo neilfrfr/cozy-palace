@@ -2,15 +2,23 @@ import Link from "next/link";
 import { getActivity } from "@/lib/reservations/service";
 import { WorkspaceNav } from "@/components/workspace-nav";
 import { formatLabel } from "@/lib/format";
+import { activityTypes, parseActivityFilter } from "@/lib/activity";
 export const dynamic = "force-dynamic";
 export default async function Activity({
   searchParams,
 }: {
-  searchParams: Promise<{ page?: string }>;
+  searchParams: Promise<Record<string, string | string[] | undefined>>;
 }) {
-  const p = await searchParams;
-  const page = Math.max(1, Math.min(10000, Number(p.page) || 1));
-  const rows = await getActivity(page);
+  const f = parseActivityFilter(await searchParams);
+  const { page } = f;
+  const { rows, employees } = await getActivity(f);
+  const pageHref = (n: number) =>
+    "?" +
+    new URLSearchParams({
+      ...(f.employee && { employee: f.employee }),
+      ...(f.type && { type: f.type }),
+      page: String(n),
+    });
   return (
     <>
       <WorkspaceNav />
@@ -19,6 +27,31 @@ export default async function Activity({
         Review reservation, account, and staffing changes. Customer and system
         activity are listed separately from employee actions.
       </p>
+      <form className="operations-filters">
+        <label>
+          Employee
+          <select name="employee" defaultValue={f.employee ?? ""}>
+            <option value="">Anyone</option>
+            {employees.map((e) => (
+              <option key={e.id} value={e.id}>
+                {e.name}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Action type
+          <select name="type" defaultValue={f.type ?? ""}>
+            <option value="">All actions</option>
+            {Object.entries(activityTypes).map(([k, t]) => (
+              <option key={k} value={k}>
+                {t.label}
+              </option>
+            ))}
+          </select>
+        </label>
+        <button className="button">Show</button>
+      </form>
       <div className="table-wrap">
         <table>
           <caption className="hidden-label">
@@ -61,12 +94,12 @@ export default async function Activity({
       </div>
       <div className="actions">
         {page > 1 && (
-          <Link className="button secondary" href={"?page=" + (page - 1)}>
+          <Link className="button secondary" href={pageHref(page - 1)}>
             Previous
           </Link>
         )}
         {rows.length === 25 && (
-          <Link className="button secondary" href={"?page=" + (page + 1)}>
+          <Link className="button secondary" href={pageHref(page + 1)}>
             Next
           </Link>
         )}

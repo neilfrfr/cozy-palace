@@ -4,7 +4,15 @@ import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
-import { menu } from "@/lib/menu";
+import { menu, menuImage, type MenuSection } from "@/lib/menu";
+import { getMenu, menuSections, type MenuRow } from "@/lib/orders";
+import {
+  getSiteContent,
+  itemPhoto,
+  photo,
+  text,
+  type SiteContent,
+} from "@/lib/site-content";
 import { TablePicker } from "@/components/table-picker";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
@@ -16,23 +24,46 @@ async function viewerRole() {
   const { data } = await db.auth.getUser();
   return data.user ? readRole(db, data.user.id) : null;
 }
+/** Available dishes from the admin menu with their photos; the bundled menu until the database has items. */
+function publicMenu(items: MenuRow[], content: SiteContent): MenuSection[] {
+  if (!items.length) return menu;
+  return menuSections
+    .map((title) => ({
+      title,
+      items: items
+        .filter((m) => m.available && m.section === title)
+        .map((m) => ({
+          name: m.name,
+          image:
+            itemPhoto(content, "menu", m.id) ??
+            menuImage(m.name) ??
+            "/design/dining.jpg",
+        })),
+    }))
+    .filter((s) => s.items.length);
+}
 export default async function Dining() {
   const configured = isConfigured();
-  const [tables, role] = configured
-    ? await Promise.all([getDiningTables(), viewerRole()])
-    : [[], null];
+  const [tables, role, items, content] = configured
+    ? await Promise.all([
+        getDiningTables(),
+        viewerRole(),
+        getMenu(),
+        getSiteContent(),
+      ])
+    : [[], null, [], {}];
   return (
     <div className="public-page">
       <PageBanner
         eyebrow="Dining"
-        title="A Place to Gather."
-        intro="Explore our menu and restaurant seating."
-        image="/design/dining.jpg"
+        title={text(content, "dining.title")}
+        intro={text(content, "dining.intro")}
+        image={photo(content, "photo.dining")}
       />
       <section className="section dining-menu" aria-labelledby="menu-title">
         <p className="eyebrow">Menu</p>
         <h2 id="menu-title">From Our Kitchen</h2>
-        {menu.map((section) => (
+        {publicMenu(items, content).map((section) => (
           <div className="menu-section" key={section.title}>
             <h3>{section.title}</h3>
             <ul className="menu-grid">

@@ -1,6 +1,6 @@
 // Stands in for Xendit's invoice callback: posts a PAID invoice with the webhook token
 // the same way Xendit does, to the running app's webhook.
-// Usage: npm run simulate:payment -- CP-XXXXXXXXXXXX [amount-in-pesos] [--url http://localhost:3000]
+// Usage: npm run simulate:payment -- <booking number, or older CP- code> [amount-in-pesos] [--url http://localhost:3000]
 // Click "Pay with Xendit" on the reservation first: that opens the payment row this pays.
 import { createClient } from "@supabase/supabase-js";
 
@@ -22,7 +22,7 @@ if (
   !env.XENDIT_WEBHOOK_TOKEN
 ) {
   console.error(
-    "Usage: npm run simulate:payment -- <CP-reference> [amount]\nNeeds NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and XENDIT_WEBHOOK_TOKEN in frontend/.env.local.",
+    "Usage: npm run simulate:payment -- <booking number> [amount]\nNeeds NEXT_PUBLIC_SUPABASE_URL, SUPABASE_SECRET_KEY and XENDIT_WEBHOOK_TOKEN in frontend/.env.local.",
   );
   process.exit(1);
 }

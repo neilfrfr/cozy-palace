@@ -36,6 +36,30 @@ export async function GET(request: Request) {
       ["from", "to", "status", "reservations"],
       Object.entries(report.dining).map(([s, n]) => [f.from, f.to, s, n]),
     );
+  } else if (q.section === "revenue") {
+    const r = report.revenue;
+    body = toCsv(
+      [
+        "from",
+        "to",
+        "room_type",
+        "room_php",
+        "extras_php",
+        "room_charges_php",
+        "refunds_php",
+        "net_php",
+      ],
+      [...r.rows, r.total].map((x) => [
+        f.from,
+        f.to,
+        x.roomType,
+        x.room.toFixed(2),
+        x.extras.toFixed(2),
+        x.charges.toFixed(2),
+        x.refunds.toFixed(2),
+        x.net.toFixed(2),
+      ]),
+    );
   } else {
     body = toCsv(
       [
@@ -58,7 +82,7 @@ export async function GET(request: Request) {
       ]),
     );
   }
-  const name = `cozy-palace-${q.section === "occupancy" || q.section === "dining" ? q.section : "payments"}-${f.from}-to-${f.to}.csv`;
+  const name = `cozy-palace-${["occupancy", "dining", "revenue"].includes(q.section) ? q.section : "payments"}-${f.from}-to-${f.to}.csv`;
   return new Response(body, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

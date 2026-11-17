@@ -24,7 +24,7 @@ async function invoke(
   const role = await readRole(db, user.user.id);
   if (
     name === "transition_reservation"
-      ? role === "customer"
+      ? role === "customer" && args.p_status !== "cancelled"
       : role !== "customer"
   )
     return { ok: false, code: "FORBIDDEN" };
@@ -59,6 +59,7 @@ export async function createReservationAction(
     p_check_out: p.checkOut,
     p_guests: p.guests,
     p_idempotency_key: p.idempotencyKey,
+    p_extras: p.extras,
   });
 }
 export async function updateReservationAction(

@@ -29,12 +29,12 @@ export function FindReservationForm() {
             />
           </label>
           <label className="full">
-            Booking reference
+            Booking number
             <input
               name="reference"
               required
               maxLength={20}
-              placeholder="CP-…"
+              placeholder="e.g. 1042"
             />
           </label>
         </div>

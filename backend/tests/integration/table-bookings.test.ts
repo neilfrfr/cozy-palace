@@ -83,6 +83,13 @@ it("only the owner cancels, which frees the table", async () => {
   expect(done.r.status).toBe("cancelled");
   expect(await booked(at("18:00"))).not.toContain(tables.T4);
 });
+it("guests cannot cancel a seating tomorrow, staff still can", async () => {
+  const tomorrow = new Date(Date.now() + 8 * 36e5 + 864e5).toISOString().slice(0, 10);
+  const { r } = await book(customer, "T4", at("18:00", tomorrow));
+  await expect(as(customer, "select cancel_table_booking($1,$2)", [r.id, r.version])).rejects.toThrow("CANCEL_CUTOFF");
+  const done = (await as(staff, "select set_table_booking_status($1,$2,'cancelled') as r", [r.id, r.version])).rows[0] as { r: Row };
+  expect(done.r.status).toBe("cancelled");
+});
 it("staff book walk-ins confirmed and move statuses at their discretion", async () => {
   const { r } = await book(staff, "T5", at("19:00"), 4, key(), "Walk-in Party");
   expect(r).toMatchObject({ status: "confirmed", booking_source: "staff_guest" });
