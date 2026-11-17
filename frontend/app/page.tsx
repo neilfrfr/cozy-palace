@@ -12,12 +12,13 @@ export default async function Home() {
   let failed = false;
   let bookedNights: string[] = [];
   if (configured) {
-    try {
-      rooms = await getRooms();
-    } catch {
-      failed = true;
-    }
-    bookedNights = await getFullyBookedNights();
+    const [loaded, nights] = await Promise.all([
+      getRooms().catch(() => null),
+      getFullyBookedNights(),
+    ]);
+    rooms = loaded ?? [];
+    failed = !loaded;
+    bookedNights = nights;
   }
   return (
     <div className="homepage">

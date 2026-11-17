@@ -15,7 +15,7 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
   const a = await admin.newPage(),
     w = await worker.newPage();
   try {
-    await a.goto("/login");
+    await a.goto("/staff/login");
     await a.getByLabel("Email address").fill(adminEmail!);
     await a.getByLabel("Password", { exact: true }).fill(adminPassword!);
     await a.getByLabel("I agree to the Terms and Conditions").check();
@@ -47,7 +47,7 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await expect(row.getByLabel("Job title", { exact: true })).toHaveValue(
       "Reservations",
     );
-    await w.goto("/login");
+    await w.goto("/staff/login");
     await w.getByLabel("Email address").fill(workerEmail!);
     await w.getByLabel("Password", { exact: true }).fill(workerPassword!);
     await w.getByLabel("I agree to the Terms and Conditions").check();

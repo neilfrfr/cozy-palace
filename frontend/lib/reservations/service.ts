@@ -1,5 +1,6 @@
 import { normalizeReservation } from "./normalize";
 import "server-only";
+import { cache } from "react";
 import { createClient } from "@/lib/supabase/server";
 import { requireCustomer, requireStaff } from "@/lib/auth/authorize";
 import type { Room, Reservation } from "./types";
@@ -61,7 +62,8 @@ export async function getBookedRanges(
     }),
   );
 }
-export async function getRooms(filter?: {
+// Per-request dedupe: unfiltered calls from a page and getFullyBookedNights share one query.
+export const getRooms = cache(async function getRooms(filter?: {
   checkIn: string;
   checkOut: string;
   guests: number;
@@ -90,7 +92,7 @@ export async function getRooms(filter?: {
   const { data, error } = await query;
   if (error) throw new Error("Rooms could not be loaded. Please try again.");
   return data as unknown as Room[];
-}
+});
 /** `reference` narrows a customer's own list, for Find my reservation. */
 export async function getReservations(
   staff = false,

@@ -4,6 +4,28 @@ import { revalidatePath } from "next/cache";
 import { requireStaff } from "@/lib/auth/authorize";
 import { staffSchema } from "@/lib/accounts/schema";
 import type { AccountState } from "@/app/register/actions";
+import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
+import { siteOrigin } from "@/lib/accounts/site-url";
+/** Emails the new employee a link to set a password; the link lands on the password page signed in. */
+async function sendInvite(email: string, fullName: string) {
+  const origin = siteOrigin();
+  if (!adminConfigured() || !origin)
+    return " No invitation was sent: SUPABASE_SECRET_KEY and SITE_URL must be set.";
+  const { error } = await createAdminClient().auth.admin.inviteUserByEmail(
+    email,
+    {
+      data: { full_name: fullName },
+      redirectTo:
+        origin +
+        "/auth/confirm?next=" +
+        encodeURIComponent("/account/password?reset=1"),
+    },
+  );
+  if (!error) return " An invitation email has been sent so they can set a password.";
+  if (error.code === "email_exists" || error.code === "user_already_exists")
+    return " This email already has an account, so no invitation was sent. They can sign in at /staff/login to activate staff access.";
+  return " The invitation email could not be sent. Remove this record and add it again to retry.";
+}
 export async function staffAction(
   _state: AccountState,
   form: FormData,
@@ -77,6 +99,11 @@ export async function staffAction(
       return { message: "This operation is not supported.", success: false };
   }
   const { error } = await db.rpc(name, args);
+  // Sent only after the database accepted the record, so a refused email never gets an account.
+  const invite =
+    !error && operation === "create"
+      ? await sendInvite(String(args.p_email), String(args.p_name))
+      : "";
   if (error) {
     const messages: Record<string, string> = {
       VERSION_CONFLICT: "This record changed. Refresh before trying again.",
@@ -97,7 +124,7 @@ export async function staffAction(
   return {
     message:
       operation === "create"
-        ? "Staff record created. Share /staff/register with the employee. They must use this approved email, verify it, and sign in."
+        ? "Staff record created." + invite
         : operation === "delete"
           ? "Staff record removed and employee access revoked."
           : "Staff details updated.",
