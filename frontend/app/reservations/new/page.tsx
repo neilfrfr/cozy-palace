@@ -10,6 +10,7 @@ import { GuestReservationForm } from "@/components/guest-reservation-form";
 import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { visitorBookingEnabled } from "@/lib/captcha";
+import { getExtras } from "@/lib/inventory/service";
 export const dynamic = "force-dynamic";
 export default async function NewReservation({
   searchParams,
@@ -32,7 +33,7 @@ export default async function NewReservation({
   const signedIn =
     isConfigured() && !!(await (await createClient()).auth.getUser()).data.user;
   if (!signedIn && visitorBookingEnabled()) {
-    const rooms = await getRooms();
+    const [rooms, extras] = await Promise.all([getRooms(), getExtras()]);
     return (
       <>
         <h1>Book your stay</h1>
@@ -44,6 +45,7 @@ export default async function NewReservation({
         <GuestReservationForm
           visitor
           rooms={rooms}
+          extras={extras}
           defaults={safe}
           requestKey={randomUUID()}
           bookedNights={await getBookedNightsByRoom(rooms)}
@@ -54,7 +56,7 @@ export default async function NewReservation({
     );
   }
   await requireCustomer(next);
-  const rooms = await getRooms();
+  const [rooms, extras] = await Promise.all([getRooms(), getExtras()]);
   const bookedNights = await getBookedNightsByRoom(rooms);
   return (
     <>
@@ -65,6 +67,7 @@ export default async function NewReservation({
       </p>
       <ReservationForm
         rooms={rooms}
+        extras={extras}
         defaults={defaults}
         requestKey={randomUUID()}
         bookedNights={bookedNights}

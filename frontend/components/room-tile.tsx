@@ -13,8 +13,16 @@ const framing = [
 ];
 
 /** Full-bleed photo tile used for the room showcase on the home page. */
-export function RoomTile({ room, index }: { room: Room; index: number }) {
-  const photo = roomPhoto(room.room_types.name);
+export function RoomTile({
+  room,
+  index,
+  photo: uploaded,
+}: {
+  room: Room;
+  index: number;
+  photo?: string;
+}) {
+  const photo = uploaded ?? roomPhoto(room.room_types.name);
   const crop = photo ? { scale: 1, origin: "center" } : framing[index % framing.length];
   return (
     <article className="room-tile">

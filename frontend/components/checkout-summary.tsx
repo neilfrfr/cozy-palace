@@ -2,6 +2,7 @@ import Link from "next/link";
 import type { Reservation } from "@/lib/reservations/types";
 import type { InventoryRoom } from "@/lib/inventory/service";
 import { PayButton } from "@/components/pay-button";
+import { extrasSummary } from "@/lib/extras";
 export function CheckoutSummary({
   reservation: r,
   room,
@@ -45,6 +46,12 @@ export function CheckoutSummary({
               · {r.guests} guests
             </dd>
           </div>
+          {!!r.reservation_extras?.length && (
+            <div>
+              <dt>Extras</dt>
+              <dd>{extrasSummary(r.reservation_extras)}</dd>
+            </div>
+          )}
           <div>
             <dt>Booking status</dt>
             <dd>

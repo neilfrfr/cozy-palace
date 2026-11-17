@@ -164,3 +164,34 @@ it("review money can be refunded even while the stay goes ahead", async () => {
   await refund(staff, p.id);
   expect(await status(r.id)).toBe("pending");
 });
+const requestRefund = async (user: string, p: string, amount: number) =>
+  ((await as("authenticated", user, "select request_refund($1,$2) as f", [p, amount])).rows[0] as { f: { id: string; invoice_id: string } }).f;
+const settle = async (f: string, s: string) =>
+  ((await as("service_role", null, "select settle_refund($1,$2,'rfd-1',null) as s", [f, s])).rows[0] as { s: string }).s;
+it("staff refund through Xendit in parts, one pending at a time, and replays are no-ops", async () => {
+  const r = await pendingStay(90);
+  const p = await open(r.id);
+  const total = Number(r.total);
+  expect(await record(p.id, "inv_xendit_refund", total)).toBe("paid");
+  await expect(requestRefund(staff, p.id, 1)).rejects.toThrow("INVALID_TRANSITION");
+  await db.query("update reservations set status='cancelled',hold_expires_at=null where id=$1", [r.id]);
+  await expect(requestRefund(owner, p.id, 1)).rejects.toThrow("FORBIDDEN");
+  await expect(requestRefund(staff, p.id, total + 1)).rejects.toThrow("INVALID_INPUT");
+  await expect(requestRefund(staff, p.id, 0.001)).rejects.toThrow("INVALID_INPUT");
+  const first = await requestRefund(staff, p.id, 100);
+  expect(first.invoice_id).toBe("inv_xendit_refund");
+  // A double click while the first is in flight is refused.
+  await expect(requestRefund(staff, p.id, 100)).rejects.toThrow("REFUND_PENDING");
+  await expect(as("authenticated", staff, "select settle_refund($1,'succeeded',null,null)", [first.id])).rejects.toThrow();
+  expect(await settle(first.id, "succeeded")).toBe("succeeded");
+  expect(await settle(first.id, "failed")).toBe("succeeded");
+  expect((await db.query("select status from payments where id=$1", [p.id])).rows[0]).toEqual({ status: "paid" });
+  await expect(requestRefund(staff, p.id, total - 99)).rejects.toThrow("INVALID_INPUT");
+  const failed = await requestRefund(staff, p.id, total - 100);
+  expect(await settle(failed.id, "failed")).toBe("failed");
+  const rest = await requestRefund(staff, p.id, total - 100);
+  expect(await settle(rest.id, "succeeded")).toBe("succeeded");
+  const row = (await db.query("select status,refunded_by,refund_reference from payments where id=$1", [p.id])).rows[0];
+  expect(row).toEqual({ status: "refunded", refunded_by: staff, refund_reference: "rfd-1" });
+  await expect(requestRefund(staff, p.id, 1)).rejects.toThrow("INVALID_TRANSITION");
+});

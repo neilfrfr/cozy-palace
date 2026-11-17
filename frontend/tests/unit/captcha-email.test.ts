@@ -75,7 +75,7 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
   const message = emailFor(
     { id: "n1", event: "confirmed", email: "walk@example.test" },
     {
-      reference: "CP-ABC",
+      reference: "42",
       kind: "hotel",
       guests: 2,
       guest_full_name: "<script>x</script>",
@@ -97,21 +97,90 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
   );
   const sent = mail.sendMail.mock.calls[0][0];
   expect(sent.to).toBe("walk@example.test");
-  expect(sent.subject).toBe("Your booking is confirmed · CP-ABC");
+  expect(sent.subject).toBe("Your booking is confirmed · Booking 42");
   expect(sent.messageId).toBe("<notice-n1@cozypalace>");
   expect(sent.html).toContain("&lt;script&gt;");
   expect(sent.html).not.toContain("<script>");
   expect(sent.text).toContain(
-    "CP-ABC: a stay from 2027-01-10 to 2027-01-12, 2 guests",
+    "Booking 42: a stay from 2027-01-10 to 2027-01-12, 2 guests",
   );
   expect(sent.text).not.toContain("http");
   const refund = emailFor(
     { id: "n2", event: "refunded", email: "walk@example.test" },
-    { reference: "CP-ABC", kind: "hotel", guests: 2, guest_full_name: "Ana", customer: null, room_bookings: [], table_bookings: [] },
+    {
+      reference: "42",
+      kind: "hotel",
+      guests: 2,
+      guest_full_name: "Ana",
+      customer: null,
+      room_bookings: [],
+      table_bookings: [],
+    },
   );
-  expect(refund.subject).toBe("Your payment was refunded · CP-ABC");
+  expect(refund.subject).toBe("Your payment was refunded · Booking 42");
   expect(refund.lines.join(" ")).not.toContain("change or cancel");
   vi.spyOn(console, "error").mockImplementation(() => {});
   mail.sendMail.mockRejectedValueOnce(new Error("535 bad credentials"));
   expect(await sendEmail(message)).toBe("535 bad credentials");
+});
+it("purchase emails describe the extras, the order, or the amount", async () => {
+  const { emailFor } = await import("@/lib/notifications");
+  const booking = {
+    reference: "42",
+    kind: "hotel" as const,
+    guests: 2,
+    guest_full_name: "Ana",
+    customer: null,
+    room_bookings: [{ check_in: "2027-01-10", check_out: "2027-01-12" }],
+    table_bookings: [],
+    reservation_extras: [
+      {
+        name: "Breakfast",
+        unit_price: 250,
+        pricing: "per_night" as const,
+        quantity: 2,
+        line_total: 1000,
+      },
+    ],
+  };
+  const text = (event: Parameters<typeof emailFor>[0]["event"], d = {}) =>
+    emailFor(
+      { id: "n", event, email: "a@example.test" },
+      booking,
+      d,
+    ).lines.join(" ");
+  expect(text("received")).toContain("2 guests with Breakfast × 2 (₱1,000)");
+  expect(text("received")).toContain("change or cancel");
+  const order = {
+    reference: "57",
+    status: "completed",
+    total: 710,
+    paid_at: null,
+    rooms: { room_number: "101" },
+    order_items: [
+      { name: "Halo-halo", quantity: 2 },
+      { name: "Premium Wine", quantity: 1 },
+    ],
+  };
+  expect(text("room_charge", { order })).toContain(
+    "Order 57: 2 × Halo-halo, 1 × Premium Wine. Total ₱710.00. It is added to your room bill for room 101",
+  );
+  expect(text("order_updated", { order })).toContain("Status: Completed.");
+  expect(text("order_placed", { order: { ...order, rooms: null } })).toContain(
+    "We recorded your order",
+  );
+  expect(text("paid", { amount: 7400 })).toContain("₱7,400.00 was paid online");
+  expect(text("partially_refunded", { amount: 300 })).toContain(
+    "We sent ₱300.00 back",
+  );
+  expect(text("bill_settled", { amount: 710 })).toContain(
+    "We received ₱710.00 at the front desk",
+  );
+  for (const e of [
+    "paid",
+    "partially_refunded",
+    "room_charge",
+    "bill_settled",
+  ] as const)
+    expect(text(e)).not.toContain("change or cancel");
 });

@@ -8,6 +8,7 @@ import { updateSchema } from "@/lib/reservations/schema";
 import { publicError } from "@/lib/reservations/errors";
 import { nights, roomQuote } from "@/lib/reservations/quote";
 import type { ActionResult, Reservation } from "@/lib/reservations/types";
+import { extrasTotal, lineTotal, type BookedExtra } from "@/lib/extras";
 function refresh(id: string) {
   for (const path of [
     "/staff",
@@ -81,7 +82,13 @@ export async function quoteGuestBookingAction(
   input: unknown,
   edit = false,
 ): Promise<
-  ActionResult<{ total: number; nights: number; rate: number; room: string }>
+  ActionResult<{
+    total: number;
+    nights: number;
+    rate: number;
+    room: string;
+    extras: BookedExtra[];
+  }>
 > {
   const parsed = (edit ? guestUpdateSchema : guestSchema).safeParse(input);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
@@ -90,10 +97,14 @@ export async function quoteGuestBookingAction(
   const quote = await roomQuote(db, p.roomId, p.guests);
   if (!quote.ok) return quote;
   let rate = quote.rate;
+  let extras: BookedExtra[] = [];
+  const count = nights(p.checkIn, p.checkOut);
   if ("id" in p) {
     const { data: old, error: oldError } = await db
       .from("reservations")
-      .select("version,room_bookings(room_id,rate_at_booking)")
+      .select(
+        "version,room_bookings(room_id,rate_at_booking),reservation_extras(*)",
+      )
       .eq("id", p.id)
       .neq("status", "draft")
       .maybeSingle();
@@ -106,10 +117,20 @@ export async function quoteGuestBookingAction(
     } | null;
     if (allocation?.room_id === p.roomId)
       rate = Number(allocation.rate_at_booking);
+    // The booking keeps its extras; per-night ones follow the new dates, as private.price_extras does.
+    extras = (old.reservation_extras as BookedExtra[]).map((e) => ({
+      ...e,
+      line_total: lineTotal(e, count),
+    }));
   }
-  const count = nights(p.checkIn, p.checkOut);
   return {
     ok: true,
-    data: { total: rate * count, nights: count, rate, room: quote.room },
+    data: {
+      total: rate * count + extrasTotal(extras, count),
+      nights: count,
+      rate,
+      room: quote.room,
+      extras,
+    },
   };
 }

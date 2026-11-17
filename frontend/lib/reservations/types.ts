@@ -1,3 +1,4 @@
+import type { BookedExtra } from "@/lib/extras";
 export type ReservationStatus =
   | "draft"
   | "pending"
@@ -40,6 +41,7 @@ export type Reservation = {
     check_out: string;
     rate_at_booking: number;
   }[];
+  reservation_extras?: BookedExtra[];
   payments?: {
     status: "open" | "paid" | "review" | "refunded";
     amount_paid?: number | null;

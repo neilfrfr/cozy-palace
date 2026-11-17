@@ -287,3 +287,28 @@ it("rejects same-day stays rather than creating an immediately expired pending h
   ).rows[0].date;
   await expect(create(a, date, end)).rejects.toThrow("INVALID_INPUT");
 });
+it("customers cancel their own stay until two days before check-in", async () => {
+  const { start, end } = (
+    await db.query<{ start: string; end: string }>(
+      "select (((now() at time zone 'Asia/Manila')::date)+1)::text as start,(((now() at time zone 'Asia/Manila')::date)+2)::text as end",
+    )
+  ).rows[0];
+  const soon = (await create(a, start, end)).result;
+  await as(a, "select submit_reservation($1,1)", [soon.id]);
+  await expect(
+    as(a, "select transition_reservation($1,2,'cancelled')", [soon.id]),
+  ).rejects.toThrow("CANCEL_CUTOFF");
+  await expect(
+    as(a, "select transition_reservation($1,2,'confirmed')", [soon.id]),
+  ).rejects.toThrow("FORBIDDEN");
+  const later = (await create(a, "2031-02-01", "2031-02-03")).result;
+  await as(a, "select submit_reservation($1,1)", [later.id]);
+  const done = await as(
+    a,
+    "select transition_reservation($1,2,'cancelled') as r",
+    [later.id],
+  );
+  expect((done.rows[0] as { r: { status: string } }).r.status).toBe(
+    "cancelled",
+  );
+});

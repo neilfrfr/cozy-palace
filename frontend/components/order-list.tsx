@@ -5,7 +5,8 @@ import {
 import { bookedAt, formatLabel } from "@/lib/format";
 import { paymentMethods, peso, type Order } from "@/lib/orders";
 
-const methodLabel = (m: string) => (m === "gcash" ? "GCash" : formatLabel(m));
+export const methodLabel = (m: string) =>
+  m === "gcash" ? "GCash" : formatLabel(m);
 
 /** Orders with their item snapshots; staff also get Complete/Cancel on open orders. */
 export function OrderList({
@@ -38,6 +39,14 @@ export function OrderList({
                 <strong>{o.reference}</strong>
                 {o.reservations && (
                   <div className="subtle">For {o.reservations.reference}</div>
+                )}
+                {o.rooms && (
+                  <div className="subtle">
+                    Charged to room {o.rooms.room_number}
+                  </div>
+                )}
+                {staff && o.staff && (
+                  <div className="subtle">Entered by {o.staff.full_name}</div>
                 )}
                 {staff && o.note && <div className="subtle">{o.note}</div>}
               </td>
@@ -72,12 +81,14 @@ export function OrderList({
                 ) : o.status === "cancelled" ? (
                   "—"
                 ) : (
-                  <span className="status pending">Unpaid</span>
+                  <span className="status pending">
+                    {o.rooms ? "On room bill" : "Unpaid"}
+                  </span>
                 )}
               </td>
               {staff && (
                 <td>
-                  {!o.paid_at && o.status !== "cancelled" && (
+                  {!o.paid_at && !o.rooms && o.status !== "cancelled" && (
                     <form action={markOrderPaidAction} className="inline-form">
                       <input type="hidden" name="id" value={o.id} />
                       <input type="hidden" name="version" value={o.version} />

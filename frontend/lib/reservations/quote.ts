@@ -1,4 +1,10 @@
 import type { createClient } from "@/lib/supabase/server";
+import {
+  priceExtras,
+  type BookedExtra,
+  type Extra,
+  type ExtrasInput,
+} from "@/lib/extras";
 /** Current nightly rate and display name of a bookable room. The database re-checks both on booking. */
 export async function roomQuote(
   db: Pick<Awaited<ReturnType<typeof createClient>>, "from">,
@@ -30,3 +36,20 @@ export async function roomQuote(
 }
 export const nights = (checkIn: string, checkOut: string) =>
   (Date.parse(checkOut) - Date.parse(checkIn)) / 86400000;
+/** Current prices of the chosen extras, for the review step. The database prices them again on booking. */
+export async function extrasQuote(
+  db: Pick<Awaited<ReturnType<typeof createClient>>, "from">,
+  chosen: ExtrasInput,
+  nights: number,
+): Promise<BookedExtra[] | null> {
+  if (!chosen.length) return [];
+  const { data, error } = await db
+    .from("extras")
+    .select("id,name,price,pricing,max_quantity,active")
+    .in(
+      "id",
+      chosen.map((c) => c.id),
+    );
+  if (error) return null;
+  return priceExtras(chosen, data as Extra[], nights);
+}

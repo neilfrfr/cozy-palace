@@ -24,7 +24,9 @@ export default function Terms() {
       </p>
       <h2>Changes and cancellations</h2>
       <p>
-        Use your reservation details to review or cancel a booking. Contact
+        Use your reservation details to review or cancel a booking. Online
+        cancellation closes at 11:59 PM (Manila time) two days before the
+        booking date; after that, contact the front desk. Contact
         Cozy Palace Hotel and Restaurant for applicable booking conditions and
         any refund questions.
       </p>

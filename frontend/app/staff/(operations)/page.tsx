@@ -1,8 +1,10 @@
 import Link from "next/link";
 import { getStaffDashboard } from "@/lib/operations/service";
+import { getMyShift } from "@/lib/reservations/service";
+import { ShiftFigures } from "@/components/shift-figures";
 export const dynamic = "force-dynamic";
 export default async function StaffDashboard() {
-  const data = await getStaffDashboard();
+  const [data, shift] = await Promise.all([getStaffDashboard(), getMyShift()]);
   return (
     <>
       <header className="operations-heading">
@@ -22,6 +24,15 @@ export default async function StaffDashboard() {
             <span className="text-link">Open queue →</span>
           </Link>
         ))}
+      </section>
+      <section className="operations-section">
+        <div className="section-head">
+          <h2>My shift today</h2>
+          <Link className="text-link" href="/staff/activity">
+            My activity →
+          </Link>
+        </div>
+        <ShiftFigures shift={shift} />
       </section>
       <section className="operations-section">
         <h2>Keep every stay moving</h2>

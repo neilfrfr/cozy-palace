@@ -10,15 +10,19 @@ import { errorMessages } from "@/lib/reservations/errors";
 import { isPaid } from "@/lib/reservations/normalize";
 import type { Reservation } from "@/lib/reservations/types";
 import { useConfirm } from "@/components/confirm-dialog";
+import { guestCanCancel } from "@/lib/operations/schema";
 export function ReservationControls({
   reservation: r,
   staff = false,
   businessDay,
+  unpaidCharges = "",
   children,
 }: {
   reservation: Reservation;
   staff?: boolean;
   businessDay?: string;
+  /** Formatted unpaid room-charge amount; empty when the room bill is settled. */
+  unpaidCharges?: string;
   children?: React.ReactNode;
 }) {
   const [pending, start] = useTransition(),
@@ -39,13 +43,40 @@ export function ReservationControls({
       return;
     if (
       kind === "cancelled" &&
+      !staff &&
+      !(await ask({
+        title: "Cancel this booking?",
+        message: isPaid(r)
+          ? "The room will be released. Your payment is not refunded automatically: the hotel will contact you about the refund."
+          : "The room will be released. This cannot be undone.",
+        confirmLabel: "Cancel booking",
+        cancelLabel: "Keep booking",
+        danger: true,
+      }))
+    )
+      return;
+    if (
+      kind === "cancelled" &&
+      staff &&
       isPaid(r) &&
       !(await ask({
         title: "Cancel a paid booking?",
         message:
-          "This booking has been paid. Cancelling it does not refund the guest: send the refund from the Xendit dashboard, then mark it refunded under Payments.",
+          "This booking has been paid. Cancelling it does not refund the guest: send the refund under Payments afterwards.",
         confirmLabel: "Cancel booking",
         cancelLabel: "Keep booking",
+        danger: true,
+      }))
+    )
+      return;
+    if (
+      kind === "completed" &&
+      unpaidCharges &&
+      !(await ask({
+        title: "Room bill not settled",
+        message: `This guest still owes ${unpaidCharges} in room charges. Settle the room bill before completing the stay, or complete it anyway and settle later.`,
+        confirmLabel: "Complete anyway",
+        cancelLabel: "Go back",
         danger: true,
       }))
     )
@@ -127,17 +158,22 @@ export function ReservationControls({
             Complete stay
           </button>
         )}
-        {staff && ["pending", "confirmed"].includes(r.status) && (
-          <button
-            className="button secondary"
-            disabled={pending}
-            onClick={() => act("cancelled")}
-          >
-            Cancel booking
-          </button>
-        )}
+        {(staff || guestCanCancel(r.room_bookings[0]?.check_in ?? "")) &&
+          ["pending", "confirmed"].includes(r.status) && (
+            <button
+              className="button secondary"
+              disabled={pending}
+              onClick={() => act("cancelled")}
+            >
+              Cancel booking
+            </button>
+          )}
         {children}
-        {pending && <span className="saving-status" role="status">Saving changes…</span>}
+        {pending && (
+          <span className="saving-status" role="status">
+            Saving changes…
+          </span>
+        )}
       </div>
     </>
   );
