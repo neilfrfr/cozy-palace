@@ -1,12 +1,12 @@
 import { safeRedirect } from "@/lib/auth/redirect";
 import { LoginScreen } from "@/components/login-screen";
+
 export default async function Login({
   searchParams,
 }: {
   searchParams: Promise<{ next?: string; notice?: string }>;
 }) {
   const p = await searchParams;
-  const configured = await isConfigured();
   return (
     <LoginScreen
       eyebrow="Guest login"
