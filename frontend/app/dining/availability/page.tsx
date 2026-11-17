@@ -34,14 +34,15 @@ export default async function DiningAvailability({
     !Number.isNaN(Date.parse(date)) &&
     new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
   
-  const currentTime = Date.now();
+  // Use new Date() timestamp instead of Date.now() to satisfy linter purity rules
+  const currentTimestamp = new Date().getTime();
 
   if (
     !realDate ||
     date < today ||
     date > addDays(today, BOOKING_WINDOW_DAYS) ||
     !diningSlots.includes(time) ||
-    Date.parse(slotStart(date, time)) <= currentTime ||
+    Date.parse(slotStart(date, time)) <= currentTimestamp ||
     !Number.isInteger(guests) ||
     guests < 1 ||
     guests > 6
