@@ -4,6 +4,8 @@ import {
   verifyToken,
   xenditKey,
 } from "@/lib/payments/xendit";
+import { after } from "next/server";
+import { deliverNotifications } from "@/lib/notifications";
 import { createAdminClient } from "@/lib/supabase/admin";
 export async function POST(request: Request) {
   if (!xenditKey()) return new Response(null, { status: 503 });
@@ -31,6 +33,8 @@ export async function POST(request: Request) {
       console.error("settle_refund failed", error.message);
       return new Response(null, { status: 500 });
     }
+    // The refund email is queued by the database; send it now rather than at the daily run.
+    after(() => deliverNotifications());
     return new Response(null, { status: 200 });
   }
   const paid = readPaidInvoice(body);
@@ -52,5 +56,6 @@ export async function POST(request: Request) {
   }
   if (data === "review")
     console.warn("Payment needs staff review", paid.paymentId);
+  after(() => deliverNotifications());
   return new Response(null, { status: 200 });
 }

@@ -1,6 +1,8 @@
 import { beforeEach, expect, it, vi } from "vitest";
 const mocks = vi.hoisted(() => ({ rpc: vi.fn() }));
 vi.mock("server-only", () => ({}));
+vi.mock("next/server", () => ({ after: (fn: () => unknown) => fn() }));
+vi.mock("@/lib/notifications", () => ({ deliverNotifications: vi.fn() }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: mocks.rpc }),
 }));
