@@ -35,7 +35,7 @@ export function FindReservationForm() {
               name="reference"
               required
               maxLength={20}
-              placeholder="e.g. 1042"
+              placeholder="e.g. R-1042"
             />
           </label>
         </div>
