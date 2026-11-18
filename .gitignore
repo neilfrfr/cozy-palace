@@ -15,3 +15,7 @@ frontend/AGENTS.md
 
 # Claude Code settings are personal (~/.claude/settings.json)
 .claude/
+
+# Locally installed agent skills
+.agents/
+skills-lock.json
