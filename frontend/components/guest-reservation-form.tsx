@@ -261,11 +261,7 @@ export function GuestReservationForm({
             </label>
             <StayDates
               bookedNights={bookedNights[roomId] ?? []}
-              min={
-                allocation?.check_in && allocation.check_in < today
-                  ? allocation.check_in
-                  : today
-              }
+              min={today}
               defaultCheckIn={
                 allocation?.check_in ?? defaults?.checkIn ?? today
               }
