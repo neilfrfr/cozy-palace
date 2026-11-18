@@ -161,7 +161,7 @@ for (const width of [360, 390, 1366, 1440]) {
     ).toBeVisible();
     await expect(
       page.getByRole("button", { name: /send message/i }),
-    ).toHaveCount(0);
+    ).toBeVisible();
     await page.goto(
       "/reservations/10000000-0000-4000-8000-000000000001/checkout",
     );
