@@ -84,6 +84,7 @@ vi.mock("@/lib/operations/service", () => ({
         count: 3,
         href: "/staff/reservations?status=checked_in",
       },
+      { name: "Pending table requests", count: 0, href: "/staff/tables" },
     ],
   }),
   getManagementDashboard: async () => ({

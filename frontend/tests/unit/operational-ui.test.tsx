@@ -23,7 +23,7 @@ vi.mock("@/lib/reservations/service", () => ({
 it("staff dashboard prioritizes guest operations without customer booking links", async () => {
   const { default: Page } = await import("@/app/staff/(operations)/page");
   const html = renderToStaticMarkup(await Page());
-  expect(html).toContain("New Guest Booking");
+  expect(html).toContain("New guest booking");
   expect(html).toContain("7");
   expect(html).toContain("Oct 19, 2026, 8:15 AM");
   expect(html).toContain("Orders");

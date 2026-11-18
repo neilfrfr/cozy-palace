@@ -1,91 +1,91 @@
 import Link from "next/link";
 import { getManagementDashboard } from "@/lib/operations/service";
+import { businessDate } from "@/lib/operations/schema";
 import { formatLabel } from "@/lib/format";
+import { KeyRack, deskDate } from "@/components/key-rack";
 const labels: Record<string, string> = {
   rooms: "Rooms",
-  restaurant_tables: "Restaurant Tables",
-  staff_members: "Staff records",
-  reservations: "Reservation records",
+  restaurant_tables: "Restaurant tables",
+  staff_members: "Staff",
+  reservations: "Reservations on record",
+};
+// Statuses that still need someone; the rest are history.
+const open = ["pending", "confirmed", "checked_in"];
+const openNames: Record<string, string> = {
+  pending: "Booking requests",
+  confirmed: "Confirmed stays",
+  checked_in: "Guests in house",
 };
 export default async function ManagementDashboard() {
   const data = await getManagementDashboard();
+  const count = (status: string) =>
+    data.statuses.find((s) => s.status === status)?.count ?? 0;
   return (
     <>
       <header className="operations-heading">
         <div>
-          <h1>Management Overview</h1>
-          <p>People, inventory and accountable hotel operations.</p>
+          <h1>{deskDate(businessDate())}</h1>
+          <p>The hotel at a glance, and what&apos;s waiting on someone.</p>
         </div>
-        <Link className="button gold manage-staff-button" href="/admin/staff">
-          Manage Staff
+        <Link className="button gold" href="/admin/staff">
+          Invite staff
         </Link>
       </header>
-      <section
-        className="management-summary"
-        aria-label="Current inventory and record counts"
-      >
-        {data.counts.map((item) => (
-          <div key={item.name}>
-            <span>{labels[item.name]}</span>
-            <strong>{item.count}</strong>
-          </div>
-        ))}
-      </section>
+      <KeyRack
+        label="Work waiting across the hotel"
+        items={[
+          ...open.map((status) => ({
+            name: openNames[status],
+            count: count(status),
+            href: "/staff/reservations?status=" + status,
+          })),
+          {
+            name: "Table requests",
+            count: data.pendingTables,
+            href: "/staff/tables",
+          },
+          {
+            name: "Staff invitations",
+            count: data.pendingStaff,
+            href: "/admin/staff",
+          },
+        ]}
+      />
       <div className="management-columns">
         <section className="operations-section">
-          <h2>Reservations by status</h2>
-          <p className="subtle">
-            Hotel reservations, excluding private drafts.
-          </p>
-          <div className="status-ledger">
-            {data.statuses.map((item) => (
-              <Link
-                key={item.status}
-                href={"/staff/reservations?status=" + item.status}
-              >
-                <span>{formatLabel(item.status)}</span>
-                <strong>{item.count}</strong>
-              </Link>
-            ))}
-          </div>
-          <Link className="text-link" href="/staff/reservations">
-            Open reservation oversight →
-          </Link>
-          <p className="access-count">
-            <strong>{data.pendingTables}</strong> pending table requests
-          </p>
-          <Link className="text-link" href="/staff/tables">
-            Open table service →
-          </Link>
+          <h2>Finished bookings</h2>
+          <dl className="desk-ledger">
+            {data.statuses
+              .filter((s) => !open.includes(s.status))
+              .map((s) => (
+                <div key={s.status}>
+                  <dt>
+                    <Link href={"/staff/reservations?status=" + s.status}>
+                      {formatLabel(s.status)}
+                    </Link>
+                  </dt>
+                  <dd>{s.count}</dd>
+                </div>
+              ))}
+          </dl>
         </section>
         <section className="operations-section">
-          <h2>Staff access</h2>
-          <p className="access-count pending-registrations">
-            <strong>{data.pendingStaff}</strong> pending invitations
-          </p>
-          <p>
-            Invite employees and review their onboarding records.
-          </p>
-          <div className="actions overview-actions">
-            <Link className="button secondary" href="/admin/staff">
-              Staff Directory
-            </Link>
-          </div>
-          <h2 className="section-subheading inventory-heading">Inventory</h2>
-          <p>
-            Edit room rates, table seats and closures.
-          </p>
-          <div className="actions overview-actions">
-            <Link className="button secondary" href="/admin/rooms">Rooms</Link>
-            <Link className="button secondary" href="/admin/tables">Restaurant Tables</Link>
-          </div>
+          <h2>The hotel</h2>
+          <dl className="desk-ledger">
+            {data.counts.map((item) => (
+              <div key={item.name}>
+                <dt>{labels[item.name]}</dt>
+                <dd>{item.count}</dd>
+              </div>
+            ))}
+          </dl>
         </section>
       </div>
       <section className="operations-section">
         <div className="section-head">
           <h2>Recent activity</h2>
           <Link className="text-link" href="/admin/activity">
-            Full activity log →
+            See the full activity log
           </Link>
         </div>
         {data.recent.length ? (
@@ -126,8 +126,8 @@ export default async function ManagementDashboard() {
           </div>
         ) : (
           <p className="subtle">
-            No recorded activity yet. Operational and staffing changes will
-            appear here.
+            Nothing recorded yet. Bookings, payments and staff changes appear
+            here as they happen.
           </p>
         )}
       </section>

@@ -1,45 +1,48 @@
-"use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { logoutAction } from "@/app/login/actions";
-const links = [
-  ["/admin", "Management Overview"],
-  ["/staff/reservations", "Reservations"],
-  ["/staff/tables", "Table Service"],
-  ["/staff/orders", "Orders"],
-  ["/staff/payments", "Payments"],
-  ["/admin/rooms", "Rooms"],
-  ["/admin/tables", "Restaurant Tables"],
-  ["/admin/menu", "Menu"],
-  ["/admin/extras", "Extras and Packages"],
-  ["/admin/website", "Website"],
-  ["/admin/staff", "Staff Directory"],
-  ["/admin/reports", "Reports"],
-  ["/admin/activity", "Activity Log"],
-  ["/admin/profile", "My Profile"],
-  ["/", "Public Website"],
-] as const;
+import { OperationsSidebar } from "@/components/operations-sidebar";
 export function AdminSidebar() {
-  const pathname = usePathname();
   return (
-    <aside className="admin-sidebar">
-      <Link href="/admin" className="brand">
-        Cozy Palace<span>Hotel and Restaurant</span>
-      </Link>
-      <nav aria-label="Administration">
-        {links.map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            aria-current={pathname === href ? "page" : undefined}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <form action={logoutAction} className="sidebar-signout-form">
-        <button className="plain sidebar-signout">Sign out</button>
-      </form>
-    </aside>
+    <OperationsSidebar
+      subtitle="Management"
+      home="/admin"
+      groups={[
+        { name: "Today", links: [["/admin", "Overview"]] },
+        {
+          name: "Bookings",
+          links: [
+            ["/staff/reservations", "Reservations"],
+            ["/staff/payments", "Payments"],
+          ],
+        },
+        {
+          name: "Restaurant",
+          links: [
+            ["/staff/tables", "Table service"],
+            ["/staff/orders", "Orders"],
+            ["/admin/menu", "Menu"],
+            ["/admin/tables", "Restaurant tables"],
+          ],
+        },
+        {
+          name: "Hotel",
+          links: [
+            ["/admin/rooms", "Rooms"],
+            ["/admin/extras", "Extras and packages"],
+            ["/admin/website", "Website"],
+          ],
+        },
+        {
+          name: "People and records",
+          links: [
+            ["/admin/staff", "Staff directory"],
+            ["/admin/reports", "Reports"],
+            ["/admin/activity", "Activity log"],
+          ],
+        },
+      ]}
+      footer={[
+        ["/admin/profile", "My profile"],
+        ["/", "Public website"],
+      ]}
+    />
   );
 }
