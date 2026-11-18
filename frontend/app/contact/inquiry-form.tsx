@@ -69,7 +69,7 @@ export function InquiryForm() {
           <label className="full">
             Message
             <textarea
-              className={`${fieldClassName} !min-h-32 !resize-y !leading-relaxed`}
+              className={`${fieldClassName} !border !min-h-32 !resize-y !leading-relaxed`}
               name="message"
               rows={5}
               required
