@@ -1,7 +1,9 @@
 import { beforeEach, expect, it, vi } from "vitest";
-const mocks = vi.hoisted(() => ({ rpc: vi.fn() }));
+const mocks = vi.hoisted(() => ({ rpc: vi.fn(), send: vi.fn() }));
 vi.mock("server-only", () => ({}));
 vi.mock("@/lib/auth/authorize", () => ({ requireStaff: vi.fn() }));
+vi.mock("next/server", () => ({ after: (fn: () => unknown) => fn() }));
+vi.mock("@/lib/notifications", () => ({ deliverNotifications: mocks.send }));
 vi.mock("@/lib/supabase/admin", () => ({
   createAdminClient: () => ({ rpc: mocks.rpc }),
 }));
@@ -102,6 +104,8 @@ it("webhook settles a refund by its id, and replays are left to the database", a
     p_provider_refund_id: "rfd-1",
     p_failure_code: null,
   });
+  // The refund email goes out now, not at the daily run.
+  expect(mocks.send).toHaveBeenCalledTimes(1);
   expect((await post(callback(), "forged")).status).toBe(401);
   mocks.rpc.mockResolvedValueOnce({
     data: null,
