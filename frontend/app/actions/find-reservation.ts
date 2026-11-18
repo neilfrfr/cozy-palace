@@ -3,7 +3,7 @@ import { z } from "zod";
 import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
 import { clientIp } from "@/lib/client-ip";
 import { publicError } from "@/lib/reservations/errors";
-import { normalizeReference } from "@/lib/format";
+import { lookupSchema } from "@/lib/operations/schema";
 
 export type FoundBooking = {
   reference: string;
@@ -12,19 +12,18 @@ export type FoundBooking = {
   guests: number;
   total: number;
   created_at: string;
+  payable: boolean;
   stay: { room: string; check_in: string; check_out: string } | null;
   table: { table: string; start_at: string } | null;
   history: { action: string; at: string }[];
 };
-export type FindState = { found?: FoundBooking; message?: string };
+export type FindState = {
+  found?: FoundBooking;
+  /** What the visitor typed, so the result can offer to pay for it. */
+  lookup?: { first: string; last: string; reference: string };
+  message?: string;
+};
 
-const lookupSchema = z
-  .object({
-    first: z.string().trim().min(1).max(50),
-    last: z.string().trim().min(1).max(50),
-    reference: z.string().trim().min(1).max(20).transform(normalizeReference),
-  })
-  .strict();
 // One message for every miss, so the form never reveals which of the three fields was wrong.
 const notFound =
   "We couldn't find a booking with those details. Check the spelling and the booking number in your email.";
@@ -61,5 +60,7 @@ export async function findReservationAction(
           ? "Too many lookups from this connection. Please wait an hour or contact the hotel."
           : notFound,
     };
-  return data ? { found: data as FoundBooking } : { message: notFound };
+  return data
+    ? { found: data as FoundBooking, lookup: p.data }
+    : { message: notFound };
 }

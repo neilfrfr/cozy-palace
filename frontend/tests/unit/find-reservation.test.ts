@@ -20,6 +20,7 @@ it("passes all three fields and the visitor's IP to the server-only lookup", asy
   rpc.mockResolvedValueOnce({ data: { reference: "CP-ABC123" }, error: null });
   expect(await findReservationAction({}, form(full))).toEqual({
     found: { reference: "CP-ABC123" },
+    lookup: full,
   });
   expect(rpc).toHaveBeenCalledWith("find_guest_booking", {
     p_first_name: "Juan",

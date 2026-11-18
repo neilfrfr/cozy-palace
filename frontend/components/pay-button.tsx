@@ -1,12 +1,23 @@
 "use client";
 import { useActionState } from "react";
-import { startCheckoutAction } from "@/app/actions/payments";
+import {
+  startCheckoutAction,
+  startGuestCheckoutAction,
+} from "@/app/actions/payments";
 import { errorMessages } from "@/lib/reservations/errors";
-export function PayButton({ id }: { id: string }) {
-  const [state, submit, pending] = useActionState(startCheckoutAction, null);
+/** A customer pays by booking id; a visitor without an account by name and booking number. */
+export function PayButton(
+  props: { id: string } | { first: string; last: string; reference: string },
+) {
+  const [state, submit, pending] = useActionState(
+    "id" in props ? startCheckoutAction : startGuestCheckoutAction,
+    null,
+  );
   return (
     <form action={submit}>
-      <input type="hidden" name="id" value={id} />
+      {Object.entries(props).map(([name, value]) => (
+        <input key={name} type="hidden" name={name} value={value} />
+      ))}
       <button className="primary gold" type="submit" disabled={pending}>
         {pending ? "Opening Xendit…" : "Pay with Xendit"}
       </button>

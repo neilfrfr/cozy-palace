@@ -11,6 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { visitorBookingEnabled } from "@/lib/captcha";
 import { getExtras } from "@/lib/inventory/service";
+import { xenditKey } from "@/lib/payments/xendit";
 export const dynamic = "force-dynamic";
 export default async function NewReservation({
   searchParams,
@@ -44,6 +45,7 @@ export default async function NewReservation({
         </p>
         <GuestReservationForm
           visitor
+          payOnline={!!xenditKey()}
           rooms={rooms}
           extras={extras}
           defaults={safe}

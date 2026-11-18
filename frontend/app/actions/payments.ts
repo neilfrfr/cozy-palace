@@ -6,12 +6,14 @@ import { after } from "next/server";
 import { requireStaff } from "@/lib/auth/authorize";
 import { deliverNotifications } from "@/lib/notifications";
 import { createClient } from "@/lib/supabase/server";
-import { createAdminClient } from "@/lib/supabase/admin";
+import { adminConfigured, createAdminClient } from "@/lib/supabase/admin";
+import { clientIp } from "@/lib/client-ip";
+import { lookupSchema } from "@/lib/operations/schema";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
 import { createCheckout, createRefund, xenditKey } from "@/lib/payments/xendit";
 import { parseRefundAmount } from "@/lib/payments/ledger";
-/** Online payment is for signed-in customers; visitors without an account pay through staff. */
+/** Online payment for a signed-in customer's own booking. */
 export async function startCheckoutAction(
   _: { code: string } | null,
   form: FormData,
@@ -24,21 +26,37 @@ export async function startCheckoutAction(
     await createClient()
   ).rpc("open_payment", { p_reservation_id: id.data });
   if (error) return { code: publicError(error) };
-  const p = data as {
-    id: string;
-    amount: number;
-    reference: string;
-    checkout_url: string | null;
-  };
-  // The booking's invoice is still live: send the customer back to it, never open a second one.
+  return openInvoice(key, data as Opened, `/reservations/${id.data}/checkout`);
+}
+type Opened = {
+  id: string;
+  amount: number;
+  reference: string;
+  checkout_url: string | null;
+  hold_expires_at: string | null;
+};
+/** Sends the payer to the booking's live invoice, or opens a new one on Xendit. */
+async function openInvoice(
+  key: string,
+  p: Opened,
+  returnPath: string,
+): Promise<{ code: string }> {
+  // The booking's invoice is still live: send the payer back to it, never open a second one.
   if (p.checkout_url) redirect(p.checkout_url);
+  // Leave enough time to pay inside the hold; a payment after it ends needs a refund.
+  if (
+    p.hold_expires_at &&
+    Date.parse(p.hold_expires_at) - Date.now() < 15 * 60_000
+  )
+    return { code: "HOLD_ENDING" };
   let checkout: Awaited<ReturnType<typeof createCheckout>>;
   try {
     checkout = await createCheckout(key, {
       paymentId: p.id,
-      returnPath: `/reservations/${id.data}/checkout`,
+      returnPath,
       reference: p.reference,
       amount: p.amount,
+      holdEndsAt: p.hold_expires_at,
     });
   } catch {
     return { code: "PAYMENT_UNAVAILABLE" };
@@ -52,6 +70,28 @@ export async function startCheckoutAction(
   if (saveError)
     console.error("Saving the checkout link failed", saveError.message);
   redirect(checkout.url);
+}
+/** Visitors without an account pay by giving the same name and booking number as Find a Reservation. */
+export async function startGuestCheckoutAction(
+  _: { code: string } | null,
+  form: FormData,
+): Promise<{ code: string }> {
+  const p = lookupSchema.safeParse({
+    first: form.get("first"),
+    last: form.get("last"),
+    reference: form.get("reference"),
+  });
+  if (!p.success) return { code: "INVALID_INPUT" };
+  const key = xenditKey();
+  if (!key || !adminConfigured()) return { code: "PAYMENT_UNAVAILABLE" };
+  const { data, error } = await createAdminClient().rpc("open_guest_payment", {
+    p_first_name: p.data.first,
+    p_last_name: p.data.last,
+    p_reference: p.data.reference,
+    p_client_ip: await clientIp(),
+  });
+  if (error) return { code: publicError(error) };
+  return openInvoice(key, data as Opened, "/find-reservation");
 }
 /** Any staff member sends a full or partial refund through Xendit. It stays pending until Xendit's callback settles it. */
 export async function refundAction(form: FormData) {
