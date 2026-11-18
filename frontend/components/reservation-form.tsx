@@ -98,11 +98,7 @@ export function ReservationForm({
         </label>
         <StayDates
           bookedNights={bookedNights[roomId] ?? []}
-          min={
-            initial?.check_in && initial.check_in < addDays(today, 1)
-              ? initial.check_in
-              : addDays(today, 1)
-          }
+          min={addDays(today, 1)}
           defaultCheckIn={initial?.check_in || defaults.checkIn}
           defaultCheckOut={initial?.check_out || defaults.checkOut}
         />
