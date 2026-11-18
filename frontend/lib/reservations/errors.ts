@@ -17,6 +17,7 @@ const codes = [
   "CANCEL_CUTOFF",
   "REFUND_PENDING",
   "NO_CURRENT_STAY",
+  "HOLD_ENDING",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -52,6 +53,8 @@ export const errorMessages: Record<string, string> = {
     "Online cancellation closes at 11:59 PM (Manila time) two days before the booking date. Please contact the front desk to cancel.",
   EXTRAS_UNAVAILABLE:
     "One of the extras you picked is no longer offered or is over its limit. Choose again.",
+  HOLD_ENDING:
+    "Your room hold ends in a few minutes, so online payment is closed. Please pay at the hotel.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",

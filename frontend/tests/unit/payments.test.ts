@@ -136,6 +136,19 @@ it("checkout asks Xendit for the stored total in pesos, keyed by the payment id"
     failure_redirect_url: "https://cozy.test/reservations/r1/checkout",
     invoice_duration: 86400,
   });
+  // An invoice never outlives the room hold it pays for.
+  fetchMock.mockResolvedValueOnce(
+    new Response(
+      JSON.stringify({ invoice_url: "https://checkout.xendit.co/inv_2" }),
+    ),
+  );
+  await createCheckout("xnd_development_key", {
+    ...args,
+    holdEndsAt: new Date(Date.now() + 3600_000).toISOString(),
+  });
+  const held = JSON.parse(fetchMock.mock.calls[1][1].body).invoice_duration;
+  expect(held).toBeGreaterThan(3590);
+  expect(held).toBeLessThanOrEqual(3600);
   fetchMock.mockResolvedValueOnce(
     new Response(JSON.stringify({ invoice_url: "http://evil.test" })),
   );

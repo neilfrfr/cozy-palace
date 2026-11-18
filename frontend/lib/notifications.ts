@@ -4,6 +4,8 @@ import { createClient } from "@/lib/supabase/server";
 import { emailConfigured, sendEmail } from "@/lib/email";
 import { extrasSummary, type BookedExtra } from "@/lib/extras";
 import { formatLabel } from "@/lib/format";
+import { xenditKey } from "@/lib/payments/xendit";
+import { siteOrigin } from "@/lib/accounts/site-url";
 
 export type NoticeEvent =
   | "received"
@@ -83,6 +85,12 @@ const orderText = (o?: NoticeOrder | null) =>
     ? `Order ${o.reference}: ${o.order_items.map((i) => `${i.quantity} × ${i.name}`).join(", ")}. Total ${peso(o.total)}.`
     : "";
 
+const payPage = () => {
+  const origin = siteOrigin();
+  return origin
+    ? origin + "/find-reservation"
+    : "Find a Reservation on our website";
+};
 /** One sentence per event, shared by the in-app list and the email. */
 export function noticeText(
   event: NoticeEvent,
@@ -96,7 +104,10 @@ export function noticeText(
     received: [
       "We received your booking request",
       room
-        ? "We hold the room until your check-in day. Our staff will contact you to confirm it and arrange payment."
+        ? !b.customer && xenditKey()
+          ? // Visitors without an account have no booking page; Find a Reservation is where they pay.
+            `We hold the room until your check-in day while our staff confirm it. To pay online, open ${payPage()} and enter your name and booking number, or pay at the hotel.`
+          : "We hold the room until your check-in day. Our staff will contact you to confirm it and arrange payment."
         : "We hold the table until our staff confirm it. Seatings last two hours.",
     ],
     confirmed: [

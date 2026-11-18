@@ -71,3 +71,22 @@ it("rejects missing fields and reports a mismatch without opening an invoice", a
   ).toEqual({ code: "NOT_FOUND" });
   expect(mocks.redirect).not.toHaveBeenCalled();
 });
+it("closes online payment when the room hold ends within 15 minutes", async () => {
+  mocks.rpc.mockResolvedValueOnce({
+    data: {
+      id: "p1",
+      amount: 5000,
+      reference: "42",
+      checkout_url: null,
+      hold_expires_at: new Date(Date.now() + 5 * 60_000).toISOString(),
+    },
+    error: null,
+  });
+  expect(
+    await startGuestCheckoutAction(
+      null,
+      form({ first: "Juan", last: "Dela Cruz", reference: "42" }),
+    ),
+  ).toEqual({ code: "HOLD_ENDING" });
+  expect(mocks.redirect).not.toHaveBeenCalled();
+});

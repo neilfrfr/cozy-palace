@@ -26,11 +26,16 @@ export async function createCheckout(
     returnPath: string;
     reference: string;
     amount: number;
+    /** When the room hold ends; the invoice closes then too, so it is never paid for a released room. */
+    holdEndsAt?: string | null;
   },
 ): Promise<{ url: string; expiresAt: string }> {
   const origin = siteOrigin();
   if (!origin) throw new Error("SETUP_REQUIRED");
   const back = origin + p.returnPath;
+  const holdSeconds = p.holdEndsAt
+    ? Math.floor((Date.parse(p.holdEndsAt) - Date.now()) / 1000)
+    : Infinity;
   const res = await fetch("https://api.xendit.co/v2/invoices", {
     method: "POST",
     headers: {
@@ -45,7 +50,7 @@ export async function createCheckout(
       description: `Cozy Palace reservation ${p.reference}`,
       success_redirect_url: back + "?paid=1",
       failure_redirect_url: back,
-      invoice_duration: 86400,
+      invoice_duration: Math.min(86400, holdSeconds),
     }),
     cache: "no-store",
     signal: AbortSignal.timeout(10_000),
@@ -60,7 +65,9 @@ export async function createCheckout(
     url,
     // invoice_duration above; the response's own expiry wins when present.
     expiresAt: new Date(
-      Number.isNaN(expiry) ? Date.now() + 86400_000 : expiry,
+      Number.isNaN(expiry)
+        ? Date.now() + Math.min(86400, holdSeconds) * 1000
+        : expiry,
     ).toISOString(),
   };
 }

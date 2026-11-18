@@ -33,6 +33,7 @@ type Opened = {
   amount: number;
   reference: string;
   checkout_url: string | null;
+  hold_expires_at: string | null;
 };
 /** Sends the payer to the booking's live invoice, or opens a new one on Xendit. */
 async function openInvoice(
@@ -42,6 +43,12 @@ async function openInvoice(
 ): Promise<{ code: string }> {
   // The booking's invoice is still live: send the payer back to it, never open a second one.
   if (p.checkout_url) redirect(p.checkout_url);
+  // Leave enough time to pay inside the hold; a payment after it ends needs a refund.
+  if (
+    p.hold_expires_at &&
+    Date.parse(p.hold_expires_at) - Date.now() < 15 * 60_000
+  )
+    return { code: "HOLD_ENDING" };
   let checkout: Awaited<ReturnType<typeof createCheckout>>;
   try {
     checkout = await createCheckout(key, {
@@ -49,6 +56,7 @@ async function openInvoice(
       returnPath,
       reference: p.reference,
       amount: p.amount,
+      holdEndsAt: p.hold_expires_at,
     });
   } catch {
     return { code: "PAYMENT_UNAVAILABLE" };
