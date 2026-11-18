@@ -66,7 +66,7 @@ it("rejects bad slots, oversized parties and guest contact fields from customers
   await expect(book(customer, "T2", at("19:15"))).rejects.toThrow("INVALID_INPUT");
   await expect(book(customer, "T2", at("15:00"))).rejects.toThrow("INVALID_INPUT");
   await expect(book(customer, "T2", at("19:00", "2020-01-01"))).rejects.toThrow("INVALID_INPUT");
-  await expect(book(customer, "P4", at("19:00"), 3)).rejects.toThrow("CAPACITY_EXCEEDED");
+  await expect(book(customer, "P4", at("19:00"), 5)).rejects.toThrow("CAPACITY_EXCEEDED");
   await expect(book(customer, "T2", at("19:00"), 2, key(), "Someone")).rejects.toThrow("INVALID_INPUT");
 });
 it("replays the same request and rejects a reused key with new details", async () => {
