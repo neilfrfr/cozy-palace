@@ -1,6 +1,7 @@
 import { z } from "zod";
 import { reservationSchema, updateSchema } from "@/lib/reservations/schema";
 import { isValidPhone } from "@/lib/phone";
+import { normalizeReference } from "@/lib/format";
 const optional = <T extends z.ZodType<string>>(schema: T) =>
   z.preprocess(
     (v) => (typeof v === "string" && !v.trim() ? undefined : v),
@@ -71,3 +72,11 @@ export const visitorContact = {
   guestPhone: z.string().trim().max(32).refine(isValidPhone),
 };
 export const visitorSchema = reservationSchema.extend(visitorContact);
+/** Name and booking number a visitor gives to find, or pay for, a booking made without an account. */
+export const lookupSchema = z
+  .object({
+    first: z.string().trim().min(1).max(50),
+    last: z.string().trim().min(1).max(50),
+    reference: z.string().trim().min(1).max(20).transform(normalizeReference),
+  })
+  .strict();

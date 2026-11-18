@@ -2,6 +2,7 @@
 import { useActionState } from "react";
 import { findReservationAction } from "@/app/actions/find-reservation";
 import { bookedAt, formatLabel } from "@/lib/format";
+import { PayButton } from "@/components/pay-button";
 
 export function FindReservationForm() {
   const [state, submit, pending] = useActionState(findReservationAction, {});
@@ -89,6 +90,12 @@ export function FindReservationForm() {
               </li>
             ))}
           </ul>
+          {b.payable && state.lookup && (
+            <>
+              <p>Pay online with GCash, Maya or card, or pay at the hotel.</p>
+              <PayButton {...state.lookup} />
+            </>
+          )}
           <p className="notice">
             To change or cancel this booking, contact the front desk and quote{" "}
             {b.reference}.

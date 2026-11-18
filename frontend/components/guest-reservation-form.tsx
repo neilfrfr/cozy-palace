@@ -17,6 +17,7 @@ import { Turnstile } from "@/components/turnstile";
 import { errorMessages } from "@/lib/reservations/errors";
 import { PhoneField } from "@/components/phone-field";
 import { ExtrasPicker } from "@/components/extras-picker";
+import { PayButton } from "@/components/pay-button";
 import {
   extrasFromForm,
   extrasSummary,
@@ -26,6 +27,15 @@ import {
 } from "@/lib/extras";
 import type { Room } from "@/lib/reservations/types";
 import type { OperationalReservation } from "@/lib/operations/service";
+/** Splits the booked name into the first and last names that Find a Reservation matches. */
+function lookupFor(name: string, reference: string) {
+  const words = name.trim().split(/\s+/);
+  return {
+    first: words.slice(0, -1).join(" ") || words[0],
+    last: words[words.length - 1],
+    reference,
+  };
+}
 type Input = {
   roomId: string;
   checkIn: string;
@@ -46,6 +56,7 @@ export function GuestReservationForm({
   existing,
   bookedNights,
   visitor = false,
+  payOnline = false,
   defaults,
   extras = [],
 }: {
@@ -59,6 +70,8 @@ export function GuestReservationForm({
   bookedNights: Record<string, string[]>;
   /** A visitor without an account booking for themselves, instead of staff entering a walk-in. */
   visitor?: boolean;
+  /** Online payment is switched on, so a visitor can pay right after booking. */
+  payOnline?: boolean;
   defaults?: {
     room?: string;
     checkIn?: string;
@@ -83,6 +96,7 @@ export function GuestReservationForm({
   const [booked, setBooked] = useState<{
     reference: string;
     email: string;
+    name: string;
   } | null>(null);
   const router = useRouter();
   const allocation = existing?.room_bookings[0];
@@ -147,6 +161,7 @@ export function GuestReservationForm({
         setBooked({
           reference: result.data.reference,
           email: review.input.guestEmail,
+          name: review.input.guestFullName,
         });
         return;
       }
@@ -179,15 +194,20 @@ export function GuestReservationForm({
         <section className="notice" role="status">
           <h2>Booking request {booked.reference} received</h2>
           <p>
-            We have emailed the details to {booked.email}. The room is held until
-            your check-in day while our staff confirm it and arrange payment
-            with you.
+            We have emailed the details to {booked.email}. The room is held
+            until your check-in day while our staff confirm it.
+            {payOnline
+              ? " Pay online now with GCash, Maya or card, or pay at the hotel."
+              : " Our staff will arrange payment with you."}
           </p>
           <p>
             To change or cancel it, contact the front desk and quote{" "}
             {booked.reference}.
           </p>
         </section>
+        {payOnline && (
+          <PayButton {...lookupFor(booked.name, booked.reference)} />
+        )}
         <Link className="back-link" href="/rooms">
           Back to rooms
         </Link>
@@ -340,7 +360,7 @@ export function GuestReservationForm({
           </dl>
           <p>
             {visitor
-              ? "Booking holds the room until your check-in day while our staff confirm it. Payment is arranged with the hotel. To change or cancel, contact the front desk with your booking reference."
+              ? `Booking holds the room until your check-in day while our staff confirm it. ${payOnline ? "You can pay online once it is booked, or pay at the hotel." : "Payment is arranged with the hotel."} To change or cancel, contact the front desk with your booking reference.`
               : "Confirmation reserves the room for this guest. It does not record a payment."}
           </p>
           {visitor && (
