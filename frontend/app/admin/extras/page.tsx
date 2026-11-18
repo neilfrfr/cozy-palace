@@ -13,13 +13,13 @@ const messages: Record<string, string> = {
 
 function ExtraForm({ item }: { item?: Extra }) {
   return (
-    <form action={saveExtraAction} className="operations-filters">
+    <form action={saveExtraAction} className="edit-row">
       {item && <input type="hidden" name="id" value={item.id} />}
       <label>
         Name
         <input name="name" required maxLength={80} defaultValue={item?.name} />
       </label>
-      <label>
+      <label className="edit-line">
         Description
         <input
           name="description"
@@ -67,12 +67,12 @@ function ExtraForm({ item }: { item?: Extra }) {
           defaultValue={item?.max_quantity ?? 1}
         />
       </label>
-      <label>
+      <label className="edit-check">
         <input
           name="active"
           type="checkbox"
           defaultChecked={item?.active ?? true}
-        />{" "}
+        />
         Active
       </label>
       <button className="button">{item ? "Save" : "Add item"}</button>

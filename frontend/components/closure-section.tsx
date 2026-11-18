@@ -27,7 +27,7 @@ export function ClosureSection({
         to, but not including, the reopening day. Dates that already have
         bookings can&apos;t be closed; move or cancel those bookings first.
       </p>
-      <form action={addClosureAction} className="operations-filters">
+      <form action={addClosureAction} className="edit-row">
         <input type="hidden" name="page" value={page} />
         <label>
           {noun}

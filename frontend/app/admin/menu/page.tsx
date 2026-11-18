@@ -10,9 +10,9 @@ export const dynamic = "force-dynamic";
 
 function ItemForm({ item }: { item?: MenuRow }) {
   return (
-    <form action={saveMenuItemAction} className="operations-filters">
+    <form action={saveMenuItemAction} className="edit-row">
       {item && <input type="hidden" name="id" value={item.id} />}
-      <label>
+      <label className="edit-wide">
         Name
         <input name="name" required maxLength={80} defaultValue={item?.name} />
       </label>
@@ -36,12 +36,12 @@ function ItemForm({ item }: { item?: MenuRow }) {
           defaultValue={item?.price}
         />
       </label>
-      <label>
+      <label className="edit-check">
         <input
           name="available"
           type="checkbox"
           defaultChecked={item?.available ?? true}
-        />{" "}
+        />
         Available
       </label>
       <button className="button">{item ? "Save" : "Add item"}</button>
