@@ -239,7 +239,7 @@ export function TablePicker({
           <input
             type="number"
             min="1"
-            max="6"
+            max="7"
             step="1"
             required
             value={guests}
@@ -252,7 +252,7 @@ export function TablePicker({
               }
               const next = Number(raw);
               if (Number.isFinite(next))
-                setGuests(Math.max(1, Math.min(6, Math.trunc(next))));
+                setGuests(Math.max(1, Math.min(7, Math.trunc(next))));
             }}
           />
         </label>

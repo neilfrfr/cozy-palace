@@ -196,6 +196,7 @@ test("staff and admin sign in on their own login page", async ({ page }) => {
   await expect(
     page.getByRole("link", { name: "Create an Account", exact: true }),
   ).toBeVisible();
+  await expect(page.locator('a[href="/staff/login"]')).toHaveCount(0);
   const missing = await page.goto("/staff/register");
   expect(missing?.status()).toBe(404);
   await page.goto("/staff/login");

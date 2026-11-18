@@ -45,7 +45,7 @@ export default async function DiningAvailability({
     Date.parse(slotStart(date, time)) <= currentTimestamp ||
     !Number.isInteger(guests) ||
     guests < 1 ||
-    guests > 6
+    guests > 7
   ) {
     redirect("/dining");
   }
