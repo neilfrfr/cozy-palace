@@ -1,41 +1,33 @@
-"use client";
-import Link from "next/link";
-import { usePathname } from "next/navigation";
-import { logoutAction } from "@/app/login/actions";
+import { OperationsSidebar } from "@/components/operations-sidebar";
 export function StaffSidebar() {
-  const path = usePathname();
   return (
-    <aside className="admin-sidebar staff-sidebar">
-      <Link className="brand" href="/staff">
-        Cozy Palace<span>Staff operations</span>
-      </Link>
-      <nav aria-label="Staff navigation">
-        {[
-          ["/staff", "Work overview"],
-          ["/staff/reservations", "Reservations"],
-          ["/staff/reservations/new", "New Guest Booking"],
-          ["/staff/tables", "Table Service"],
-          ["/staff/orders", "Orders"],
-          ["/staff/payments", "Payments"],
-          ["/staff/activity", "My Activity"],
-          ["/staff/profile", "My Profile"],
-        ].map(([href, label]) => (
-          <Link
-            key={href}
-            href={href}
-            aria-current={path === href ? "page" : undefined}
-          >
-            {label}
-          </Link>
-        ))}
-      </nav>
-      <form action={logoutAction} className="sidebar-signout-form">
-        <button className="plain sidebar-signout">Sign out</button>
-      </form>
-      <div className="sidebar-note">
-        Guest bookings and hotel service. Management controls are available to
-        administrators.
-      </div>
-    </aside>
+    <OperationsSidebar
+      subtitle="Front desk"
+      home="/staff"
+      groups={[
+        {
+          name: "Today",
+          links: [
+            ["/staff", "Overview"],
+            ["/staff/activity", "My activity"],
+          ],
+        },
+        {
+          name: "Bookings",
+          links: [
+            ["/staff/reservations", "Reservations"],
+            ["/staff/reservations/new", "New guest booking"],
+            ["/staff/payments", "Payments"],
+          ],
+        },
+        {
+          name: "Restaurant",
+          links: [
+            ["/staff/tables", "Table service"],
+            ["/staff/orders", "Orders"],
+          ],
+        },
+      ]}
+    />
   );
 }
