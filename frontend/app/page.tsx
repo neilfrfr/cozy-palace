@@ -5,7 +5,6 @@ import { getFullyBookedNights, getRooms } from "@/lib/reservations/service";
 import { RoomTile } from "@/components/room-tile";
 import { AvailabilitySearch } from "@/components/availability-search";
 import { SetupNotice } from "@/components/setup-notice";
-import { ContactDetails } from "@/components/contact-details";
 import { getSiteContent, itemPhoto, photo, text } from "@/lib/site-content";
 export const dynamic = "force-dynamic";
 export default async function Home() {
@@ -152,15 +151,6 @@ export default async function Home() {
             Explore dining
           </Link>
         </div>
-      </section>
-
-      <section className="home-contact" aria-labelledby="contact-title">
-        <p className="eyebrow">Contacts</p>
-        <h2 id="contact-title">Find and reach us.</h2>
-        <ContactDetails content={content} />
-        <Link className="button secondary" href="/contact">
-          Contact page
-        </Link>
       </section>
     </div>
   );

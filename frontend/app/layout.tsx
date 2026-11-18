@@ -42,6 +42,13 @@ export default function RootLayout({
                 Cozy Palace<span>Hotel and Restaurant</span>
               </Link>
               <p>
+                123 Placeholder Street, Makati City, Metro Manila, Philippines
+                <br />
+                +63 2 8123 4567
+                <br />
+                hello@cozypalace.example
+              </p>
+              <p>
                 A prototype booking site. Rates are fictional, prices are in
                 Philippine pesos, and times are in Asia/Manila.
               </p>

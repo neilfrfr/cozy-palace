@@ -9,6 +9,7 @@ import {
 } from "react";
 import Image from "next/image";
 import Link from "next/link";
+import { useRouter } from "next/navigation";
 import type { DiningTable } from "@/lib/inventory/service";
 import { DatePicker } from "@/components/date-picker";
 import { addDays } from "@/lib/reservations/availability";
@@ -95,7 +96,8 @@ export function TablePicker({
   const [selectedId, setSelectedId] = useState<string | null>(null);
   const [booked, setBooked] = useState<Set<string>>(new Set());
   const [refresh, setRefresh] = useState(0);
-  const [showPlan, setShowPlan] = useState(!deferAvailability);
+  const showPlan = !deferAvailability;
+  const router = useRouter();
   const [checking, setChecking] = useState(false);
   const [message, setMessage] = useState<{ ok: boolean; text: ReactNode }>();
   const [pending, startTransition] = useTransition();
@@ -137,7 +139,7 @@ export function TablePicker({
     if (!dateIsValid || date < today || date > lastDay || !time || typeof guests !== "number") return;
     setChecking(true);
     const query = new URLSearchParams({ date, time, guests: String(guests) });
-    window.location.assign(`/dining/availability?${query.toString()}`);
+    router.push(`/dining/availability?${query.toString()}`);
   }
 
   function submit(e: FormEvent<HTMLFormElement>) {
