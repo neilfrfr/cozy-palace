@@ -66,7 +66,6 @@ export default function RootLayout({
               <FooterStayLink />
               <Link href="/login">Log in</Link>
               <Link href="/register">Create an Account</Link>
-              <Link href="/staff/login">Staff Login</Link>
             </nav>
           </div>
           <p className="footer-legal">

@@ -1,6 +1,10 @@
 import { safeRedirect } from "@/lib/auth/redirect";
 import { LoginScreen } from "@/components/login-screen";
-export const metadata = { title: "Staff Login | Cozy Palace" };
+// Not linked anywhere; staff type the address. Keep search engines from listing it too.
+export const metadata = {
+  title: "Staff Login | Cozy Palace",
+  robots: { index: false, follow: false },
+};
 export default async function StaffLogin({
   searchParams,
 }: {
