@@ -1,5 +1,6 @@
 import { StayDates } from "@/components/stay-dates";
 import { businessDate } from "@/lib/operations/schema";
+import { addDays } from "@/lib/reservations/availability";
 export function AvailabilitySearch({
   configured,
   defaults = {},
@@ -20,7 +21,8 @@ export function AvailabilitySearch({
     >
       <StayDates
         bookedNights={bookedNights}
-        min={businessDate()}
+        // Online stays start tomorrow at the earliest; the booking functions refuse same-day check-in.
+        min={addDays(businessDate(), 1)}
         defaultCheckIn={defaults.checkIn}
         defaultCheckOut={defaults.checkOut}
       />
