@@ -1792,6 +1792,88 @@ body:has(.staff-layout) .footer {
   margin: 4px 0 0;
   font-size: 24px;
 }
+.report-actions {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin: 0 0 16px;
+}
+.report-figures .change {
+  display: block;
+  color: var(--muted);
+  font-size: 13px;
+}
+.report-charts {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: 16px;
+  margin: 0 0 16px;
+}
+.report-chart {
+  margin: 0;
+  padding: 16px;
+  border: 1px solid var(--line);
+  background: white;
+}
+.report-chart figcaption {
+  color: var(--muted);
+  font-size: 13px;
+}
+.report-bars {
+  display: flex;
+  align-items: flex-end;
+  gap: 2px;
+  height: 120px;
+  margin-top: 8px;
+  border-bottom: 1px solid var(--line);
+}
+.report-bars span {
+  flex: 1;
+  height: 100%;
+  display: flex;
+  align-items: flex-end;
+}
+.report-bars i {
+  width: 100%;
+  background: var(--navy);
+  border-radius: 4px 4px 0 0;
+  print-color-adjust: exact;
+}
+.report-bars span:hover i {
+  background: var(--gold);
+}
+.report-bars-axis {
+  display: flex;
+  justify-content: space-between;
+  gap: 8px;
+  color: var(--muted);
+  font-size: 12px;
+}
+@media print {
+  .site-header,
+  .footer,
+  .admin-sidebar,
+  .operations-filters,
+  .report-actions button,
+  a[href^="/admin/reports/export"] {
+    display: none !important;
+  }
+  body {
+    background: white;
+  }
+  .admin-layout {
+    display: block;
+  }
+  .table-wrap {
+    overflow: visible;
+  }
+  .report-chart,
+  .report-figures,
+  tr {
+    break-inside: avoid;
+  }
+}
 .queue-caption {
   display: flex;
   justify-content: space-between;

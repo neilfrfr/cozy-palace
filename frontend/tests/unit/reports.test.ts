@@ -2,7 +2,10 @@ import { expect, it } from "vitest";
 import {
   occupancy,
   periodSchema,
+  daily,
+  previousPeriod,
   revenueByRoomType,
+  vatSplit,
   thisMonth,
   toCsv,
   totals,
@@ -164,5 +167,79 @@ it("sums revenue per room type: room and extras from payments, room charges, ref
     charges: 360.2,
     refunds: 300.2,
     net: 12960.1,
+  });
+});
+
+it("earns each stay night by night and counts money on the day it came in", () => {
+  const rows = daily(
+    "2026-11-01",
+    "2026-11-03",
+    ["a", "b"],
+    [
+      // Two nights at 1000 a night, one of them before the period.
+      {
+        room_id: "a",
+        check_in: "2026-10-31",
+        check_out: "2026-11-02",
+        status: "completed",
+        perNight: 1000,
+      },
+      // Confirmed stays earn too; cancelled ones never do.
+      {
+        room_id: "b",
+        check_in: "2026-11-02",
+        check_out: "2026-11-04",
+        status: "confirmed",
+        perNight: 500.5,
+      },
+      {
+        room_id: "b",
+        check_in: "2026-11-01",
+        check_out: "2026-11-02",
+        status: "cancelled",
+        perNight: 900,
+      },
+    ],
+    [{ room_id: "a", starts_on: "2026-11-03", ends_on: "2026-11-04" }],
+    [
+      { date: "2026-11-02", amount: 1001 },
+      { date: "2026-11-02", amount: 99.5 },
+    ],
+  );
+  expect(rows).toEqual([
+    {
+      date: "2026-11-01",
+      occupied: 1,
+      occupancy: 0.5,
+      earned: 1000,
+      collected: 0,
+    },
+    {
+      date: "2026-11-02",
+      occupied: 0,
+      occupancy: 0,
+      earned: 500.5,
+      collected: 1100.5,
+    },
+    {
+      date: "2026-11-03",
+      occupied: 0,
+      occupancy: 0,
+      earned: 500.5,
+      collected: 0,
+    },
+  ]);
+});
+
+it("splits VAT out of an inclusive amount and finds the period before", () => {
+  expect(vatSplit(1120)).toEqual({ gross: 1120, net: 1000, vat: 120 });
+  expect(vatSplit(0.01)).toEqual({ gross: 0.01, net: 0.01, vat: 0 });
+  expect(previousPeriod("2026-11-01", "2026-11-30")).toEqual({
+    from: "2026-10-02",
+    to: "2026-10-31",
+  });
+  expect(previousPeriod("2026-03-01", "2026-03-01")).toEqual({
+    from: "2026-02-28",
+    to: "2026-02-28",
   });
 });
