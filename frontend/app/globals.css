@@ -1806,7 +1806,7 @@ body:has(.staff-layout) .footer {
 }
 .report-charts {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
   gap: 16px;
   margin: 0 0 16px;
 }
