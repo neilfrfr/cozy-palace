@@ -120,6 +120,10 @@ it("sums revenue per room type: room and extras from payments, room charges, ref
       // Money that does not cover the extras is counted as extras first.
       { type: "Garden Deluxe", paid: 500, extras: 800 },
       { type: "No room", paid: 0.1, extras: 0 },
+      // A balance after a deposit that already covered the extras is all room.
+      { type: "Family Suite", paid: 2000, extras: 600, paidBefore: 1000 },
+      // A deposit smaller than the extras leaves the rest of the extras for the balance.
+      { type: "Family Suite", paid: 3000, extras: 600, paidBefore: 400 },
     ],
     [{ type: "Garden Deluxe", amount: 300.2 }],
     [
@@ -127,9 +131,15 @@ it("sums revenue per room type: room and extras from payments, room charges, ref
       { type: "No room", amount: 0.2 },
     ],
   );
-  const zero = { room: 0, extras: 0, charges: 0, refunds: 0, net: 0 };
   expect(r.rows).toEqual([
-    { roomType: "Family Suite", ...zero },
+    {
+      roomType: "Family Suite",
+      room: 4800,
+      extras: 200,
+      charges: 0,
+      refunds: 0,
+      net: 5000,
+    },
     {
       roomType: "Garden Deluxe",
       room: 6400,
@@ -149,10 +159,10 @@ it("sums revenue per room type: room and extras from payments, room charges, ref
   ]);
   expect(r.total).toEqual({
     roomType: "Total",
-    room: 6400.1,
-    extras: 1500,
+    room: 11200.1,
+    extras: 1700,
     charges: 360.2,
     refunds: 300.2,
-    net: 7960.1,
+    net: 12960.1,
   });
 });

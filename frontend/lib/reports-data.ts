@@ -47,7 +47,7 @@ export async function getReport(from: string, to: string) {
     db
       .from("payments")
       .select(
-        `status,amount_paid,paid_at,provider_payment_id,method,payment_reference,recorder:profiles!payments_recorded_by_fkey(full_name),reservations(reference,reservation_extras(line_total),${stayType})`,
+        `status,amount_paid,paid_at,provider_payment_id,method,payment_reference,recorder:profiles!payments_recorded_by_fkey(full_name),reservations(reference,reservation_extras(line_total),payments(status,amount_paid,paid_at),${stayType})`,
       )
       .in("status", ["paid", "review", "refunded"])
       .gte("paid_at", manilaMidnight(from))
@@ -136,7 +136,14 @@ export async function getReport(from: string, to: string) {
     payments.data!.map((p) => {
       const r = one(
         p.reservations as One<
-          Stay & { reservation_extras: { line_total: number }[] }
+          Stay & {
+            reservation_extras: { line_total: number }[];
+            payments: {
+              status: string;
+              amount_paid: number | null;
+              paid_at: string | null;
+            }[];
+          }
         >,
       );
       return {
@@ -146,6 +153,12 @@ export async function getReport(from: string, to: string) {
           (n, e) => n + Number(e.line_total),
           0,
         ),
+        // Earlier payments on the booking (a deposit, maybe in an earlier period) already covered extras first.
+        paidBefore: (r?.payments ?? [])
+          .filter(
+            (q) => q.paid_at && q.paid_at < p.paid_at! && q.status !== "open",
+          )
+          .reduce((n, q) => n + Number(q.amount_paid ?? 0), 0),
       };
     }),
     [

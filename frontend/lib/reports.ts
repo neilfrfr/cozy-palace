@@ -101,12 +101,18 @@ export type RevenueRow = {
 };
 const cents = (n: number) => Math.round(n * 100) / 100;
 /**
- * Revenue per room type. Each payment is split into its booking's extras (up to what was paid) and room;
+ * Revenue per room type. Each payment is split into its booking's extras (whatever earlier payments
+ * on that booking, `paidBefore`, have not already covered) and room;
  * refunds and room charges are summed as given. Every room type gets a row, even with nothing in it.
  */
 export function revenueByRoomType(
   types: string[],
-  payments: { type: string; paid: number; extras: number }[],
+  payments: {
+    type: string;
+    paid: number;
+    extras: number;
+    paidBefore?: number;
+  }[],
   refunds: { type: string; amount: number }[],
   charges: { type: string; amount: number }[],
 ) {
@@ -124,7 +130,10 @@ export function revenueByRoomType(
   };
   types.forEach(row);
   for (const p of payments) {
-    const extras = Math.min(p.paid, p.extras);
+    const extras = Math.min(
+      p.paid,
+      Math.max(0, p.extras - (p.paidBefore ?? 0)),
+    );
     row(p.type).extras += extras;
     row(p.type).room += p.paid - extras;
   }
