@@ -36,6 +36,23 @@ export async function GET(request: Request) {
       ["from", "to", "status", "reservations"],
       Object.entries(report.dining).map(([s, n]) => [f.from, f.to, s, n]),
     );
+  } else if (q.section === "daily") {
+    body = toCsv(
+      [
+        "date",
+        "occupied_rooms",
+        "occupancy_percent",
+        "earned_php",
+        "collected_php",
+      ],
+      report.days.map((d) => [
+        d.date,
+        d.occupied,
+        (d.occupancy * 100).toFixed(1),
+        d.earned.toFixed(2),
+        d.collected.toFixed(2),
+      ]),
+    );
   } else if (q.section === "revenue") {
     const r = report.revenue;
     body = toCsv(
@@ -82,7 +99,7 @@ export async function GET(request: Request) {
       ]),
     );
   }
-  const name = `cozy-palace-${["occupancy", "dining", "revenue"].includes(q.section) ? q.section : "payments"}-${f.from}-to-${f.to}.csv`;
+  const name = `cozy-palace-${["occupancy", "dining", "daily", "revenue"].includes(q.section) ? q.section : "payments"}-${f.from}-to-${f.to}.csv`;
   return new Response(body, {
     headers: {
       "content-type": "text/csv; charset=utf-8",

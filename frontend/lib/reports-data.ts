@@ -2,6 +2,8 @@ import "server-only";
 import { requireStaff } from "@/lib/auth/authorize";
 import {
   addDays,
+  daily,
+  nights,
   occupancy,
   revenueByRoomType,
   type Transaction,
@@ -29,7 +31,7 @@ export async function getReport(from: string, to: string) {
     db.from("rooms").select("id").eq("operational_state", "available"),
     db
       .from("room_bookings")
-      .select("room_id,check_in,check_out,reservations!inner(status)")
+      .select("room_id,check_in,check_out,reservations!inner(id,status,total)")
       .lt("check_in", end)
       .gt("check_out", from),
     db
@@ -186,6 +188,19 @@ export async function getReport(from: string, to: string) {
       })),
   );
 
+  // A booking's total is earned evenly over its room-nights, so a two-room stay splits it between rooms.
+  type Booked = { id: string; status: string; total: number };
+  const stayRows = stays.data!.map((s) => ({
+    ...s,
+    booking: one(s.reservations as One<Booked>)!,
+  }));
+  const roomNights: Record<string, number> = {};
+  for (const s of stayRows)
+    roomNights[s.booking.id] =
+      (roomNights[s.booking.id] ?? 0) + nights(s.check_in, s.check_out);
+  const manilaDate = (iso: string) =>
+    new Date(iso).toLocaleDateString("en-CA", { timeZone: "Asia/Manila" });
+
   const diningCounts: Record<string, number> = {};
   for (const d of dining.data!) {
     const s = status(d as { reservations: One<{ status: string }> });
@@ -203,6 +218,22 @@ export async function getReport(from: string, to: string) {
         status: status(s as { reservations: One<{ status: string }> }),
       })),
       closures.data!,
+    ),
+    days: daily(
+      from,
+      to,
+      rooms.data!.map((r) => r.id),
+      stayRows.map((s) => ({
+        room_id: s.room_id,
+        check_in: s.check_in,
+        check_out: s.check_out,
+        status: s.booking.status,
+        perNight: Number(s.booking.total) / (roomNights[s.booking.id] || 1),
+      })),
+      closures.data!,
+      transactions
+        .filter((t) => t.status === "paid")
+        .map((t) => ({ date: manilaDate(t.date), amount: t.amount })),
     ),
     dining: diningCounts,
     revenue,

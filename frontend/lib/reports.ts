@@ -159,6 +159,62 @@ export function revenueByRoomType(
   return { rows: list, total };
 }
 
+/** Stays that earn revenue night by night (accrual). Pending, cancelled and no-show stays earn nothing. */
+const EARNING = ["confirmed", "checked_in", "completed"];
+export type DayRow = {
+  date: string;
+  occupied: number;
+  occupancy: number;
+  earned: number;
+  collected: number;
+};
+/**
+ * One row per hotel date: occupancy, revenue earned that night (each stay's `perNight` share of its
+ * booking total) and money collected that day (`payments` dated in hotel time).
+ */
+export function daily(
+  from: string,
+  to: string,
+  roomIds: string[],
+  stays: (Stay & { perNight: number })[],
+  closures: Closed[],
+  payments: { date: string; amount: number }[],
+): DayRow[] {
+  const rows: DayRow[] = [];
+  for (let d = from; d <= to; d = addDays(d, 1)) {
+    const o = occupancy(d, d, roomIds, stays, closures);
+    const earned = stays
+      .filter(
+        (s) => EARNING.includes(s.status) && s.check_in <= d && d < s.check_out,
+      )
+      .reduce((n, s) => n + s.perNight, 0);
+    const collected = payments
+      .filter((p) => p.date === d)
+      .reduce((n, p) => n + p.amount, 0);
+    rows.push({
+      date: d,
+      occupied: o.occupied,
+      occupancy: o.rate,
+      earned: cents(earned),
+      collected: cents(collected),
+    });
+  }
+  return rows;
+}
+
+/** Philippine VAT, assumed included in every rate shown on the site. */
+export const VAT_RATE = 0.12;
+export function vatSplit(gross: number) {
+  const net = cents(gross / (1 + VAT_RATE));
+  return { gross: cents(gross), net, vat: cents(gross - net) };
+}
+
+/** The same number of days immediately before [from, to]. */
+export function previousPeriod(from: string, to: string) {
+  const prevTo = addDays(from, -1);
+  return { from: addDays(prevTo, -nights(from, to)), to: prevTo };
+}
+
 /** RFC 4180 CSV; a leading = + - @ is quoted with ' so spreadsheets never run it as a formula. */
 export function toCsv(header: string[], rows: (string | number)[][]) {
   const cell = (v: string | number) => {
