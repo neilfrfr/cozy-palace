@@ -162,6 +162,13 @@ export const orderMessages: Record<string, string> = {
   created: "Order saved.",
   paid: "Payment recorded.",
   settled: "Room bill settled.",
+  payment_recorded: "Payment recorded. The guest is emailed a receipt.",
+  INVALID_PAYMENT:
+    "Enter an amount above ₱0 with up to two decimals, pick a method, and keep the reference under 100 characters.",
+  INVALID_AMOUNT:
+    "That is more than the booking still owes. Check the amount and try again.",
+  PAYMENT_CLOSED:
+    "This booking can't take a payment now: it has ended, been cancelled, or its hold has lapsed.",
   saved: "Saved.",
   FORBIDDEN: "You do not have access to this.",
   NOT_FOUND:

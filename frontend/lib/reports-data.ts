@@ -47,7 +47,7 @@ export async function getReport(from: string, to: string) {
     db
       .from("payments")
       .select(
-        `status,amount_paid,paid_at,provider_payment_id,reservations(reference,reservation_extras(line_total),${stayType})`,
+        `status,amount_paid,paid_at,provider_payment_id,method,payment_reference,recorder:profiles!payments_recorded_by_fkey(full_name),reservations(reference,reservation_extras(line_total),${stayType})`,
       )
       .in("status", ["paid", "review", "refunded"])
       .gte("paid_at", manilaMidnight(from))
@@ -103,9 +103,14 @@ export async function getReport(from: string, to: string) {
       reference:
         one(p.reservations as One<{ reference: string }>)?.reference ?? "",
       amount: Number(p.amount_paid ?? 0),
-      method: "Xendit " + (p.provider_payment_id ?? ""),
+      method: p.method
+        ? (p.method === "gcash" ? "GCash" : p.method) +
+          (p.payment_reference ? " " + p.payment_reference : "")
+        : "Xendit " + (p.provider_payment_id ?? ""),
       status: p.status,
-      recordedBy: "Xendit",
+      recordedBy: p.method
+        ? (one(p.recorder as One<{ full_name: string }>)?.full_name ?? "")
+        : "Xendit",
     })),
     ...orders.data!.map((o) => ({
       date: o.paid_at!,

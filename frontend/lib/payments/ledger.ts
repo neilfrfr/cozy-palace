@@ -12,6 +12,11 @@ export type LedgerPayment = {
   refund_reference: string | null;
   refunder: { full_name: string } | null;
   provider_payment_id: string | null;
+  /** Null for Xendit; set when staff recorded the payment at the desk. */
+  method: "cash" | "gcash" | "maya" | "card" | "bank_transfer" | null;
+  payment_reference: string | null;
+  recorder: { full_name: string } | null;
+  verifier: { full_name: string } | null;
   refunds: { amount: number; status: "pending" | "succeeded" | "failed" }[];
   reservations: {
     id: string;
@@ -23,13 +28,19 @@ export type LedgerPayment = {
 };
 
 const columns =
-  "id,status,amount,amount_paid,created_at,paid_at,refunded_at,refund_reference,provider_payment_id,refunds(amount,status),refunder:profiles!payments_refunded_by_fkey(full_name),reservations!inner(id,reference,status,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name))";
+  "id,status,amount,amount_paid,created_at,paid_at,refunded_at,refund_reference,provider_payment_id,method,payment_reference,recorder:profiles!payments_recorded_by_fkey(full_name),verifier:profiles!payments_verified_by_fkey(full_name),refunds(amount,status),refunder:profiles!payments_refunded_by_fkey(full_name),reservations!inner(id,reference,status,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name))";
 
 /** Mirrors private.mark_payment_refunded; the database re-checks. */
 export const refundable = (p: LedgerPayment) =>
   p.status === "review" ||
   (p.status === "paid" &&
     ["cancelled", "expired"].includes(p.reservations.status));
+
+/** Mirrors private.verify_payment: a review payment on a booking still going ahead, with no refund. The database also checks it doesn't overpay. */
+export const verifiable = (p: LedgerPayment) =>
+  p.status === "review" &&
+  ["pending", "confirmed", "checked_in"].includes(p.reservations.status) &&
+  p.refunds.length === 0;
 
 export const refundPending = (p: LedgerPayment) =>
   p.refunds.some((r) => r.status === "pending");

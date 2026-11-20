@@ -13,7 +13,11 @@ import { WorkspaceNav } from "@/components/workspace-nav";
 import { ReservationForm } from "@/components/reservation-form";
 import { ReservationControls } from "@/components/reservation-controls";
 import { bookedAt, formatLabel } from "@/lib/format";
-import { canPayOnline, isPaid } from "@/lib/reservations/normalize";
+import {
+  canPayOnline,
+  isPaid,
+  paidAndBalance,
+} from "@/lib/reservations/normalize";
 import { xenditKey } from "@/lib/payments/xendit";
 import { extrasSummary } from "@/lib/extras";
 export const dynamic = "force-dynamic";
@@ -71,7 +75,13 @@ export default async function Details({
           We hold the room for you until your check-in day.
         </div>
       )}
-      {isPaid(r) && <div className="notice">Payment received. Thank you.</div>}
+      {isPaid(r) && (
+        <div className="notice">
+          {paidAndBalance(r).balance > 0
+            ? `Deposit of ₱${paidAndBalance(r).paid.toLocaleString("en-PH")} received. Balance due at the hotel: ₱${paidAndBalance(r).balance.toLocaleString("en-PH")}.`
+            : "Payment received. Thank you."}
+        </div>
+      )}
       {["pending", "confirmed"].includes(r.status) && (
         <div className="notice">
           {guestCanCancel(allocation?.check_in ?? "")
