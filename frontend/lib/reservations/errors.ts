@@ -18,6 +18,7 @@ const codes = [
   "REFUND_PENDING",
   "NO_CURRENT_STAY",
   "HOLD_ENDING",
+  "INVALID_AMOUNT",
 ];
 export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
@@ -48,13 +49,15 @@ export const errorMessages: Record<string, string> = {
   TOO_MANY_PENDING:
     "You already have 3 requests waiting for staff. Wait for one to be confirmed, or cancel one, before sending another.",
   PAYMENT_REQUIRED:
-    "This booking is not paid yet. It can be confirmed once the guest pays online.",
+    "This booking is not paid yet. It can be confirmed once the guest pays online or staff record a payment.",
   CANCEL_CUTOFF:
     "Online cancellation closes at 11:59 PM (Manila time) two days before the booking date. Please contact the front desk to cancel.",
   EXTRAS_UNAVAILABLE:
     "One of the extras you picked is no longer offered or is over its limit. Choose again.",
   HOLD_ENDING:
     "Your room hold ends in a few minutes, so online payment is closed. Please pay at the hotel.",
+  INVALID_AMOUNT:
+    "That is more than the booking still owes. Check the amount and try again.",
   PAYMENT_UNAVAILABLE:
     "Online payment could not be started. Please try again or contact staff.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",

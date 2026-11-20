@@ -47,6 +47,8 @@ export const activityTypes = {
     actions: [
       "payment_paid",
       "payment_review",
+      "payment_recorded",
+      "payment_verified",
       "payment_refunded",
       "refund_requested",
       "refund_succeeded",

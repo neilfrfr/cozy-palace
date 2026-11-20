@@ -13,6 +13,7 @@ import { isConfigured } from "@/lib/supabase/config";
 import { publicError } from "@/lib/reservations/errors";
 import { createCheckout, createRefund, xenditKey } from "@/lib/payments/xendit";
 import { parseRefundAmount } from "@/lib/payments/ledger";
+import { paymentMethods } from "@/lib/orders";
 /** Online payment for a signed-in customer's own booking. */
 export async function startCheckoutAction(
   _: { code: string } | null,
@@ -175,5 +176,60 @@ export async function markRefundedAction(form: FormData) {
   redirect(
     "/staff/payments?" +
       (error ? "error=" + publicError(error) : "notice=refunded"),
+  );
+}
+
+/** Money taken at the desk: the whole balance or a deposit. */
+export async function recordDeskPaymentAction(form: FormData) {
+  const { db } = await requireStaff();
+  const p = z
+    .object({
+      id: z.uuid(),
+      method: z.enum(paymentMethods),
+      reference: z.string().trim().max(100),
+    })
+    .safeParse({
+      id: form.get("id"),
+      method: form.get("method"),
+      reference: form.get("reference") ?? "",
+    });
+  const amount = parseRefundAmount(form.get("amount"));
+  const back = "/staff/reservations/" + (p.success ? p.data.id : "");
+  if (!p.success || amount === null) redirect(back + "?error=INVALID_PAYMENT");
+  const { error } = await db.rpc("record_desk_payment", {
+    p_reservation_id: p.data.id,
+    p_amount: amount,
+    p_method: p.data.method,
+    p_reference: p.data.reference,
+  });
+  for (const path of [back, "/staff/payments", "/admin/activity"])
+    revalidatePath(path);
+  if (!error) after(() => deliverNotifications());
+  const code = error && publicError(error);
+  const shown: Record<string, string> = {
+    INVALID_INPUT: "INVALID_PAYMENT",
+    INVALID_TRANSITION: "PAYMENT_CLOSED",
+  };
+  redirect(
+    back +
+      "?" +
+      (code ? "error=" + (shown[code] ?? code) : "notice=payment_recorded"),
+  );
+}
+
+/** Accept a review payment as paid toward its booking. */
+export async function verifyPaymentAction(form: FormData) {
+  const { db } = await requireStaff();
+  const id = z.uuid().safeParse(form.get("id"));
+  if (!id.success) redirect("/staff/payments?error=INVALID_INPUT");
+  const { error } = await db.rpc("verify_payment", { p_payment_id: id.data });
+  for (const p of ["/staff/payments", "/admin/activity"]) revalidatePath(p);
+  if (!error) after(() => deliverNotifications());
+  const code = error && publicError(error);
+  redirect(
+    "/staff/payments?" +
+      (code
+        ? "error=" + (code === "INVALID_AMOUNT" ? "INVALID_AMOUNT_VERIFY" : code)
+        : "notice=verified"),
   );
 }

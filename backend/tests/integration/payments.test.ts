@@ -195,3 +195,52 @@ it("staff refund through Xendit in parts, one pending at a time, and replays are
   expect(row).toEqual({ status: "refunded", refunded_by: staff, refund_reference: "rfd-1" });
   await expect(requestRefund(staff, p.id, 1)).rejects.toThrow("INVALID_TRANSITION");
 });
+const desk = async (user: string, id: string, amount: number, method = "cash", ref: string | null = null) =>
+  ((await as("authenticated", user, "select record_desk_payment($1,$2,$3,$4) as p", [id, amount, method, ref])).rows[0] as { p: { id: string; status: string } }).p;
+const balance = async (id: string) =>
+  Number(((await db.query("select private.booking_balance(r) as b from reservations r where id=$1", [id])).rows[0] as { b: string }).b);
+it("staff take a deposit then the balance at the desk, never more than is owed", async () => {
+  const r = await pendingStay(100);
+  const total = Number(r.total);
+  await expect(desk(owner, r.id, 100)).rejects.toThrow("FORBIDDEN");
+  await expect(desk(staff, r.id, 0)).rejects.toThrow("INVALID_INPUT");
+  await expect(desk(staff, r.id, 100, "bitcoin")).rejects.toThrow("INVALID_INPUT");
+  await expect(desk(staff, r.id, total + 1)).rejects.toThrow("INVALID_AMOUNT");
+  const deposit = await desk(staff, r.id, 1000, "gcash", " GC-77 ");
+  expect(deposit.status).toBe("paid");
+  expect(await balance(r.id)).toBe(total - 1000);
+  const row = (await db.query("select method,payment_reference,recorded_by from payments where id=$1", [deposit.id])).rows[0];
+  expect(row).toEqual({ method: "gcash", payment_reference: "GC-77", recorded_by: staff });
+  // A deposit is a payment, so staff can confirm the stay; the guest gets the payment email.
+  const n = (await db.query("select count(*)::int as n from notifications where event_key=$1", [deposit.id + ":paid"])).rows[0];
+  expect(n).toEqual({ n: 1 });
+  const v = ((await db.query("select version from reservations where id=$1", [r.id])).rows[0] as { version: number }).version;
+  await as("authenticated", staff, "select transition_reservation($1,$2,'confirmed')", [r.id, v]);
+  await expect(desk(staff, r.id, total)).rejects.toThrow("INVALID_AMOUNT");
+  await desk(staff, r.id, total - 1000, "cash");
+  expect(await balance(r.id)).toBe(0);
+  await expect(desk(staff, r.id, 1)).rejects.toThrow("INVALID_AMOUNT");
+  const log = (await db.query("select count(*)::int as n from audit_logs where record_id=$1 and action='payment_recorded'", [r.id])).rows[0];
+  expect(log).toEqual({ n: 2 });
+});
+it("staff accept a short review payment, but not one that overpays or sits on a cancelled stay", async () => {
+  const verify = (user: string, id: string) => as("authenticated", user, "select verify_payment($1)", [id]);
+  const r = await pendingStay(104);
+  const total = Number(r.total);
+  const short = await open(r.id);
+  expect(await record(short.id, "inv_short", total - 500)).toBe("review");
+  await expect(verify(owner, short.id)).rejects.toThrow("FORBIDDEN");
+  await verify(staff, short.id);
+  expect((await db.query("select status,verified_by from payments where id=$1", [short.id])).rows[0]).toEqual({ status: "paid", verified_by: staff });
+  expect(await balance(r.id)).toBe(500);
+  await expect(verify(staff, short.id)).rejects.toThrow("INVALID_TRANSITION");
+  // A second online payment of the full total would overpay.
+  await db.query("insert into payments(reservation_id,amount,status,amount_paid,provider_payment_id,paid_at) values($1,$2,'review',$2,'inv_over',now())", [r.id, total]);
+  const over = (await db.query("select id from payments where provider_payment_id='inv_over'")).rows[0] as { id: string };
+  await expect(verify(staff, over.id)).rejects.toThrow("INVALID_AMOUNT");
+  const c = await pendingStay(108);
+  const late = await open(c.id);
+  expect(await record(late.id, "inv_late", Number(c.total) - 1)).toBe("review");
+  await db.query("update reservations set status='cancelled',hold_expires_at=null where id=$1", [c.id]);
+  await expect(verify(staff, late.id)).rejects.toThrow("INVALID_TRANSITION");
+});

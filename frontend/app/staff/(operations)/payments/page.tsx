@@ -3,10 +3,16 @@ import {
   getLedger,
   refundable,
   refundPending,
+  verifiable,
   remainingRefundable,
   type LedgerPayment,
 } from "@/lib/payments/ledger";
-import { markRefundedAction, refundAction } from "@/app/actions/payments";
+import {
+  markRefundedAction,
+  refundAction,
+  verifyPaymentAction,
+} from "@/app/actions/payments";
+import { methodLabel } from "@/components/order-list";
 import { RefundButton } from "@/components/refund-button";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { peso } from "@/lib/orders";
@@ -14,6 +20,7 @@ export const dynamic = "force-dynamic";
 
 const messages: Record<string, string> = {
   refunded: "Payment marked as refunded and logged in the activity log.",
+  verified: "Payment accepted. It now counts toward the booking.",
   refund_sent:
     "Refund sent to Xendit. It shows as pending until Xendit confirms it, usually within minutes.",
   INVALID_AMOUNT:
@@ -27,7 +34,9 @@ const messages: Record<string, string> = {
   PAYMENT_UNAVAILABLE: "Xendit is not set up on this site.",
   INVALID_INPUT: "Enter the Xendit refund ID or a short note (up to 200 characters).",
   INVALID_TRANSITION:
-    "This payment cannot be marked refunded. Cancel the booking first, or refresh: it may already be refunded.",
+    "This payment can't be changed now. Refresh: it may already be refunded or accepted, or the booking may have ended. Paid money on a live booking is refunded only after cancelling it.",
+  INVALID_AMOUNT_VERIFY:
+    "This payment is more than the booking still owes, so it can't be accepted. Refund it instead.",
   NOT_FOUND: "This payment could not be found.",
   FORBIDDEN: "Only staff can record refunds.",
 };
@@ -75,7 +84,29 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
                   {p.status === "open" ? "Checkout opened" : formatLabel(p.status)}
                 </span>
                 <br />
-                <small>{bookedAt(p.paid_at ?? p.created_at)}</small>
+                <small>
+                  {bookedAt(p.paid_at ?? p.created_at)}
+                  <br />
+                  {p.method
+                    ? `${methodLabel(p.method)}${p.payment_reference ? " · " + p.payment_reference : ""} · by ${p.recorder?.full_name ?? "staff"}`
+                    : p.provider_payment_id
+                      ? "Xendit " + p.provider_payment_id
+                      : "Xendit"}
+                  {p.verifier && (
+                    <>
+                      <br />
+                      Accepted by {p.verifier.full_name}
+                    </>
+                  )}
+                </small>
+                {verifiable(p) && (
+                  <form action={verifyPaymentAction} className="inline-form">
+                    <input type="hidden" name="id" value={p.id} />
+                    <button className="button secondary">
+                      Accept payment
+                    </button>
+                  </form>
+                )}
               </td>
               <td className="wrap refund">
                 {p.status === "refunded" ? (
@@ -177,7 +208,9 @@ export default async function Payments({
         <div>
           <h1>Payments</h1>
           <p>
-            Every online payment. Refund a cancelled booking&apos;s payment, in
+            Every payment, online or recorded at the desk. A payment in review
+            (wrong amount, or a second payment) counts only once you accept it;
+            if it would pay more than the booking owes, refund it. Refund a cancelled booking&apos;s payment, in
             full or in part, with Refund via Xendit. If you refunded from the
             Xendit dashboard instead, mark the payment refunded here so it is
             recorded and logged.

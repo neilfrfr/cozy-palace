@@ -21,6 +21,17 @@ export function normalizeReservation(value: unknown): Reservation {
 export const isPaid = (r: Reservation) =>
   !!r.payments?.some((p) => p.status === "paid");
 
+/** Accepted payments and what is still owed. Mirrors private.booking_balance. */
+export function paidAndBalance(r: Reservation) {
+  const paid =
+    Math.round(
+      (r.payments ?? [])
+        .filter((p) => p.status === "paid")
+        .reduce((sum, p) => sum + Number(p.amount_paid ?? 0) * 100, 0),
+    ) / 100;
+  return { paid, balance: Math.max(0, Math.round((Number(r.total) - paid) * 100) / 100) };
+}
+
 /** Mirrors open_payment: submitted (held) or confirmed, with a total, not yet paid. The database re-checks. */
 export function canPayOnline(r: Reservation, now = new Date()) {
   return (
