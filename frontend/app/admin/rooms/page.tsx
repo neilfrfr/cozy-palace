@@ -26,73 +26,64 @@ export default async function RoomInventory({
         recorded in the activity log.
       </p>
       <InventoryNotice notice={notice} error={error} />
-      <h2>Room types</h2>
-      <div className="table-wrap">
-        <table>
-          <caption className="hidden-label">Room types</caption>
-          <thead>
-            <tr>
-              <th>Type code</th>
-              <th>Name</th>
-              <th>Rooms</th>
-              <th>Guests and nightly rate</th>
-            </tr>
-          </thead>
-          <tbody>
-            {types.map((t) => (
-              <tr key={t.id}>
-                <td>{t.code}</td>
-                <td>{t.name}</td>
-                <td>
+      <div className="admin-split">
+        <section className="panel-card" aria-labelledby="room-types">
+          <h2 id="room-types">Room types</h2>
+          {types.map((t) => (
+            <form
+              key={t.id}
+              action={saveRoomTypeAction}
+              className="room-type-card"
+            >
+              <input type="hidden" name="id" value={t.id} />
+              <div className="room-type-name">
+                <strong>{t.name}</strong>
+                <small>
+                  {t.code} · Rooms{" "}
                   {rooms
                     .filter((r) => r.room_types.id === t.id)
                     .map((r) => r.room_number)
                     .join(", ")}
-                </td>
-                <td>
-                  <form action={saveRoomTypeAction} className="inline-form">
-                    <input type="hidden" name="id" value={t.id} />
-                    <label>
-                      Guests
-                      <input
-                        name="capacity"
-                        type="number"
-                        required
-                        min={1}
-                        max={20}
-                        defaultValue={t.capacity}
-                      />
-                    </label>
-                    <label>
-                      Nightly rate (₱)
-                      <input
-                        name="rate"
-                        type="number"
-                        required
-                        min={0}
-                        max={1000000}
-                        step="0.01"
-                        defaultValue={t.nightly_rate}
-                      />
-                    </label>
-                    <button className="button">Save</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!types.length && <p className="empty">No rooms have been added.</p>}
+                </small>
+              </div>
+              <label>
+                Guests
+                <input
+                  name="capacity"
+                  type="number"
+                  required
+                  min={1}
+                  max={20}
+                  defaultValue={t.capacity}
+                />
+              </label>
+              <label>
+                Nightly rate (₱)
+                <input
+                  name="rate"
+                  type="number"
+                  required
+                  min={0}
+                  max={1000000}
+                  step="0.01"
+                  defaultValue={t.nightly_rate}
+                />
+              </label>
+              <button className="button">Save</button>
+            </form>
+          ))}
+          {!types.length && <p className="empty">No rooms have been added.</p>}
+        </section>
+        <ClosureSection
+          page="/admin/rooms"
+          noun="Room"
+          resources={rooms.map((r) => ({
+            id: r.id,
+            label: `Room ${r.room_number} (${r.room_types.name})`,
+          }))}
+          closures={closures.filter((c) => c.room_id)}
+        />
       </div>
-      <ClosureSection
-        page="/admin/rooms"
-        noun="Room"
-        resources={rooms.map((r) => ({
-          id: r.id,
-          label: `Room ${r.room_number} (${r.room_types.name})`,
-        }))}
-        closures={closures.filter((c) => c.room_id)}
-      />
     </>
   );
 }

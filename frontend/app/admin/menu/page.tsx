@@ -6,18 +6,26 @@ import {
   orderMessages,
   type MenuRow,
 } from "@/lib/orders";
+import {
+  AddCard,
+  colLabel,
+  FilterTabs,
+  SectionCard,
+} from "@/components/admin-ui";
 export const dynamic = "force-dynamic";
 
 function ItemForm({ item }: { item?: MenuRow }) {
+  // Saved rows sit under a shared header; the add form keeps its labels.
+  const compact = !!item;
   return (
     <form action={saveMenuItemAction} className="edit-row">
       {item && <input type="hidden" name="id" value={item.id} />}
       <label className="edit-wide">
-        Name
+        {colLabel("Name", compact)}
         <input name="name" required maxLength={80} defaultValue={item?.name} />
       </label>
       <label>
-        Section
+        {colLabel("Section", compact)}
         <select name="section" defaultValue={item?.section ?? menuSections[0]}>
           {menuSections.map((s) => (
             <option key={s}>{s}</option>
@@ -25,7 +33,7 @@ function ItemForm({ item }: { item?: MenuRow }) {
         </select>
       </label>
       <label>
-        Price (₱)
+        {colLabel("Price (₱)", compact)}
         <input
           name="price"
           type="number"
@@ -42,7 +50,7 @@ function ItemForm({ item }: { item?: MenuRow }) {
           type="checkbox"
           defaultChecked={item?.available ?? true}
         />
-        Available
+        {colLabel("Available", compact)}
       </label>
       <button className="button">{item ? "Save" : "Add item"}</button>
     </form>
@@ -52,14 +60,15 @@ function ItemForm({ item }: { item?: MenuRow }) {
 export default async function Menu({
   searchParams,
 }: {
-  searchParams: Promise<{ notice?: string; error?: string }>;
+  searchParams: Promise<{ notice?: string; error?: string; section?: string }>;
 }) {
   await requireStaff(true);
-  const [{ notice, error }, menu] = await Promise.all([
+  const [{ notice, error, section: picked }, menu] = await Promise.all([
     searchParams,
     getMenu(),
   ]);
   const message = orderMessages[error ?? notice ?? ""];
+  const shown = menuSections.find((s) => s === picked);
   return (
     <>
       <p className="eyebrow">RESTAURANT</p>
@@ -77,18 +86,44 @@ export default async function Menu({
           {message}
         </p>
       )}
-      {menuSections.map((section) => (
-        <section key={section}>
-          <h2>{section}</h2>
-          {menu
-            .filter((m) => m.section === section)
-            .map((m) => (
-              <ItemForm key={m.id} item={m} />
-            ))}
-        </section>
-      ))}
-      <h2>Add a menu item</h2>
-      <ItemForm />
+      <AddCard title="Add a menu item">
+        <ItemForm />
+      </AddCard>
+      <FilterTabs
+        label="Menu sections"
+        tabs={[
+          {
+            label: "All",
+            count: menu.length,
+            href: "/admin/menu",
+            active: !shown,
+          },
+          ...menuSections.map((s) => ({
+            label: s,
+            count: menu.filter((m) => m.section === s).length,
+            href: "/admin/menu?section=" + encodeURIComponent(s),
+            active: shown === s,
+          })),
+        ]}
+      />
+      {menuSections
+        .filter((s) => !shown || s === shown)
+        .map((section) => {
+          const items = menu.filter((m) => m.section === section);
+          return (
+            <SectionCard
+              key={section}
+              title={section}
+              count={items.length}
+              head={["Name", "Section", "Price (₱)", "Available", ""]}
+              cols="minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto auto"
+            >
+              {items.map((m) => (
+                <ItemForm key={m.id} item={m} />
+              ))}
+            </SectionCard>
+          );
+        })}
     </>
   );
 }

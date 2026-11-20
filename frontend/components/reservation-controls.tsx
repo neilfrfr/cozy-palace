@@ -136,6 +136,17 @@ export function ReservationControls({
             Confirm booking
           </button>
         )}
+        {/* Stays visible once done, so staff can see the booking was confirmed. */}
+        {staff &&
+          ["confirmed", "checked_in", "completed"].includes(r.status) && (
+            <button
+              className="primary"
+              disabled
+              title="This booking is confirmed"
+            >
+              Booking confirmed
+            </button>
+          )}
         {staff &&
           r.status === "confirmed" &&
           (!businessDay ||

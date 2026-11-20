@@ -32,7 +32,8 @@ const messages: Record<string, string> = {
   REFUND_REJECTED:
     "Xendit rejected this refund, so nothing was sent. Check the Xendit dashboard, or refund there and mark it refunded below.",
   PAYMENT_UNAVAILABLE: "Xendit is not set up on this site.",
-  INVALID_INPUT: "Enter the Xendit refund ID or a short note (up to 200 characters).",
+  INVALID_INPUT:
+    "Enter the Xendit refund ID or a short note (up to 200 characters).",
   INVALID_TRANSITION:
     "This payment can't be changed now. Refresh: it may already be refunded or accepted, or the booking may have ended. Paid money on a live booking is refunded only after cancelling it.",
   INVALID_AMOUNT_VERIFY:
@@ -41,7 +42,13 @@ const messages: Record<string, string> = {
   FORBIDDEN: "Only staff can record refunds.",
 };
 
-function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: string }) {
+function PaymentTable({
+  rows,
+  caption,
+}: {
+  rows: LedgerPayment[];
+  caption: string;
+}) {
   return (
     <div className="table-wrap payments-table">
       <table>
@@ -63,7 +70,9 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
                   {p.reservations.reference}
                 </Link>
                 <br />
-                <small>Booking {formatLabel(p.reservations.status).toLowerCase()}</small>
+                <small>
+                  Booking {formatLabel(p.reservations.status).toLowerCase()}
+                </small>
               </td>
               <td className="wrap">
                 {p.reservations.guest_full_name ??
@@ -72,16 +81,19 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
               </td>
               <td>
                 {peso(Number(p.amount_paid ?? p.amount))}
-                {p.amount_paid != null && Number(p.amount_paid) !== Number(p.amount) && (
-                  <>
-                    <br />
-                    <small>Expected {peso(Number(p.amount))}</small>
-                  </>
-                )}
+                {p.amount_paid != null &&
+                  Number(p.amount_paid) !== Number(p.amount) && (
+                    <>
+                      <br />
+                      <small>Expected {peso(Number(p.amount))}</small>
+                    </>
+                  )}
               </td>
               <td>
                 <span className={"status " + p.status}>
-                  {p.status === "open" ? "Checkout opened" : formatLabel(p.status)}
+                  {p.status === "open"
+                    ? "Checkout opened"
+                    : formatLabel(p.status)}
                 </span>
                 <br />
                 <small>
@@ -102,9 +114,7 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
                 {verifiable(p) && (
                   <form action={verifyPaymentAction} className="inline-form">
                     <input type="hidden" name="id" value={p.id} />
-                    <button className="button secondary">
-                      Accept payment
-                    </button>
+                    <button className="button secondary">Accept payment</button>
                   </form>
                 )}
               </td>
@@ -156,11 +166,15 @@ function PaymentTable({ rows, caption }: { rows: LedgerPayment[]; caption: strin
                         </form>
                       )
                     )}
-                    <details>
-                      <summary>
-                        Already refunded in the Xendit dashboard?
-                      </summary>
-                      <form action={markRefundedAction} className="inline-form">
+                    <details className="manual-refund">
+                      <summary>Refunded in Xendit dashboard?</summary>
+                      <form
+                        action={markRefundedAction}
+                        className="inline-form manual-refund-panel"
+                      >
+                        <p className="subtle">
+                          Record a refund you already sent from Xendit.
+                        </p>
                         <input type="hidden" name="id" value={p.id} />
                         <label>
                           <span className="hidden-label">
@@ -210,15 +224,18 @@ export default async function Payments({
           <p>
             Every payment, online or recorded at the desk. A payment in review
             (wrong amount, or a second payment) counts only once you accept it;
-            if it would pay more than the booking owes, refund it. Refund a cancelled booking&apos;s payment, in
-            full or in part, with Refund via Xendit. If you refunded from the
-            Xendit dashboard instead, mark the payment refunded here so it is
-            recorded and logged.
+            if it would pay more than the booking owes, refund it. Refund a
+            cancelled booking&apos;s payment, in full or in part, with Refund
+            via Xendit. If you refunded from the Xendit dashboard instead, mark
+            the payment refunded here so it is recorded and logged.
           </p>
         </div>
       </header>
       {message && (
-        <p className={"notice" + (error ? " error" : "")} role={error ? "alert" : "status"}>
+        <p
+          className={"notice" + (error ? " error" : "")}
+          role={error ? "alert" : "status"}
+        >
           {message}
         </p>
       )}
@@ -229,7 +246,10 @@ export default async function Payments({
           refunds must be sent within 180 days, Maya within 365.
         </p>
         {needsRefund.length ? (
-          <PaymentTable rows={needsRefund} caption="Payments that need a refund" />
+          <PaymentTable
+            rows={needsRefund}
+            caption="Payments that need a refund"
+          />
         ) : (
           <p className="empty">Nothing to refund.</p>
         )}

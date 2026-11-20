@@ -27,7 +27,10 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
     success: false,
   });
   return (
-    <form action={submit} className="form-panel staff-editor">
+    <form
+      action={submit}
+      className={"form-panel staff-editor" + (member ? "" : " create")}
+    >
       {member && (
         <>
           <input type="hidden" name="id" value={member.id} />
@@ -52,12 +55,24 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
         </label>
         <label>
           Job title
-          <select name="jobTitle" defaultValue={member?.job_title ?? ""} required>
-            {!member && <option value="" disabled>Select a job title</option>}
+          <select
+            name="jobTitle"
+            defaultValue={member?.job_title ?? ""}
+            required
+          >
+            {!member && (
+              <option value="" disabled>
+                Select a job title
+              </option>
+            )}
             {member && !jobTitles.includes(member.job_title) && (
               <option value={member.job_title}>{member.job_title}</option>
             )}
-            {jobTitles.map((title) => <option key={title} value={title}>{title}</option>)}
+            {jobTitles.map((title) => (
+              <option key={title} value={title}>
+                {title}
+              </option>
+            ))}
           </select>
         </label>
         {member ? (
@@ -70,7 +85,7 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
             </strong>
           </p>
         ) : (
-          <label className="full">
+          <label>
             Employee email
             <input name="email" type="email" maxLength={254} required />
           </label>

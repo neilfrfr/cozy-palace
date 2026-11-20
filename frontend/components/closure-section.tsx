@@ -20,14 +20,14 @@ export function ClosureSection({
 }) {
   const label = new Map(resources.map((r) => [r.id, r.label]));
   return (
-    <section aria-labelledby="closures">
+    <section aria-labelledby="closures" className="panel-card">
       <h2 id="closures">Closed dates</h2>
-      <p className="intro">
+      <p className="subtle">
         A closed {noun.toLowerCase()} can&apos;t be booked from the first day up
         to, but not including, the reopening day. Dates that already have
         bookings can&apos;t be closed; move or cancel those bookings first.
       </p>
-      <form action={addClosureAction} className="edit-row">
+      <form action={addClosureAction} className="closure-form">
         <input type="hidden" name="page" value={page} />
         <label>
           {noun}
