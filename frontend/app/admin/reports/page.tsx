@@ -6,6 +6,7 @@ import { getReport } from "@/lib/reports-data";
 import { PrintButton } from "@/components/print-button";
 import { ReportBars } from "@/components/report-bars";
 export const dynamic = "force-dynamic";
+export const metadata = { title: "Reports" };
 
 export default async function Reports({
   searchParams,
