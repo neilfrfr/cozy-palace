@@ -24,22 +24,16 @@ export default async function TableInventory({
         recorded in the activity log.
       </p>
       <InventoryNotice notice={notice} error={error} />
-      <div className="table-wrap">
-        <table>
-          <caption className="hidden-label">Restaurant table inventory</caption>
-          <thead>
-            <tr>
-              <th>Table</th>
-              <th>Seats</th>
-            </tr>
-          </thead>
-          <tbody>
-            {tables.map((table) => (
-              <tr key={table.id}>
-                <td>{table.table_number}</td>
-                <td>
-                  <form action={saveTableAction} className="inline-form">
+      <div className="admin-split">
+        <section className="panel-card" aria-labelledby="seats">
+          <h2 id="seats">Seats per table</h2>
+          {tables.length ? (
+            <ul className="capacity-grid">
+              {tables.map((table) => (
+                <li key={table.id}>
+                  <form action={saveTableAction}>
                     <input type="hidden" name="id" value={table.id} />
+                    <span className="table-badge">{table.table_number}</span>
                     <label>
                       <span className="hidden-label">
                         Seats at table {table.table_number}
@@ -55,24 +49,23 @@ export default async function TableInventory({
                     </label>
                     <button className="button">Save</button>
                   </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!tables.length && (
-          <p className="empty">No restaurant tables have been added.</p>
-        )}
+                </li>
+              ))}
+            </ul>
+          ) : (
+            <p className="empty">No restaurant tables have been added.</p>
+          )}
+        </section>
+        <ClosureSection
+          page="/admin/tables"
+          noun="Table"
+          resources={tables.map((t) => ({
+            id: t.id,
+            label: `Table ${t.table_number} (${t.capacity} seats)`,
+          }))}
+          closures={closures.filter((c) => c.table_id)}
+        />
       </div>
-      <ClosureSection
-        page="/admin/tables"
-        noun="Table"
-        resources={tables.map((t) => ({
-          id: t.id,
-          label: `Table ${t.table_number} (${t.capacity} seats)`,
-        }))}
-        closures={closures.filter((c) => c.table_id)}
-      />
     </>
   );
 }

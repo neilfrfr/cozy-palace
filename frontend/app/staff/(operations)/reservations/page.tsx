@@ -92,10 +92,14 @@ export default async function OperationsQueue({
       <OperationalReservationList rows={result.rows} />
       <nav className="actions" aria-label="Reservation pages">
         {filter.page > 1 && (
-          <Link href={pageUrl(filter.page - 1)}>Previous</Link>
+          <Link className="button secondary" href={pageUrl(filter.page - 1)}>
+            Previous
+          </Link>
         )}
         {filter.page * 20 < result.count && (
-          <Link href={pageUrl(filter.page + 1)}>Next</Link>
+          <Link className="button secondary" href={pageUrl(filter.page + 1)}>
+            Next
+          </Link>
         )}
       </nav>
     </>

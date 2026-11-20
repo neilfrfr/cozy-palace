@@ -49,7 +49,7 @@ export default async function Reports({
     new URLSearchParams({ section, ...f }).toString();
   const o = report.occupancy;
   return (
-    <>
+    <div className="report-page">
       <p className="eyebrow">MANAGEMENT</p>
       <h1>Reports</h1>
       <p className="intro">
@@ -175,7 +175,9 @@ export default async function Reports({
         </table>
       </div>
       <p className="subtle">
-        <a href={csv("daily")}>Download CSV</a>
+        <a className="csv-link" href={csv("daily")}>
+          Download CSV
+        </a>
       </p>
 
       <h2>Accounting</h2>
@@ -226,7 +228,9 @@ export default async function Reports({
       <p className="subtle">
         Occupied counts checked-in and completed stays. Sellable leaves out
         rooms out of service and closed dates.{" "}
-        <a href={csv("occupancy")}>Download CSV</a>
+        <a className="csv-link" href={csv("occupancy")}>
+          Download CSV
+        </a>
       </p>
 
       <h2>Dining reservations</h2>
@@ -243,7 +247,9 @@ export default async function Reports({
         <p className="empty">No dining reservations in these dates.</p>
       )}
       <p className="subtle">
-        <a href={csv("dining")}>Download CSV</a>
+        <a className="csv-link" href={csv("dining")}>
+          Download CSV
+        </a>
       </p>
 
       <h2>Revenue by room type</h2>
@@ -279,7 +285,9 @@ export default async function Reports({
         charges when the room bill is settled, refunds when completed. Each
         payment is split into its booking&apos;s extras and the room. The
         payment filters above don&apos;t apply here.{" "}
-        <a href={csv("revenue")}>Download CSV</a>
+        <a className="csv-link" href={csv("revenue")}>
+          Download CSV
+        </a>
       </p>
 
       <h2>Payments</h2>
@@ -328,8 +336,10 @@ export default async function Reports({
         {!rows.length && <p className="empty">No payments match.</p>}
       </div>
       <p className="subtle">
-        <a href={csv("transactions")}>Download CSV</a>
+        <a className="csv-link" href={csv("transactions")}>
+          Download CSV
+        </a>
       </p>
-    </>
+    </div>
   );
 }

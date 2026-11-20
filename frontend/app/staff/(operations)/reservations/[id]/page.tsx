@@ -192,8 +192,7 @@ export default async function OperationalDetail({
           </p>
         </section>
       )}
-      <section className="operations-section">
-        <h2>Service progress</h2>
+      <section className="operations-section" aria-label="Booking actions">
         <ReservationControls
           reservation={r}
           staff

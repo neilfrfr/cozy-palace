@@ -46,7 +46,7 @@ export const siteText = {
     "Questions about your reservation?",
   ],
   "contact.phone": ["Contact: phone", "+63 2 8123 4567"],
-  "contact.email": ["Contact: email", "hello@cozypalace.example"],
+  "contact.email": ["Contact: email", "cozypalace.bookings@gmail.com"],
   "contact.address": [
     "Contact: address",
     "123 Placeholder Street, Makati City, Metro Manila, Philippines",

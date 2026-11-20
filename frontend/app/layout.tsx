@@ -46,7 +46,7 @@ export default function RootLayout({
                 <br />
                 +63 2 8123 4567
                 <br />
-                hello@cozypalace.example
+                cozypalace.bookings@gmail.com
               </p>
               <p>
                 A prototype booking site. Rates are fictional, prices are in

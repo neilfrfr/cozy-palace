@@ -25,7 +25,8 @@ export default async function StaffDirectory({
           <p className="eyebrow">Administration</p>
           <h1>Staff Directory</h1>
           <p className="subtle staff-directory-description">
-            Create onboarding records, update employee details, and revoke staff access.
+            Create onboarding records, update employee details, and revoke staff
+            access.
           </p>
         </div>
       </div>
@@ -41,25 +42,41 @@ export default async function StaffDirectory({
         </p>
       ) : (
         <>
-          <h2>Add an employee</h2>
-          <StaffEditor />
-          <h2>Team members ({count || 0})</h2>
+          <section className="staff-add" aria-labelledby="add-employee">
+            <h2 id="add-employee">Add an employee</h2>
+            <StaffEditor />
+          </section>
+          <h2>
+            Team members <span className="count-chip">{count || 0}</span>
+          </h2>
           {!data?.length && (
             <p className="notice">
               No staff onboarding records yet. Add your first employee above.
             </p>
           )}
-          {data?.map((member) => (
-            <article key={member.id}>
-              <StaffEditor member={member as StaffMember} />
-            </article>
-          ))}
+          <div className="staff-grid">
+            {data?.map((member) => (
+              <article key={member.id}>
+                <StaffEditor member={member as StaffMember} />
+              </article>
+            ))}
+          </div>
           <nav className="actions" aria-label="Staff directory pages">
             {page > 1 && (
-              <a href={"/admin/staff?page=" + (page - 1)}>Previous</a>
+              <a
+                className="button secondary"
+                href={"/admin/staff?page=" + (page - 1)}
+              >
+                Previous
+              </a>
             )}
             {page * 20 < (count || 0) && (
-              <a href={"/admin/staff?page=" + (page + 1)}>Next</a>
+              <a
+                className="button secondary"
+                href={"/admin/staff?page=" + (page + 1)}
+              >
+                Next
+              </a>
             )}
           </nav>
         </>

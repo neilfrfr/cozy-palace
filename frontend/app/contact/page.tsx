@@ -35,8 +35,8 @@ export default async function Contact() {
             <div>
               <dt>EMAIL</dt>
               <dd>
-                <a href="mailto:hello@cozypalace.example">
-                  hello@cozypalace.example
+                <a href="mailto:cozypalace.bookings@gmail.com">
+                  cozypalace.bookings@gmail.com
                 </a>
               </dd>
             </div>
