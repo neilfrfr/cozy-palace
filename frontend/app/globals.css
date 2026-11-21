@@ -3919,3 +3919,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .add-card-body .menu-photo-preview { grid-column:1; grid-row:1/span 2; width:110px; aspect-ratio:4/3; display:grid; place-items:center; overflow:hidden; border:1px dashed var(--line); border-radius:8px; background:var(--stone); color:var(--muted); }
 .add-card-body .menu-photo-preview img { width:100%; height:100%; object-fit:cover; }
 .add-card-body .menu-photo-clear { grid-column:3; grid-row:1/span 2; white-space:nowrap; }
+/* When a menu card is narrower than its 990px row grid, stack each row instead of scrolling sideways. */
+.section-card:has(.admin-menu-item) { container-type:inline-size; }
+@container (max-width:989px) {
+  .section-card:has(.admin-menu-item) .admin-menu-item { min-width:0; grid-template-columns:72px minmax(0,1fr) minmax(0,1fr); grid-auto-flow:dense; }
+  .admin-menu-item:not(.admin-menu-item-create) > .admin-item-photo { width:72px; grid-row:span 2; }
+  .admin-menu-item .edit-row > label:first-of-type { grid-column:2 / -1; }
+  .admin-menu-item .edit-row > .menu-description-field, .admin-menu-item .edit-row > .edit-check, .admin-menu-item .edit-row > .admin-item-actions { grid-column:1 / -1; }
+  .section-card:has(.admin-menu-item) .edit-head { display:none; }
+  .admin-menu-item .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; }
+}

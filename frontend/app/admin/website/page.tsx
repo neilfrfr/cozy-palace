@@ -104,7 +104,7 @@ export default async function Website({
                     <textarea
                       name={key}
                       maxLength={2000}
-                      rows={/text|subtitle|lede|hours/i.test(siteText[key][0]) ? 5 : 1}
+                      rows={/text|subtitle|lede|hours/i.test(siteText[key][0]) ? 5 : 2}
                       defaultValue={text(content, key)}
                     />
                   </label>
