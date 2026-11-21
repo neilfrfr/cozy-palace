@@ -3783,7 +3783,6 @@ select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 3
 @media(max-width:700px) { .admin-layout { grid-template-columns:1fr; } .admin-sidebar { padding:14px 18px; } .admin-sidebar nav { flex-direction:row; flex-wrap:wrap; } .admin-content { padding:20px 16px; } .operations-layout { grid-template-columns:1fr; } .operations-content { padding:24px 16px; min-width:0; } .management-columns { grid-template-columns:minmax(0,1fr); gap:24px; } .operations-filters { grid-template-columns:repeat(auto-fit,minmax(min(100%,190px),1fr)); } }
 @media(max-width:520px) { .auth-layout { padding:16px; min-height:100dvh; } .auth-card { min-height:0; grid-template-columns:1fr; } .auth-content.login { padding:24px; } .website-editor-toolbar { align-items:stretch; } .website-editor-toolbar > form { align-self:flex-start; } }
 .recent-orders-card table th:nth-child(4),.recent-orders-card table td:nth-child(4) { text-align:right; font-variant-numeric:tabular-nums; }
-.auth-content input:not([type="checkbox"]):focus-visible { outline:2px solid var(--navy); outline-offset:3px; border-bottom-color:var(--navy); box-shadow:0 1px 0 var(--navy); }
 .homepage .home-dining-copy .button.explore-dining:focus-visible { outline:2px solid var(--navy); outline-offset:3px; border-color:var(--navy); }
 .booking-bar input:focus-visible { outline:2px solid #fff; outline-offset:2px; border-bottom-color:#fff; }
 .dining-table-search select:focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-color:var(--navy); }
@@ -3794,7 +3793,8 @@ select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 3
 /* Gold remains a brand accent; focus feedback uses a thin navy outline and low-opacity halo. */
 :focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible { border-color:var(--navy); box-shadow:0 0 0 2px rgb(21 34 56 / .10); }
-.auth-content input:not([type="checkbox"]):focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-bottom-color:var(--navy); box-shadow:0 1px 0 var(--navy); }
+/* Login fields are underline-only: focus thickens the line instead of drawing a box. */
+.auth-content input:not([type="checkbox"]):focus-visible { outline:none; border-bottom-color:var(--navy); box-shadow:0 1.5px 0 var(--navy); }
 .inquiry-word-count { grid-column:1/-1; margin:-12px 0 0; color:var(--muted); font-size:12px; text-align:right; }
 .inquiry-word-count.over-limit { color:#963c35; font-weight:600; }
 .payments-table { table-layout:fixed; }
