@@ -68,7 +68,7 @@ it("staff orders use server prices, save to the guest's account and stay private
   expect((await as(other, "select count(*)::int as c from orders")).rows).toEqual([{ c: 0 }]);
   expect((await as(other, "select count(*)::int as c from order_items")).rows).toEqual([{ c: 0 }]);
   // Later price changes leave the receipt alone.
-  await as(admin, "select save_menu_item($1,'Halo-halo','Shaved ice','Dessert',999,true)", [menu["Halo-halo"].id]);
+  await as(admin, "select save_menu_item($1,'Halo-halo','Shaved ice','Dessert',999,true,true)", [menu["Halo-halo"].id]);
   expect(
     (await db.query("select unit_price::int as p from order_items where order_id=$1 and name='Halo-halo'", [o.id])).rows,
   ).toEqual([{ p: Number(menu["Halo-halo"].price) }]);
@@ -83,13 +83,13 @@ it("walk-in orders have no owner; customers cannot create orders or edit the men
   expect(o.customer_id).toBeNull();
   await expect(order(owner, [["Fruit Smoothie", 1]])).rejects.toThrow("FORBIDDEN");
   await expect(as(owner, "insert into orders(staff_id,total,idempotency_key) values($1,0,$2)", [owner, key()])).rejects.toThrow();
-  await expect(as(staff, "select save_menu_item(null,'Free Food','','Dessert',0,true)")).rejects.toThrow("FORBIDDEN");
+  await expect(as(staff, "select save_menu_item(null,'Free Food','','Dessert',0,true,true)")).rejects.toThrow("FORBIDDEN");
   await expect(order(staff, [["Fruit Smoothie", 1]], "CP-NOPE")).rejects.toThrow("NOT_FOUND");
 });
 it("rejects bad items and enforces order status rules", async () => {
   await expect(order(staff, [["Fruit Smoothie", 0]])).rejects.toThrow("INVALID_INPUT");
   await expect(order(staff, [["Fruit Smoothie", 1], ["Fruit Smoothie", 2]])).rejects.toThrow("INVALID_INPUT");
-  await as(admin, "select save_menu_item($1,'Assorted Kakanin','','Dessert',160,false)", [menu["Assorted Kakanin"].id]);
+  await as(admin, "select save_menu_item($1,'Assorted Kakanin','','Dessert',160,false,true)", [menu["Assorted Kakanin"].id]);
   await expect(order(staff, [["Assorted Kakanin", 1]])).rejects.toThrow("INVALID_INPUT");
   const o = await order(staff, [["Halo-halo", 1]]);
   await expect(as(staff, "select transition_order($1,$2,'completed')", [o.id, o.version + 1])).rejects.toThrow(
@@ -100,17 +100,62 @@ it("rejects bad items and enforces order status rules", async () => {
     "INVALID_TRANSITION",
   );
 });
-it("admins delete menu items that were never ordered", async () => {
+it("admins archive, restore and delete menu items", async () => {
   expect((await db.query("select description from menu_items where name='Malunggay Niçoise Salad'")).rows).toEqual([
     { description: "A fresh Niçoise inspired salad with a local malunggay touch." },
   ]);
-  await expect(as(staff, "select delete_menu_item($1)", [menu["Halo-halo"].id])).rejects.toThrow("FORBIDDEN");
-  await expect(as(admin, "select delete_menu_item($1)", [menu["Halo-halo"].id])).rejects.toThrow("MENU_ITEM_IN_USE");
-  const { m } = (await as(admin, "select save_menu_item(null,'Test Soup','Warm','Main Course',100,true) as m")).rows[0] as {
-    m: { id: string; description: string };
+  const id = menu["Halo-halo"].id;
+  const row = async () => (await db.query("select archived,available from menu_items where id=$1", [id])).rows[0];
+  await expect(as(staff, "select delete_menu_item($1)", [id])).rejects.toThrow("FORBIDDEN");
+  // First delete archives; a new item may then reuse the name, which blocks restoring until it is renamed.
+  await as(admin, "select delete_menu_item($1)", [id]);
+  expect(await row()).toEqual({ archived: true, available: false });
+  const { m: twin } = (await as(admin, "select save_menu_item(null,'Halo-halo','','Dessert',100,true,true) as m")).rows[0] as {
+    m: { id: string };
   };
-  expect(m.description).toBe("Warm");
+  await expect(as(admin, "select restore_menu_item($1)", [id])).rejects.toThrow("DUPLICATE_NAME");
+  await as(admin, "select save_menu_item($1,'Halo-halo Special','','Dessert',100,true,true)", [twin.id]);
+  await as(admin, "select restore_menu_item($1)", [id]);
+  expect(await row()).toEqual({ archived: false, available: true });
+  // An archived item that is on an order can't be deleted for good.
+  await as(admin, "select delete_menu_item($1)", [id]);
+  await expect(as(admin, "select delete_menu_item($1)", [id])).rejects.toThrow("MENU_ITEM_IN_USE");
+  // One that was never ordered can.
+  const { m } = (await as(admin, "select save_menu_item(null,'Test Soup','Warm','Main Course',100,true,false) as m")).rows[0] as {
+    m: { id: string; description: string; on_website: boolean };
+  };
+  expect(m).toMatchObject({ description: "Warm", on_website: false });
+  await as(admin, "select delete_menu_item($1)", [m.id]);
   await as(admin, "select delete_menu_item($1)", [m.id]);
   expect((await db.query("select count(*)::int as c from menu_items where id=$1", [m.id])).rows).toEqual([{ c: 0 }]);
   await expect(as(admin, "select delete_menu_item($1)", [m.id])).rejects.toThrow("NOT_FOUND");
+});
+it("admins tailor sections and item order", async () => {
+  const order = async (section: string) =>
+    (await db.query("select name from menu_items where section=$1 and not archived order by position,name", [section])).rows.map(
+      (r) => (r as { name: string }).name,
+    );
+  const before = await order("Drinks");
+  await as(admin, "select move_menu_item($1,false)", [menu[before[0]].id]);
+  expect(await order("Drinks")).toEqual([before[1], before[0], ...before.slice(2)]);
+  // Moving past the end is a no-op.
+  await as(admin, "select move_menu_item($1,false)", [menu[before.at(-1)!].id]);
+  await expect(as(staff, "select move_menu_item($1,true)", [menu[before[0]].id])).rejects.toThrow("FORBIDDEN");
+
+  const sections = async () =>
+    (await db.query("select name from menu_sections order by position,name")).rows.map((r) => (r as { name: string }).name);
+  const { s } = (await as(admin, "select save_menu_section(null,'Specials','Chef picks') as s")).rows[0] as { s: { id: string } };
+  expect((await sections()).at(-1)).toBe("Specials");
+  await as(admin, "select move_menu_section($1,true)", [s.id]);
+  expect((await sections()).at(-2)).toBe("Specials");
+  await expect(as(admin, "select save_menu_section(null,'Drinks','')")).rejects.toThrow("DUPLICATE_NAME");
+  // Renaming a section carries its items along.
+  const drinks = (await db.query("select id from menu_sections where name='Drinks'")).rows[0] as { id: string };
+  await as(admin, "select save_menu_section($1,'Beverages','')", [drinks.id]);
+  expect((await order("Beverages")).length).toBe(before.length);
+  await expect(as(admin, "select delete_menu_section($1)", [drinks.id])).rejects.toThrow("SECTION_IN_USE");
+  await as(admin, "select delete_menu_section($1)", [s.id]);
+  expect(await sections()).not.toContain("Specials");
+  // The section gets its old name back for any test that runs after this one.
+  await as(admin, "select save_menu_section($1,'Drinks','')", [drinks.id]);
 });

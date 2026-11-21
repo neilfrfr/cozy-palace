@@ -1,7 +1,7 @@
 import Link from "next/link";
 import "../dining.css";
 import { MenuSections } from "./menu-sections";
-import { getMenu } from "@/lib/orders";
+import { getMenu, getMenuSections } from "@/lib/orders";
 import { getSiteContent } from "@/lib/site-content";
 import { isConfigured } from "@/lib/supabase/config";
 import { publicDiningMenu } from "@/lib/public-dining-menu";
@@ -12,8 +12,12 @@ export const dynamic = "force-dynamic";
 export default async function DiningMenuPage() {
   let categories = diningMenu;
   if (isConfigured()) {
-    const [rows, content] = await Promise.all([getMenu(), getSiteContent()]);
-    categories = publicDiningMenu(rows, content);
+    const [rows, sections, content] = await Promise.all([
+      getMenu(),
+      getMenuSections(),
+      getSiteContent(),
+    ]);
+    categories = publicDiningMenu(rows, sections, content);
   }
   return (
     <div className="public-page dining-page dining-full-menu-page">
