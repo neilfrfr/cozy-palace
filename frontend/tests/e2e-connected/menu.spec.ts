@@ -17,15 +17,7 @@ test("admin adds, reorders, hides, archives, restores and deletes menu items and
   await p.goto("/staff/login");
   await p.getByLabel("Email address").fill(adminEmail!);
   await p.getByLabel("Password", { exact: true }).fill(adminPassword!);
-  // A tick made before hydration is lost, so retry until React enables the button.
-  const agree = p.getByLabel("I agree to the Terms and Conditions");
-  const logIn = p.getByRole("button", { name: "Log in", exact: true });
-  await expect(async () => {
-    await agree.setChecked(false);
-    await agree.check();
-    await expect(logIn).toBeEnabled({ timeout: 1000 });
-  }).toPass();
-  await logIn.click();
+  await p.getByRole("button", { name: "Log in", exact: true }).click();
   await p.waitForURL((u) => !u.pathname.endsWith("/login"));
 
   // Add an item that staff can order but the website hides.
