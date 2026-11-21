@@ -1,6 +1,9 @@
 import { requireStaff } from "@/lib/auth/authorize";
 import { deleteMenuItemAction, saveMenuItemAction } from "@/app/actions/orders";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { PhotoThumbnailUpload } from "@/components/photo-thumbnail-upload";
+import { menuImage } from "@/lib/menu";
+import { getSiteContent, itemPhoto, itemPhotoKey } from "@/lib/site-content";
 import {
   getMenu,
   menuSections,
@@ -15,62 +18,77 @@ import {
 } from "@/components/admin-ui";
 export const dynamic = "force-dynamic";
 
-function ItemForm({ item }: { item?: MenuRow }) {
+function ItemForm({ item, photo }: { item?: MenuRow; photo?: string }) {
   // Saved rows sit under a shared header; the add form keeps its labels.
   const compact = !!item;
   return (
-    <form action={saveMenuItemAction} className="edit-row">
-      {item && <input type="hidden" name="id" value={item.id} />}
-      <label className="edit-wide">
-        {colLabel("Name", compact)}
-        <input name="name" required maxLength={80} defaultValue={item?.name} />
-      </label>
-      <label className="edit-wide">
-        {colLabel("Description", compact)}
-        <textarea
-          name="description"
-          maxLength={500}
-          rows={compact ? 2 : 3}
-          defaultValue={item?.description}
-        />
-      </label>
-      <label>
-        {colLabel("Section", compact)}
-        <select name="section" defaultValue={item?.section ?? menuSections[0]}>
-          {menuSections.map((s) => (
-            <option key={s}>{s}</option>
-          ))}
-        </select>
-      </label>
-      <label>
-        {colLabel("Price (₱)", compact)}
-        <input
-          name="price"
-          type="number"
-          required
-          min={0}
-          max={100000}
-          step="0.01"
-          defaultValue={item?.price}
-        />
-      </label>
-      <label className="edit-check">
-        <input
-          name="available"
-          type="checkbox"
-          defaultChecked={item?.available ?? true}
-        />
-        {colLabel("Available", compact)}
-      </label>
-      <button className="button">{item ? "Save" : "Add item"}</button>
+    <div className={"admin-menu-item" + (item ? "" : " admin-menu-item-create")}>
       {item && (
-        <ConfirmDeleteButton
-          action={deleteMenuItemAction}
-          title={`Delete ${item.name}?`}
-          message="Items already used on an order are kept to preserve order history. Mark them unavailable instead."
-        />
+        <div className="admin-item-photo">
+          <PhotoThumbnailUpload
+            name={item.name}
+            photoKey={itemPhotoKey("menu", item.id)}
+            src={photo ?? menuImage(item.name) ?? "/design/dining.jpg"}
+            returnTo="/admin/menu"
+            canRemove={!!photo}
+          />
+        </div>
       )}
-    </form>
+      {/* The form uses display: contents, so its fields and actions sit in the row grid. */}
+      <form action={saveMenuItemAction} className="edit-row">
+        {item && <input type="hidden" name="id" value={item.id} />}
+        <label className="edit-wide">
+          {colLabel("Name", compact)}
+          <input name="name" required maxLength={80} defaultValue={item?.name} />
+        </label>
+        <label>
+          {colLabel("Section", compact)}
+          <select name="section" defaultValue={item?.section ?? menuSections[0]}>
+            {menuSections.map((s) => (
+              <option key={s}>{s}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          {colLabel("Price (₱)", compact)}
+          <input
+            name="price"
+            type="number"
+            required
+            min={0}
+            max={100000}
+            step="0.01"
+            defaultValue={item?.price}
+          />
+        </label>
+        <label className="menu-description-field">
+          {colLabel("Description", compact)}
+          <input
+            name="description"
+            maxLength={500}
+            defaultValue={item?.description}
+          />
+        </label>
+        <label className="edit-check">
+          <input
+            name="available"
+            type="checkbox"
+            defaultChecked={item?.available ?? true}
+          />
+          {colLabel("Available", compact)}
+        </label>
+        <div className="admin-item-actions">
+          <button className="button">{item ? "Save" : "Add item"}</button>
+          {item && (
+            <ConfirmDeleteButton
+              action={deleteMenuItemAction}
+              title={`Delete ${item.name}?`}
+              message="Items already used on an order are kept to preserve order history. Mark them unavailable instead."
+            />
+          )}
+        </div>
+      </form>
+    </div>
   );
 }
 
@@ -80,9 +98,10 @@ export default async function Menu({
   searchParams: Promise<{ notice?: string; error?: string; section?: string }>;
 }) {
   await requireStaff(true);
-  const [{ notice, error, section: picked }, menu] = await Promise.all([
+  const [{ notice, error, section: picked }, menu, content] = await Promise.all([
     searchParams,
     getMenu(),
+    getSiteContent(),
   ]);
   const message = orderMessages[error ?? notice ?? ""];
   const shown = menuSections.find((s) => s === picked);
@@ -104,7 +123,9 @@ export default async function Menu({
         </p>
       )}
       <AddCard title="Add a menu item">
-        <ItemForm />
+        <div className="admin-menu-create-scroll">
+          <ItemForm />
+        </div>
       </AddCard>
       <FilterTabs
         label="Menu sections"
@@ -132,11 +153,15 @@ export default async function Menu({
               key={section}
               title={section}
               count={items.length}
-              head={["Name", "Section", "Price (₱)", "Available", ""]}
-              cols="minmax(0, 2fr) minmax(0, 1.2fr) minmax(0, 1fr) auto auto"
+              head={["Photo", "Name", "Section", "Price (₱)", "Description", "Available", "Actions"]}
+              cols="96px minmax(140px,1.35fr) minmax(110px,.9fr) minmax(96px,.65fr) minmax(160px,1.5fr) auto minmax(145px,auto)"
             >
               {items.map((m) => (
-                <ItemForm key={m.id} item={m} />
+                <ItemForm
+                  key={m.id}
+                  item={m}
+                  photo={itemPhoto(content, "menu", m.id)}
+                />
               ))}
             </SectionCard>
           );

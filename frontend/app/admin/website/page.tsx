@@ -1,4 +1,3 @@
-import Image from "next/image";
 import { requireStaff } from "@/lib/auth/authorize";
 import { getAdminRoomTypes } from "@/lib/inventory/service";
 import { getMenu } from "@/lib/orders";
@@ -16,42 +15,14 @@ import {
   type PhotoKey,
   type TextKey,
 } from "@/lib/site-content";
-import { saveSiteTextAction, uploadSitePhotoAction } from "./actions";
+import { saveSiteTextAction } from "./actions";
 import { FilterTabs } from "@/components/admin-ui";
+import { PhotoThumbnailUpload } from "@/components/photo-thumbnail-upload";
 export const dynamic = "force-dynamic";
 
-function PhotoForm({
-  name,
-  photoKey,
-  src,
-}: {
-  name: string;
-  photoKey: string;
-  src?: string;
-}) {
-  return (
-    <form action={uploadSitePhotoAction} className="photo-card">
-      <input type="hidden" name="key" value={photoKey} />
-      <Image
-        src={src ?? "/design/hotel-hero.jpg"}
-        alt={src ? name : ""}
-        width={240}
-        height={150}
-      />
-      <label>
-        <span className="photo-card-name">{name}</span>
-        <input
-          name="file"
-          type="file"
-          required
-          accept="image/jpeg,image/png,image/webp"
-        />
-      </label>
-      <button className="button">Upload</button>
-    </form>
-  );
+function PhotoForm({ name, photoKey, src, removable = false }: { name: string; photoKey: string; src?: string; removable?: boolean }) {
+  return <article className="photo-card"><span className="photo-card-name">{name}</span><PhotoThumbnailUpload name={name} photoKey={photoKey} src={src ?? "/design/hotel-hero.jpg"} canRemove={removable} /></article>;
 }
-
 export default async function Website({
   searchParams,
 }: {
@@ -68,6 +39,17 @@ export default async function Website({
   const textKeys = Object.keys(siteText) as TextKey[];
   // "Contact: email" belongs to the Contact group.
   const page = (key: TextKey) => siteText[key][0].split(": ")[0];
+  const railGroups = photos
+    ? [
+        { label: "Site photos", count: Object.keys(sitePhotos).length, id: "site-photos" },
+        { label: "Room photos", count: types.length, id: "room-photos" },
+        { label: "Menu item photos", count: menu.length, id: "menu-photos" },
+      ]
+    : [...new Set(textKeys.map(page))].map((label) => ({
+        label,
+        count: textKeys.filter((key) => page(key) === label).length,
+        id: "website-" + label.toLowerCase(),
+      }));
   const message =
     siteMessages[error ?? notice ?? ""] ??
     (error ? siteMessages.REQUEST_FAILED : null);
@@ -87,7 +69,10 @@ export default async function Website({
           {message}
         </p>
       )}
-      <FilterTabs
+      <div className="website-editor-layout">
+      <aside className="website-section-rail"><p className="eyebrow">PAGE SECTIONS</p>{railGroups.map((group) => <a key={group.id} href={"#" + group.id}>{group.label}<small>{group.count} {photos ? "photos" : "fields"}</small></a>)}</aside>
+      <div className="website-editor-main">
+      <div className="website-editor-toolbar"><FilterTabs
         label="Website sections"
         tabs={[
           {
@@ -103,13 +88,13 @@ export default async function Website({
             active: photos,
           },
         ]}
-      />
+      /></div>
       {/* One form for all text: saving sends every field, and a missing one would reset to the original. */}
       {!photos && (
         <form action={saveSiteTextAction} className="site-text">
           {[...new Set(textKeys.map(page))].map((group) => (
-            <fieldset key={group} className="panel-card site-text-group">
-              <legend>{group}</legend>
+            <section key={group} id={"website-" + group.toLowerCase()} className="panel-card site-text-group">
+              <header className="site-text-group-heading"><h2>{group}</h2><span className="website-field-count">{textKeys.filter((key) => page(key) === group).length} fields</span></header>
               {textKeys
                 .filter((key) => page(key) === group)
                 .map((key) => (
@@ -119,12 +104,12 @@ export default async function Website({
                     <textarea
                       name={key}
                       maxLength={2000}
-                      rows={2}
+                      rows={/text|subtitle|lede|hours/i.test(siteText[key][0]) ? 5 : 1}
                       defaultValue={text(content, key)}
                     />
                   </label>
                 ))}
-            </fieldset>
+            </section>
           ))}
           <div className="site-text-save">
             <span className="subtle">
@@ -136,7 +121,7 @@ export default async function Website({
       )}
       {photos && (
         <>
-          <section className="photo-section">
+          <section className="photo-section" id="site-photos">
             <h2>Site photos</h2>
             <div className="photo-grid">
               {(Object.keys(sitePhotos) as PhotoKey[]).map((key) => (
@@ -145,11 +130,12 @@ export default async function Website({
                   name={sitePhotos[key][0]}
                   photoKey={key}
                   src={photo(content, key)}
+                  removable={!!content[key]}
                 />
               ))}
             </div>
           </section>
-          <section className="photo-section">
+          <section className="photo-section" id="room-photos">
             <h2>Room photos</h2>
             <div className="photo-grid">
               {types.map(
@@ -159,6 +145,7 @@ export default async function Website({
                       key={t.id}
                       name={t.name}
                       photoKey={itemPhotoKey("room", t.id)}
+                      removable={!!itemPhoto(content, "room", t.id)}
                       src={
                         itemPhoto(content, "room", t.id) ?? roomPhoto(t.name)
                       }
@@ -170,7 +157,7 @@ export default async function Website({
               <p className="empty">No rooms have been added.</p>
             )}
           </section>
-          <section className="photo-section">
+          <section className="photo-section" id="menu-photos">
             <h2>Menu item photos</h2>
             <div className="photo-grid">
               {menu.map((m) => (
@@ -178,6 +165,7 @@ export default async function Website({
                   key={m.id}
                   name={m.name}
                   photoKey={itemPhotoKey("menu", m.id)}
+                  removable={!!itemPhoto(content, "menu", m.id)}
                   src={itemPhoto(content, "menu", m.id) ?? menuImage(m.name)}
                 />
               ))}
@@ -188,6 +176,7 @@ export default async function Website({
           </section>
         </>
       )}
+      </div></div>
     </>
   );
 }
