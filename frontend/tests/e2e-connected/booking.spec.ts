@@ -20,17 +20,19 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await page.getByLabel("Guests", { exact: true }).fill("2");
   await page.getByRole("button", { name: "Save reservation draft" }).click();
   await expect(
-    page.getByRole("heading", { name: /Reservation CP-/ }),
+    page.getByRole("heading", { name: /^Reservation \S+$/ }),
   ).toBeVisible();
   const reservationUrl = page.url();
-  const reference = await page.getByRole("heading", { name: /Reservation CP-/ }).innerText();
+  const reference = await page.getByRole("heading", { name: /^Reservation \S+$/ }).innerText();
   await page.goto(`${reservationUrl}/checkout`);
   await expect(page.getByText(reference.replace("Reservation ", ""), { exact: true })).toBeVisible();
   await expect(page.getByRole("button", { name: "Payment unavailable" })).toBeDisabled();
   await expect(page.locator("input")).toHaveCount(0);
   for (const id of ["invalid-id", "ffffffff-ffff-4fff-8fff-ffffffffffff", process.env.TEST_FOREIGN_RESERVATION_ID].filter(Boolean)) {
-    const response = await page.goto(`/reservations/${id}/checkout`);
-    expect(response?.status()).toBe(404);
+    // The root loading.tsx streams a 200 before notFound() runs, so check the page, not the status.
+    await page.goto(`/reservations/${id}/checkout`);
+    await expect(page.getByRole("heading", { name: "We couldn’t find that page." })).toBeVisible();
+    await expect(page.getByText("E-wallet Checkout")).toHaveCount(0);
   }
   await page.goto(reservationUrl);
   await page.reload();
@@ -39,7 +41,7 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await page.getByRole("button", { name: "Save changes" }).click();
   await page.reload();
   await expect(page.getByLabel("Guests", { exact: true })).toHaveValue("1");
-  page.once("dialog", (d) => d.accept());
   await page.getByRole("button", { name: "Delete draft", exact: true }).click();
+  await page.getByRole("alertdialog").getByRole("button", { name: "Delete draft", exact: true }).click();
   await expect(page).toHaveURL(/\/reservations$/);
 });
