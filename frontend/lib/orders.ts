@@ -14,11 +14,10 @@ export type MenuRow = {
   description: string;
   section: string;
   price: number;
-  /** Staff can order it. */
   available: boolean;
-  /** Shown on the public dining pages. */
-  on_website: boolean;
   archived: boolean;
+  /** Archived rows only: order lines that use it, which block deleting it for good. */
+  order_items?: { count: number }[];
 };
 export type Order = {
   id: string;
@@ -58,11 +57,14 @@ export async function getMenu(archived = false): Promise<MenuRow[]> {
   const db = await createClient();
   const { data } = await db
     .from("menu_items")
-    .select("id,name,description,section,price,available,on_website,archived")
+    .select(
+      "id,name,description,section,price,available,archived" +
+        (archived ? ",order_items(count)" : ""),
+    )
     .eq("archived", archived)
     .order("position")
     .order("name");
-  return (data ?? []) as MenuRow[];
+  return (data ?? []) as unknown as MenuRow[];
 }
 
 export async function getMenuSections(): Promise<MenuSection[]> {
@@ -159,7 +161,6 @@ export const menuItemSchema = z
     section: z.string().trim().min(1).max(40),
     price: z.coerce.number().min(0).max(100000),
     available: z.boolean(),
-    on_website: z.boolean(),
   })
   .strict();
 export const menuSectionSchema = z

@@ -113,7 +113,6 @@ export async function saveMenuItemAction(form: FormData) {
     section: form.get("section"),
     price: form.get("price"),
     available: form.get("available") === "on",
-    on_website: form.get("on_website") === "on",
   });
   if (!p.success) redirect(menuPage(form) + "error=INVALID_INPUT");
   const { error } = await db.rpc("save_menu_item", {
@@ -123,7 +122,6 @@ export async function saveMenuItemAction(form: FormData) {
     p_section: p.data.section,
     p_price: p.data.price,
     p_available: p.data.available,
-    p_on_website: p.data.on_website,
   });
   done(menuPage(form), error);
 }

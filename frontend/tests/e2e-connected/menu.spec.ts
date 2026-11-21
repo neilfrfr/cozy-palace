@@ -12,7 +12,7 @@ const names = (p: Page, section: string) =>
     .locator('input[name="name"]')
     .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
 
-test("admin adds, reorders, hides, archives, restores and deletes menu items and sections", async ({ page: p }) => {
+test("admin adds, reorders, archives, restores and deletes menu items and sections", async ({ page: p }) => {
   test.skip(!adminEmail || !adminPassword, "Requires a disposable administrator.");
   await p.goto("/staff/login");
   await p.getByLabel("Email address").fill(adminEmail!);
@@ -20,14 +20,13 @@ test("admin adds, reorders, hides, archives, restores and deletes menu items and
   await p.getByRole("button", { name: "Log in", exact: true }).click();
   await p.waitForURL((u) => !u.pathname.endsWith("/login"));
 
-  // Add an item that staff can order but the website hides.
+  // Add an item.
   await p.goto("/admin/menu?tab=Dessert");
   await p.getByText("+ Add a menu item").click();
   const add = p.locator(".admin-menu-item-create");
   await add.getByLabel("Name").fill(dish);
   await add.getByLabel("Section").selectOption("Dessert");
   await add.getByLabel("Price (₱)").fill("99");
-  await add.getByLabel("On website").uncheck();
   await add.getByRole("button", { name: "Add item" }).click();
   await expect(p.getByText("Saved.")).toBeVisible();
   expect((await names(p, "Dessert")).at(-1)).toBe(dish);
@@ -37,7 +36,7 @@ test("admin adds, reorders, hides, archives, restores and deletes menu items and
   await expect.poll(async () => (await names(p, "Dessert")).at(-2)).toBe(dish);
 
   await p.goto("/dining/menu");
-  await expect(p.getByText(dish)).toHaveCount(0);
+  await expect(p.getByText(dish)).toBeVisible();
   await p.goto("/staff/orders");
   await expect(p.getByText(dish).first()).toBeVisible();
 
