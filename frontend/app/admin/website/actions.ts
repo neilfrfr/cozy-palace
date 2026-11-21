@@ -11,13 +11,9 @@ import {
 
 const bucket = "site-images";
 
-// Every public page reads site content; /about and /contact are static, so they need this to update.
+// The site footer and every public page read site content, so refresh every cached page.
 function done(error: { message?: string } | null, ok: string, path = "/admin/website"): never {
-  for (const p of ["/", "/rooms", "/dining", "/about", "/contact"])
-    revalidatePath(p);
-  revalidatePath("/rooms/[id]", "page");
-  revalidatePath("/dining/menu");
-  revalidatePath("/admin/menu");
+  revalidatePath("/", "layout");
   redirect(
     path + "?" + (error ? "error=REQUEST_FAILED" : "notice=" + ok),
   );

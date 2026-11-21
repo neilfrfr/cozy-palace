@@ -23,7 +23,7 @@ export const siteText = {
   "home.dining.title": ["Home: dining heading", "Good food.\nGreat company."],
   "home.dining.body": [
     "Home: dining text",
-    "See the restaurant seating before you arrive. Online table reservations are coming later.",
+    "Explore the menu, choose a time and request a table before you arrive.",
   ],
   "rooms.title": ["Rooms: banner heading", "Find Your Place to Unwind"],
   "rooms.intro": [
@@ -35,15 +35,20 @@ export const siteText = {
     "Dining: banner text",
     "Explore our menu and restaurant seating.",
   ],
+  // Display only: the bookable times come from diningSlots in lib/dining.ts.
+  "dining.hours": [
+    "Dining: table booking hours",
+    "Prototype seating records are fictional. Tables can be booked from 11:00 to 14:00 and 17:00 to 21:00.",
+  ],
   "about.title": ["About: banner heading", "Your Stay, in One Place."],
   "about.intro": [
     "About: banner text",
     "Manage your hotel reservations and find information about dining at Cozy Palace Hotel and Restaurant.",
   ],
-  "contact.title": ["Contact: banner heading", "Get in touch."],
+  "contact.title": ["Contact: banner heading", "Get in Touch."],
   "contact.intro": [
     "Contact: banner text",
-    "Questions about your reservation?",
+    "Our concierge team is available 24 hours a day to assist with reservations, dining, and special requests.",
   ],
   "contact.phone": ["Contact: phone", "+63 2 8123 4567"],
   "contact.email": ["Contact: email", "cozypalace.bookings@gmail.com"],
@@ -55,6 +60,7 @@ export const siteText = {
     "Contact: opening hours",
     "Front desk: open 24 hours\nRestaurant: 11:00–14:00 and 17:00–21:00",
   ],
+  "footer.tagline": ["Footer: line under the hotel name", "Hotel and Restaurant"],
 } as const;
 export type TextKey = keyof typeof siteText;
 

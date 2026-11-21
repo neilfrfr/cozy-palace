@@ -2,6 +2,7 @@ import type { Metadata } from "next";
 import Link from "next/link";
 import { SiteNav } from "@/components/site-nav";
 import { readNavState } from "@/lib/auth/nav-state";
+import { getSiteContent, text } from "@/lib/site-content";
 import "./globals.css";
 import "./hotel.css";
 export const metadata: Metadata = {
@@ -19,13 +20,14 @@ async function FooterStayLink() {
     <Link href={home}>{employee ? "Work dashboard" : "My Reservations"}</Link>
   );
 }
-export default function RootLayout({
+export default async function RootLayout({
   children,
   modal,
 }: {
   children: React.ReactNode;
   modal: React.ReactNode;
 }) {
+  const content = await getSiteContent();
   return (
     <html lang="en">
       <body>
@@ -39,14 +41,14 @@ export default function RootLayout({
           <div className="footer-inner">
             <div className="footer-brand">
               <Link className="brand" href="/">
-                Cozy Palace<span>Hotel and Restaurant</span>
+                Cozy Palace<span>{text(content, "footer.tagline")}</span>
               </Link>
               <p>
-                123 Placeholder Street, Makati City, Metro Manila, Philippines
+                <span className="pre-line">{text(content, "contact.address")}</span>
                 <br />
-                +63 2 8123 4567
+                {text(content, "contact.phone")}
                 <br />
-                cozypalace.bookings@gmail.com
+                {text(content, "contact.email")}
               </p>
               <p>
                 A prototype booking site. Rates are fictional, prices are in

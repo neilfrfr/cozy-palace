@@ -2604,11 +2604,16 @@ button.primary.danger:hover {
   --cubby-line: #e2d9c8;
   grid-template-columns: 248px minmax(0, 1fr);
 }
+/* Pinned to the window so Sign out and My profile stay in reach; only the work area scrolls. */
 .desk-sidebar {
   position: sticky;
   top: 0;
   height: 100vh;
+  height: 100dvh;
+  /* An older .admin-sidebar rule sets min-height: 100%, which stretched it to the page height. */
+  min-height: 0;
   overflow-y: auto;
+  overscroll-behavior: contain;
   padding: 28px 18px 20px;
   background: var(--navy);
 }
@@ -2688,6 +2693,28 @@ button.primary.danger:hover {
   margin-top: auto;
   padding-top: 16px;
   border-top: 1px solid rgba(255, 255, 255, 0.12);
+}
+/* Desktop: the account links never scroll away; on a short window only the section list scrolls. */
+@media (min-width: 761px) {
+  .desk-sidebar { overflow: hidden; padding-bottom: 16px; }
+  .desk-nav { min-height: 0; gap: 16px; }
+  .desk-sidebar nav { flex: 1 1 auto; min-height: 0; overflow-y: auto; overscroll-behavior: contain; scrollbar-width: thin; scrollbar-color: rgba(201, 162, 75, 0.45) transparent; padding-left: 8px; margin-left: -8px; }
+  .desk-footer { flex-shrink: 0; }
+}
+/* Laptop-height windows: tighten the list so all 14 admin links fit without scrolling. */
+@media (min-width: 761px) and (max-height: 1000px) {
+  .desk-sidebar { padding-top: 20px; }
+  .desk-sidebar .brand { margin-bottom: 18px; }
+  .desk-sidebar nav { gap: 12px; }
+  .desk-group-name { margin-bottom: 2px; }
+  .desk-sidebar nav a, .desk-footer a, .desk-footer .sidebar-signout { padding-top: 6px; padding-bottom: 6px; }
+  .desk-footer { padding-top: 10px; }
+}
+@media (min-width: 761px) and (max-height: 800px) {
+  .desk-sidebar { padding-top: 16px; }
+  .desk-sidebar .brand { margin-bottom: 12px; }
+  .desk-sidebar nav { gap: 8px; }
+  .desk-sidebar nav a, .desk-footer a, .desk-footer .sidebar-signout { padding-top: 4px; padding-bottom: 4px; }
 }
 .desk-footer form {
   margin: 0;
