@@ -2243,16 +2243,6 @@ button.primary:hover {
 .field-hint.error {
   color: #963c35;
 }
-.profile-placeholder {
-  max-width: 720px;
-  padding: 30px;
-  border: 1px solid var(--line);
-  border-radius: 12px;
-  background: #fff;
-}
-.profile-placeholder .intro {
-  line-height: 1.65;
-}
 .room-photo {
   position: relative;
   min-height: 210px;

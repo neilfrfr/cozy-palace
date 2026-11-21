@@ -59,17 +59,19 @@ export function LoginForm({
           </Link>
         </div>
       </div>
-      <label className="terms-check">
-        <input
-          type="checkbox"
-          name="acceptTerms"
-          checked={accepted}
-          onChange={(event) => setAccepted(event.target.checked)}
-        />
-        <span>
-          I agree to the <Link href="/terms">Terms and Conditions</Link>
-        </span>
-      </label>
+      {portal === "guest" && (
+        <label className="terms-check">
+          <input
+            type="checkbox"
+            name="acceptTerms"
+            checked={accepted}
+            onChange={(event) => setAccepted(event.target.checked)}
+          />
+          <span>
+            I agree to the <Link href="/terms">Terms and Conditions</Link>
+          </span>
+        </label>
+      )}
       <Turnstile key={round} action="sign_in" onToken={setCaptcha} />
       {state.message && (
         <p className="notice error" role="alert">
@@ -79,7 +81,10 @@ export function LoginForm({
       <button
         className="primary login-submit"
         disabled={
-          pending || !configured || !accepted || (needsCaptcha && !captcha)
+          pending ||
+          !configured ||
+          (portal === "guest" && !accepted) ||
+          (needsCaptcha && !captcha)
         }
       >
         {pending ? "Signing in…" : "Log in"}

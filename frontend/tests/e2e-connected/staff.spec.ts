@@ -18,7 +18,6 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await a.goto("/staff/login");
     await a.getByLabel("Email address").fill(adminEmail!);
     await a.getByLabel("Password", { exact: true }).fill(adminPassword!);
-    await a.getByLabel("I agree to the Terms and Conditions").check();
     await a.getByRole("button", { name: "Log in", exact: true }).click();
     await a.goto("/admin/staff");
     const create = a.locator("form.staff-editor").filter({
@@ -50,7 +49,6 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await w.goto("/staff/login");
     await w.getByLabel("Email address").fill(workerEmail!);
     await w.getByLabel("Password", { exact: true }).fill(workerPassword!);
-    await w.getByLabel("I agree to the Terms and Conditions").check();
     await w.getByRole("button", { name: "Log in", exact: true }).click();
     await expect(w).toHaveURL(/\/staff$/);
     await a.reload();
