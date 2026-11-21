@@ -41,7 +41,7 @@ export default async function RootLayout({
           <div className="footer-inner">
             <div className="footer-brand">
               <Link className="brand" href="/">
-                Cozy Palace<span>Hotel and Restaurant</span>
+                Cozy Palace<span>{text(content, "footer.tagline")}</span>
               </Link>
               <p>
                 <span className="pre-line">{text(content, "contact.address")}</span>

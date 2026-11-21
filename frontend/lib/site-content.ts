@@ -35,6 +35,11 @@ export const siteText = {
     "Dining: banner text",
     "Explore our menu and restaurant seating.",
   ],
+  // Display only: the bookable times come from diningSlots in lib/dining.ts.
+  "dining.hours": [
+    "Dining: table booking hours",
+    "Prototype seating records are fictional. Tables can be booked from 11:00 to 14:00 and 17:00 to 21:00.",
+  ],
   "about.title": ["About: banner heading", "Your Stay, in One Place."],
   "about.intro": [
     "About: banner text",
@@ -55,6 +60,7 @@ export const siteText = {
     "Contact: opening hours",
     "Front desk: open 24 hours\nRestaurant: 11:00–14:00 and 17:00–21:00",
   ],
+  "footer.tagline": ["Footer: line under the hotel name", "Hotel and Restaurant"],
 } as const;
 export type TextKey = keyof typeof siteText;
 

@@ -19,6 +19,7 @@ import { saveSiteTextAction } from "./actions";
 import { FilterTabs } from "@/components/admin-ui";
 import { PhotoThumbnailUpload } from "@/components/photo-thumbnail-upload";
 export const dynamic = "force-dynamic";
+const plural = (n: number, word: string) => `${n} ${word}${n === 1 ? "" : "s"}`;
 
 function PhotoForm({ name, photoKey, src, removable = false }: { name: string; photoKey: string; src?: string; removable?: boolean }) {
   return <article className="photo-card"><span className="photo-card-name">{name}</span><PhotoThumbnailUpload name={name} photoKey={photoKey} src={src ?? "/design/hotel-hero.jpg"} canRemove={removable} /></article>;
@@ -70,7 +71,7 @@ export default async function Website({
         </p>
       )}
       <div className="website-editor-layout">
-      <aside className="website-section-rail"><p className="eyebrow">PAGE SECTIONS</p>{railGroups.map((group) => <a key={group.id} href={"#" + group.id}>{group.label}<small>{group.count} {photos ? "photos" : "fields"}</small></a>)}</aside>
+      <aside className="website-section-rail"><p className="eyebrow">PAGE SECTIONS</p>{railGroups.map((group) => <a key={group.id} href={"#" + group.id}>{group.label}<small>{plural(group.count, photos ? "photo" : "field")}</small></a>)}</aside>
       <div className="website-editor-main">
       <div className="website-editor-toolbar"><FilterTabs
         label="Website sections"
@@ -94,7 +95,7 @@ export default async function Website({
         <form action={saveSiteTextAction} className="site-text">
           {[...new Set(textKeys.map(page))].map((group) => (
             <section key={group} id={"website-" + group.toLowerCase()} className="panel-card site-text-group">
-              <header className="site-text-group-heading"><h2>{group}</h2><span className="website-field-count">{textKeys.filter((key) => page(key) === group).length} fields</span></header>
+              <header className="site-text-group-heading"><h2>{group}</h2><span className="website-field-count">{plural(textKeys.filter((key) => page(key) === group).length, "field")}</span></header>
               {textKeys
                 .filter((key) => page(key) === group)
                 .map((key) => (
@@ -104,7 +105,7 @@ export default async function Website({
                     <textarea
                       name={key}
                       maxLength={2000}
-                      rows={/text|subtitle|lede|hours/i.test(siteText[key][0]) ? 5 : 2}
+                      rows={/text|subtitle|lede|hours|booking/i.test(siteText[key][0]) ? 5 : 2}
                       defaultValue={text(content, key)}
                     />
                   </label>

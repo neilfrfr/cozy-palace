@@ -72,10 +72,7 @@ export default async function Dining() {
         {configured && !tables.length && (
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
-        <p className="subtle">
-          Prototype seating records are fictional. Tables can be booked from
-          11:00 to 14:00 and 17:00 to 21:00.
-        </p>
+        <p className="subtle pre-line">{text(content, "dining.hours")}</p>
       </section>
 
       <section className="dining-menu" aria-labelledby="menu-title">

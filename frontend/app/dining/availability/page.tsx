@@ -11,6 +11,7 @@ import { addDays } from "@/lib/reservations/availability";
 import { businessDate } from "@/lib/operations/schema";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
+import { getSiteContent, text } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
 
@@ -103,9 +104,8 @@ export default async function DiningAvailability({
         {configured && !tables.length && (
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
-        <p className="subtle">
-          Prototype seating records are fictional. Tables can be booked from
-          11:00 to 14:00 and 17:00 to 21:00.
+        <p className="subtle pre-line">
+          {text(await getSiteContent(), "dining.hours")}
         </p>
       </section>
     </div>
