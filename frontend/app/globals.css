@@ -3374,6 +3374,32 @@ option {
 .room-type-name small {
   color: var(--muted);
 }
+.inventory-create-form {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(145px, 1fr));
+  gap: 12px;
+  align-items: end;
+  margin: 16px 0 20px;
+  padding: 14px;
+  border: 1px solid var(--line);
+  border-radius: 8px;
+  background: #fbf8f1;
+}
+.inventory-create-form label {
+  display: grid;
+  gap: 4px;
+  margin: 0;
+  font-size: 13px;
+}
+.inventory-create-form input,
+.inventory-create-form select {
+  min-height: 40px;
+  margin: 0;
+}
+.inventory-create-form .button {
+  min-height: 40px;
+  justify-self: start;
+}
 .closure-form {
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));

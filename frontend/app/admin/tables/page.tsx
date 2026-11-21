@@ -1,4 +1,7 @@
-import { saveTableAction } from "@/app/actions/inventory";
+import {
+  createTableAction,
+  saveTableAction,
+} from "@/app/actions/inventory";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
 import { requireStaff } from "@/lib/auth/authorize";
@@ -27,6 +30,24 @@ export default async function TableInventory({
       <div className="admin-split">
         <section className="panel-card" aria-labelledby="seats">
           <h2 id="seats">Seats per table</h2>
+          <form action={createTableAction} className="inventory-create-form">
+            <label>
+              Table number
+              <input name="number" required maxLength={30} />
+            </label>
+            <label>
+              Seats
+              <input
+                name="capacity"
+                type="number"
+                required
+                min={1}
+                max={20}
+                step={1}
+              />
+            </label>
+            <button className="button">Add table</button>
+          </form>
           {tables.length ? (
             <ul className="capacity-grid">
               {tables.map((table) => (

@@ -24,8 +24,8 @@ export default async function Activity({
       <WorkspaceNav />
       <h1>Activity Log</h1>
       <p className="intro">
-        Review reservation, account, and staffing changes. Customer and system
-        activity are listed separately from employee actions.
+        Review reservation, inventory, account, and staffing changes. Customer
+        and system activity are listed separately from employee actions.
       </p>
       <form className="operations-filters">
         <label>
