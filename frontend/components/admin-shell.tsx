@@ -39,10 +39,7 @@ export function AdminSidebar() {
           ],
         },
       ]}
-      footer={[
-        ["/admin/profile", "My profile"],
-        ["/", "Public website"],
-      ]}
+      footer={[["/", "Public website"]]}
     />
   );
 }

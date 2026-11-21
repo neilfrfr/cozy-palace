@@ -15,7 +15,8 @@ async function signIn(form: FormData, portal: "guest" | "staff") {
     .object({ email: z.email().max(254), password: z.string().min(1).max(128) })
     .safeParse({ email: form.get("email"), password: form.get("password") });
   if (!p.success) return { message: "Enter a valid email and password." };
-  if (form.get("acceptTerms") !== "on")
+  // Only guests agree to the Terms at sign-in; staff accounts are created by an admin.
+  if (portal === "guest" && form.get("acceptTerms") !== "on")
     return { message: "Agree to the Terms and Conditions to sign in." };
   const db = await createClient();
   const { data, error } = await db.auth.signInWithPassword({

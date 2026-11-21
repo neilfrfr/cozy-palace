@@ -25,9 +25,7 @@ export async function WorkspaceNav() {
           Notifications{unread ? ` (${unread})` : ""}
         </Link>
       )}
-      {(!staff || admin) && (
-        <Link href={admin ? "/admin/profile" : "/account"}>My Profile</Link>
-      )}
+      {!staff && <Link href="/account">My Profile</Link>}
       {staff && <Link href="/staff">Staff workspace</Link>}
       {admin && (
         <>
