@@ -41,10 +41,10 @@ export default async function TableService({
           </Link>
         )}
       </form>
-      <h2>{date ? "Bookings for " + date : "Upcoming bookings"}</h2>
-      <TableBookingList rows={rows} staff />
-      <h2>Book a Walk-in</h2>
-      <TablePicker tables={tables} today={today} walkIn />
+      <section className="table-service-upcoming"><h2>{date ? "Bookings for " + date : "Upcoming bookings"}</h2>
+      <TableBookingList rows={rows} staff /></section>
+      <section className="table-service-walkin"><h2>Book a Walk-in</h2>
+      <TablePicker tables={tables} today={today} walkIn /></section>
     </>
   );
 }

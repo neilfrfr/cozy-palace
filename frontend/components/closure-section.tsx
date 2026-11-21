@@ -1,5 +1,6 @@
 import { addClosureAction, removeClosureAction } from "@/app/actions/inventory";
 import type { Closure } from "@/lib/inventory/service";
+import { DatePicker } from "@/components/date-picker";
 
 const day = (d: string) =>
   new Date(d + "T00:00:00").toLocaleDateString("en-PH", {
@@ -22,11 +23,7 @@ export function ClosureSection({
   return (
     <section aria-labelledby="closures" className="panel-card">
       <h2 id="closures">Closed dates</h2>
-      <p className="subtle">
-        A closed {noun.toLowerCase()} can&apos;t be booked from the first day up
-        to, but not including, the reopening day. Dates that already have
-        bookings can&apos;t be closed; move or cancel those bookings first.
-      </p>
+      <p className="subtle">Dates with bookings can&apos;t be closed. The reopening date is not included.</p>
       <form action={addClosureAction} className="closure-form">
         <input type="hidden" name="page" value={page} />
         <label>
@@ -39,19 +36,13 @@ export function ClosureSection({
             ))}
           </select>
         </label>
-        <label>
-          Closed from
-          <input name="from" type="date" required />
-        </label>
-        <label>
-          Reopens on
-          <input name="to" type="date" required />
-        </label>
+        <DatePicker name="from" label="Closed from" required />
+        <DatePicker name="to" label="Reopens on" required />
         <label>
           Reason
           <input name="reason" required maxLength={200} placeholder="Repairs" />
         </label>
-        <button className="button">Close dates</button>
+        <button className="button closure-submit">Close dates</button>
       </form>
       <div className="table-wrap">
         <table>

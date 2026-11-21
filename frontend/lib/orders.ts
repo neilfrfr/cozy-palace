@@ -28,7 +28,11 @@ export type Order = {
   paid_at: string | null;
   payment_method: (typeof paymentMethods)[number] | null;
   payment_reference: string | null;
-  reservations: { reference: string } | null;
+  reservations: {
+    reference: string;
+    guest_full_name: string | null;
+    customer: { full_name: string } | null;
+  } | null;
   /** Set on a room charge: the order waits on the stay's room bill. */
   rooms: { room_number: string } | null;
   staff: { full_name: string } | null;
@@ -57,7 +61,7 @@ export async function getMenu(): Promise<MenuRow[]> {
 }
 
 const orderFields =
-  "id,reference,status,total,note,version,created_at,paid_at,payment_method,payment_reference,reservations(reference),rooms(room_number),staff:profiles!orders_staff_id_fkey(full_name),order_items(name,unit_price,quantity)";
+  "id,reference,status,total,note,version,created_at,paid_at,payment_method,payment_reference,reservations(reference,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name)),rooms(room_number),staff:profiles!orders_staff_id_fkey(full_name),order_items(name,unit_price,quantity)";
 
 /** RLS limits customers to their own orders; staff see all unless a customer is given. */
 export async function getOrders(
@@ -173,6 +177,10 @@ export const orderMessages: Record<string, string> = {
     "This booking can't take a payment now: it has ended, been cancelled, or its hold has lapsed.",
   saved: "Saved.",
   deleted: "Menu item deleted.",
+  uploaded: "Menu photo updated.",
+  restored: "Menu photo removed.",
+  INVALID_PHOTO: "Choose a JPEG, PNG or WebP image under 5 MB.",
+  REQUEST_FAILED: "The photo could not be saved. Try again.",
   MENU_ITEM_IN_USE:
     "This menu item appears on past orders and cannot be deleted. Mark it unavailable instead.",
   FORBIDDEN: "You do not have access to this.",

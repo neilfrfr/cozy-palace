@@ -141,6 +141,7 @@ export function sniffImage(b: Uint8Array) {
 export const siteMessages: Record<string, string> = {
   saved: "Saved. The public website now shows your changes.",
   uploaded: "Photo replaced.",
+  restored: "Photo removed. The default photo is shown again.",
   INVALID_INPUT: "Keep each text block under 2,000 characters.",
   INVALID_PHOTO: "Choose a JPEG, PNG or WebP photo of 5 MB or less.",
   FORBIDDEN: "Only administrators can edit the website.",

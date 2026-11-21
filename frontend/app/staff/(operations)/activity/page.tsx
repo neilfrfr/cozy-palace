@@ -14,7 +14,7 @@ export default async function MyActivity() {
         your first sign-in of the day until midnight.
       </p>
       <ShiftFigures shift={shift} />
-      <div className="table-wrap">
+      <div className="table-wrap activity-table">
         <table>
           <caption className="hidden-label">Your actions this shift</caption>
           <thead>

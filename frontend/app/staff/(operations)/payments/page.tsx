@@ -7,15 +7,12 @@ import {
   remainingRefundable,
   type LedgerPayment,
 } from "@/lib/payments/ledger";
-import {
-  markRefundedAction,
-  refundAction,
-  verifyPaymentAction,
-} from "@/app/actions/payments";
+import { refundAction, verifyPaymentAction } from "@/app/actions/payments";
 import { methodLabel } from "@/components/order-list";
 import { RefundButton } from "@/components/refund-button";
 import { bookedAt, formatLabel } from "@/lib/format";
 import { peso } from "@/lib/orders";
+import { RefundExpansion } from "@/components/refund-expansion";
 export const dynamic = "force-dynamic";
 
 const messages: Record<string, string> = {
@@ -166,37 +163,15 @@ function PaymentTable({
                         </form>
                       )
                     )}
-                    <details className="manual-refund">
-                      <summary>Refunded in Xendit dashboard?</summary>
-                      <form
-                        action={markRefundedAction}
-                        className="inline-form manual-refund-panel"
-                      >
-                        <p className="subtle">
-                          Record a refund you already sent from Xendit.
-                        </p>
-                        <input type="hidden" name="id" value={p.id} />
-                        <label>
-                          <span className="hidden-label">
-                            Xendit refund ID or note for{" "}
-                            {p.reservations.reference}
-                          </span>
-                          <input
-                            name="reference"
-                            required
-                            maxLength={200}
-                            placeholder="Xendit refund ID"
-                          />
-                        </label>
-                        <button className="button secondary">
-                          Mark refunded
-                        </button>
-                      </form>
-                    </details>
                   </>
                 ) : (
                   "—"
                 )}
+                <RefundExpansion
+                  id={p.id}
+                  reference={p.reservations.reference}
+                  enabled={p.status !== "refunded" && refundable(p)}
+                />
               </td>
             </tr>
           ))}

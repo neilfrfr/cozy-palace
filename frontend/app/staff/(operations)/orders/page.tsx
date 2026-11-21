@@ -38,6 +38,11 @@ export default async function Orders({
           {message}
         </p>
       )}
+      {!menu.some((item) => item.available) && (
+        <p className="notice" role="status">
+          No available menu items were returned by the database. Saved recent orders are listed below.
+        </p>
+      )}
       <h2 className="hidden-label">New order</h2>
       <form action={createOrderAction}>
         {/* A fresh key per page load makes a double-submitted form save one order. */}
@@ -57,8 +62,8 @@ export default async function Orders({
             .filter((s) => s.items.length)}
         />
       </form>
-      <section className="operations-section">
-        <h2>Recent orders</h2>
+      <section className="operations-section recent-orders-card">
+        <div className="recent-orders-heading"><h2>Recent orders</h2><span>{orders.length} {orders.length === 1 ? "order" : "orders"}</span></div>
         <OrderList rows={orders} staff />
       </section>
     </>

@@ -18,7 +18,7 @@ export function OrderList({
 }) {
   if (!rows.length) return <p className="empty">No orders yet.</p>;
   return (
-    <div className="table-wrap">
+    <div className="table-wrap orders-table">
       <table>
         <caption className="hidden-label">Orders</caption>
         <thead>
@@ -40,6 +40,8 @@ export function OrderList({
                 {o.reservations && (
                   <div className="subtle">For {o.reservations.reference}</div>
                 )}
+                {o.reservations?.guest_full_name && <div className="subtle">{o.reservations.guest_full_name}</div>}
+                {o.reservations?.customer?.full_name && <div className="subtle">{o.reservations.customer.full_name}</div>}
                 {o.rooms && (
                   <div className="subtle">
                     Charged to room {o.rooms.room_number}
@@ -52,12 +54,10 @@ export function OrderList({
               </td>
               <td>{bookedAt(o.created_at)}</td>
               <td>
-                {o.order_items.map((i) => (
-                  <div key={i.name}>
-                    {i.quantity} × {i.name}{" "}
-                    <span className="subtle">({peso(i.unit_price)})</span>
-                  </div>
-                ))}
+                <details className="order-items-details">
+                  <summary>{o.order_items.slice(0, 2).map((i) => `${i.quantity} × ${i.name}`).join(", ")}{o.order_items.length > 2 ? ` +${o.order_items.length - 2} more` : ""}</summary>
+                  <div className="order-items-expanded">{o.order_items.map((i) => <div key={i.name}>{i.quantity} × {i.name} <span className="subtle">({peso(i.unit_price)})</span></div>)}</div>
+                </details>
               </td>
               <td>{peso(o.total)}</td>
               <td>
@@ -89,7 +89,7 @@ export function OrderList({
               {staff && (
                 <td>
                   {!o.paid_at && !o.rooms && o.status !== "cancelled" && (
-                    <form action={markOrderPaidAction} className="inline-form">
+                    <form action={markOrderPaidAction} className="inline-form order-payment-actions">
                       <input type="hidden" name="id" value={o.id} />
                       <input type="hidden" name="version" value={o.version} />
                       <label>
@@ -110,7 +110,8 @@ export function OrderList({
                     </form>
                   )}
                   {o.status === "open" &&
-                    (["completed", "cancelled"] as const)
+                    <div className="order-transition-actions">
+                    {(["completed", "cancelled"] as const)
                       .filter((s) => s === "completed" || !o.paid_at)
                       .map((s) => (
                         <form key={s} action={transitionOrderAction}>
@@ -130,6 +131,7 @@ export function OrderList({
                           </button>
                         </form>
                       ))}
+                    </div>}
                 </td>
               )}
             </tr>
