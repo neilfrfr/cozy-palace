@@ -5,6 +5,9 @@ import { requireStaff } from "@/lib/auth/authorize";
 import { publicError } from "@/lib/reservations/errors";
 import {
   closureSchema,
+  newRoomSchema,
+  newRoomTypeSchema,
+  newTableSchema,
   roomTypeSchema,
   tableSchema,
 } from "@/lib/inventory/forms";
@@ -52,6 +55,52 @@ export async function saveTableAction(form: FormData) {
     p_capacity: p.data.capacity,
   });
   done("/admin/tables", error, "saved");
+}
+
+export async function createRoomTypeAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const p = newRoomTypeSchema.safeParse({
+    name: form.get("name"),
+    description: form.get("description") ?? "",
+    capacity: form.get("capacity"),
+    rate: form.get("rate"),
+  });
+  if (!p.success) redirect("/admin/rooms?error=INVALID_INPUT");
+  const { error } = await db.rpc("create_room_type", {
+    p_name: p.data.name,
+    p_description: p.data.description,
+    p_capacity: p.data.capacity,
+    p_nightly_rate: p.data.rate,
+  });
+  done("/admin/rooms", error, "roomTypeCreated");
+}
+
+export async function createRoomAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const p = newRoomSchema.safeParse({
+    number: form.get("number"),
+    typeId: form.get("typeId"),
+  });
+  if (!p.success) redirect("/admin/rooms?error=INVALID_INPUT");
+  const { error } = await db.rpc("create_room", {
+    p_room_number: p.data.number,
+    p_room_type_id: p.data.typeId,
+  });
+  done("/admin/rooms", error, "roomCreated");
+}
+
+export async function createTableAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const p = newTableSchema.safeParse({
+    number: form.get("number"),
+    capacity: form.get("capacity"),
+  });
+  if (!p.success) redirect("/admin/tables?error=INVALID_INPUT");
+  const { error } = await db.rpc("create_table", {
+    p_table_number: p.data.number,
+    p_capacity: p.data.capacity,
+  });
+  done("/admin/tables", error, "tableCreated");
 }
 
 export async function addClosureAction(form: FormData) {

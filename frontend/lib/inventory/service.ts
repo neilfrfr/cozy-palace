@@ -12,6 +12,14 @@ export type DiningTable = {
 export type InventoryRoom = Room & {
   operational_state: "available" | "out_of_service";
 };
+export type InventoryRoomType = {
+  id: string;
+  code: string;
+  name: string;
+  description: string;
+  capacity: number;
+  nightly_rate: number;
+};
 /** All extras for the admin page; booking forms show only the active ones. */
 export async function getExtras(activeOnly = true): Promise<Extra[]> {
   const db = await createClient();
@@ -60,6 +68,16 @@ export async function getAdminRooms(): Promise<InventoryRoom[]> {
   if (error)
     throw new Error("Inventory could not be loaded. Please try again.");
   return data as unknown as InventoryRoom[];
+}
+export async function getAdminRoomTypes(): Promise<InventoryRoomType[]> {
+  const { db } = await requireStaff(true);
+  const { data, error } = await db
+    .from("room_types")
+    .select("id,code,name,description,capacity,nightly_rate")
+    .order("name");
+  if (error)
+    throw new Error("Room types could not be loaded. Please try again.");
+  return data ?? [];
 }
 export async function getAdminCounts() {
   const { db } = await requireStaff(true);

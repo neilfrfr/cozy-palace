@@ -24,6 +24,7 @@ export function publicError(error: unknown): string {
   if (!error || typeof error !== "object") return "REQUEST_FAILED";
   const e = error as { code?: string; message?: string };
   if (e.code === "23P01") return "AVAILABILITY_CONFLICT";
+  if (e.code === "23505") return "DUPLICATE_INVENTORY";
   return codes.includes(e.message ?? "") ? e.message! : "REQUEST_FAILED";
 }
 export const errorMessages: Record<string, string> = {

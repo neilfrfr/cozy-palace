@@ -1,21 +1,27 @@
-import { saveRoomTypeAction } from "@/app/actions/inventory";
+import {
+  createRoomAction,
+  createRoomTypeAction,
+  saveRoomTypeAction,
+} from "@/app/actions/inventory";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
-import { getAdminRooms, getClosures } from "@/lib/inventory/service";
+import {
+  getAdminRooms,
+  getAdminRoomTypes,
+  getClosures,
+} from "@/lib/inventory/service";
 export const dynamic = "force-dynamic";
 export default async function RoomInventory({
   searchParams,
 }: {
   searchParams: Promise<{ notice?: string; error?: string }>;
 }) {
-  const [{ notice, error }, rooms, closures] = await Promise.all([
+  const [{ notice, error }, rooms, types, closures] = await Promise.all([
     searchParams,
     getAdminRooms(),
+    getAdminRoomTypes(),
     getClosures(),
   ]);
-  const types = [
-    ...new Map(rooms.map((r) => [r.room_types.id, r.room_types])).values(),
-  ];
   return (
     <>
       <p className="eyebrow">INVENTORY</p>
@@ -29,6 +35,39 @@ export default async function RoomInventory({
       <div className="admin-split">
         <section className="panel-card" aria-labelledby="room-types">
           <h2 id="room-types">Room types</h2>
+          <form action={createRoomTypeAction} className="inventory-create-form">
+            <label>
+              Name
+              <input name="name" required maxLength={100} />
+            </label>
+            <label>
+              Description
+              <input name="description" maxLength={500} />
+            </label>
+            <label>
+              Guests
+              <input
+                name="capacity"
+                type="number"
+                required
+                min={1}
+                max={20}
+                step={1}
+              />
+            </label>
+            <label>
+              Nightly rate (₱)
+              <input
+                name="rate"
+                type="number"
+                required
+                min={0}
+                max={1000000}
+                step="0.01"
+              />
+            </label>
+            <button className="button">Add room type</button>
+          </form>
           {types.map((t) => (
             <form
               key={t.id}
@@ -43,7 +82,7 @@ export default async function RoomInventory({
                   {rooms
                     .filter((r) => r.room_types.id === t.id)
                     .map((r) => r.room_number)
-                    .join(", ")}
+                    .join(", ") || "None yet"}
                 </small>
               </div>
               <label>
@@ -72,7 +111,40 @@ export default async function RoomInventory({
               <button className="button">Save</button>
             </form>
           ))}
-          {!types.length && <p className="empty">No rooms have been added.</p>}
+          {!types.length && (
+            <p className="empty">No room types have been added.</p>
+          )}
+          <h2 id="rooms">Rooms</h2>
+          <form action={createRoomAction} className="inventory-create-form">
+            <label>
+              Room number
+              <input name="number" required maxLength={30} />
+            </label>
+            <label>
+              Room type
+              <select
+                name="typeId"
+                required
+                defaultValue=""
+                disabled={!types.length}
+              >
+                <option value="" disabled>
+                  Choose a room type
+                </option>
+                {types.map((type) => (
+                  <option key={type.id} value={type.id}>
+                    {type.name} ({type.code})
+                  </option>
+                ))}
+              </select>
+            </label>
+            <button className="button" disabled={!types.length}>
+              Add room
+            </button>
+          </form>
+          {!types.length && (
+            <p className="subtle">Add a room type before adding a room.</p>
+          )}
         </section>
         <ClosureSection
           page="/admin/rooms"

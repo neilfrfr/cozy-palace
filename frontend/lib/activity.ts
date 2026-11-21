@@ -60,6 +60,9 @@ export const activityTypes = {
     actions: [
       "room_type_updated",
       "table_updated",
+      "room_type_created",
+      "room_created",
+      "table_created",
       "inventory_closed",
       "inventory_reopened",
       "menu_item_created",

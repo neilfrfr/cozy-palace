@@ -30,10 +30,6 @@ export default async function About() {
           <Link href="/reservations">My Reservations →</Link>
         </section>
       </div>
-      <p className="notice">
-        This is a development prototype with fictional inventory. It is not
-        accepting real commercial bookings.
-      </p>
     </div>
   );
 }
