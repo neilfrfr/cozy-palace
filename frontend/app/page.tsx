@@ -143,10 +143,7 @@ export default async function Home() {
           <h2 id="dining-title" className="pre-line">
             {text(content, "home.dining.title")}
           </h2>
-          <p>
-            Explore the menu, choose a time and request a table before you
-            arrive.
-          </p>
+          <p>{text(content, "home.dining.body")}</p>
           <Link className="button outline-light explore-dining" href="/dining">
             Explore dining
           </Link>

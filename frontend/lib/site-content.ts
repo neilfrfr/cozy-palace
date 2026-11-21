@@ -23,7 +23,7 @@ export const siteText = {
   "home.dining.title": ["Home: dining heading", "Good food.\nGreat company."],
   "home.dining.body": [
     "Home: dining text",
-    "See the restaurant seating before you arrive. Online table reservations are coming later.",
+    "Explore the menu, choose a time and request a table before you arrive.",
   ],
   "rooms.title": ["Rooms: banner heading", "Find Your Place to Unwind"],
   "rooms.intro": [
@@ -40,10 +40,10 @@ export const siteText = {
     "About: banner text",
     "Manage your hotel reservations and find information about dining at Cozy Palace Hotel and Restaurant.",
   ],
-  "contact.title": ["Contact: banner heading", "Get in touch."],
+  "contact.title": ["Contact: banner heading", "Get in Touch."],
   "contact.intro": [
     "Contact: banner text",
-    "Questions about your reservation?",
+    "Our concierge team is available 24 hours a day to assist with reservations, dining, and special requests.",
   ],
   "contact.phone": ["Contact: phone", "+63 2 8123 4567"],
   "contact.email": ["Contact: email", "cozypalace.bookings@gmail.com"],
