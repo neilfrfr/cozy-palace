@@ -209,6 +209,8 @@ export const orderMessages: Record<string, string> = {
   SECTION_IN_USE:
     "Move or archive this section's items before deleting it.",
   LAST_SECTION: "The menu needs at least one section.",
+  reordered: "Order saved.",
+  MENU_CHANGED: "The menu changed in another window, so that move was not saved. Try again.",
   uploaded: "Menu photo updated.",
   restored: "Menu photo removed.",
   INVALID_PHOTO: "Choose a JPEG, PNG or WebP image under 5 MB.",
