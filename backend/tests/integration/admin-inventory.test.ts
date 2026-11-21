@@ -100,9 +100,12 @@ it("a closed table is hidden and refuses bookings for those days", async () => {
 it("admins change rates and capacity; existing bookings keep their rate", async () => {
   const d = await draft(90, 92);
   const type = ((await db.query("select room_type_id as t from rooms where id=$1", [room])).rows[0] as { t: string }).t;
-  await expect(as(staff, "select save_room_type($1,1,2)", [type])).rejects.toThrow("FORBIDDEN");
-  await expect(as(admin, "select save_room_type($1,-1,2)", [type])).rejects.toThrow("INVALID_INPUT");
-  await as(admin, "select save_room_type($1,9999.50,3)", [type]);
+  const { name } = (await db.query("select name from room_types where id=$1", [type])).rows[0] as { name: string };
+  await expect(as(staff, "select save_room_type($1,$2,'',1,2)", [type, name])).rejects.toThrow("FORBIDDEN");
+  await expect(as(admin, "select save_room_type($1,$2,'',-1,2)", [type, name])).rejects.toThrow("INVALID_INPUT");
+  await expect(as(admin, "select save_room_type($1,' ','',1,2)", [type])).rejects.toThrow("INVALID_INPUT");
+  await as(admin, "select save_room_type($1,$2,' Sea view ',9999.50,3)", [type, name]);
+  expect((await db.query("select description from room_types where id=$1", [type])).rows).toEqual([{ description: "Sea view" }]);
   const before = (await db.query("select total::numeric as t from reservations where id=$1", [d.id])).rows[0] as { t: string };
   expect(Number(before.t)).not.toBe(9999.5 * 2);
   const fresh = await draft(95, 96);
@@ -128,4 +131,34 @@ it("staff mark an order paid once; a paid order cannot be cancelled", async () =
   await expect(as(staff, "select mark_order_paid($1,$2,'cash',null)", [o.id, p.version])).rejects.toThrow("INVALID_TRANSITION");
   await expect(as(staff, "select transition_order($1,$2,'cancelled')", [o.id, p.version])).rejects.toThrow("INVALID_TRANSITION");
   await as(staff, "select transition_order($1,$2,'completed')", [o.id, p.version]);
+});
+
+it("admins edit and delete rooms and room types, except ones with history", async () => {
+  await draft(130, 131); // gives `room` booking history
+  const { t } = (await as(admin, "select create_room_type('Test Loft','',2,1500) as t")).rows[0] as { t: { id: string } };
+  const { r } = (await as(admin, "select create_room('T-1',$1) as r", [t.id])).rows[0] as { r: { id: string } };
+  const booked = (await db.query("select room_number as n, room_type_id as t from rooms where id=$1", [room])).rows[0] as {
+    n: string;
+    t: string;
+  };
+  await expect(as(staff, "select save_room($1,'T-2',$2)", [r.id, t.id])).rejects.toThrow("FORBIDDEN");
+  await expect(as(staff, "select delete_room($1)", [r.id])).rejects.toThrow("FORBIDDEN");
+  await expect(as(staff, "select delete_room_type($1)", [t.id])).rejects.toThrow("FORBIDDEN");
+  await expect(as(admin, "select save_room($1,$2,$3)", [r.id, booked.n, t.id])).rejects.toThrow("DUPLICATE_INVENTORY");
+  await expect(as(admin, "select save_room($1,$2,$3)", [room, booked.n, t.id])).rejects.toThrow("ROOM_TYPE_CHANGE_BLOCKED");
+  await expect(as(admin, "select delete_room($1)", [room])).rejects.toThrow("ROOM_IN_USE");
+  await expect(as(admin, "select delete_room_type($1)", [t.id])).rejects.toThrow("ROOM_TYPE_IN_USE");
+  await as(admin, "select save_room($1,' T-2 ',$2)", [r.id, booked.t]);
+  expect((await db.query("select room_number from rooms where id=$1", [r.id])).rows).toEqual([{ room_number: "T-2" }]);
+  await as(admin, "select delete_room($1)", [r.id]);
+  await as(admin, "select delete_room_type($1)", [t.id]);
+  expect((await db.query("select count(*)::int as c from room_types where id=$1", [t.id])).rows).toEqual([{ c: 0 }]);
+  const log = await db.query("select action from audit_logs where record_id in($1,$2) order by occurred_at", [r.id, t.id]);
+  expect(log.rows.map((x) => (x as { action: string }).action)).toEqual([
+    "room_type_created",
+    "room_created",
+    "room_updated",
+    "room_deleted",
+    "room_type_deleted",
+  ]);
 });

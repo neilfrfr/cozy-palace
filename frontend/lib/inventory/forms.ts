@@ -35,8 +35,17 @@ export const newTableSchema = z
 export const roomTypeSchema = z
   .object({
     id: z.uuid(),
+    name: z.string().trim().min(1).max(100),
+    description: z.string().trim().max(500),
     rate: z.coerce.number().min(0).max(1000000),
     capacity: z.coerce.number().int().min(1).max(20),
+  })
+  .strict();
+export const roomSchema = z
+  .object({
+    id: z.uuid(),
+    number: z.string().trim().min(1).max(30),
+    typeId: z.uuid(),
   })
   .strict();
 export const tableSchema = z
@@ -63,6 +72,14 @@ export const inventoryMessages: Record<string, string> = {
     "Bookings already use those dates. Move or cancel them first, then close the dates.",
   DUPLICATE_INVENTORY:
     "That room or table number is already in use. Choose a different number.",
+  ROOM_IN_USE:
+    "This room has booking or room charge history and cannot be deleted.",
+  ROOM_TYPE_CHANGE_BLOCKED:
+    "This room has booking history, so its room type cannot be changed.",
+  ROOM_TYPE_IN_USE:
+    "This room type still has rooms. Remove or move those rooms first.",
+  roomDeleted: "Room deleted.",
+  roomTypeDeleted: "Room type deleted.",
   roomTypeCreated: "Room type added.",
   roomCreated: "Room added.",
   tableCreated: "Table added.",

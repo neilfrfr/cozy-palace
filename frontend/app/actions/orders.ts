@@ -22,6 +22,9 @@ function done(
   for (const p of [
     "/staff/orders",
     "/admin/menu",
+    "/admin/website",
+    "/dining",
+    "/dining/menu",
     "/purchases",
     "/admin/activity",
   ])
@@ -104,6 +107,7 @@ export async function saveMenuItemAction(form: FormData) {
   const p = menuItemSchema.safeParse({
     id: form.get("id") || null,
     name: form.get("name"),
+    description: form.get("description") ?? "",
     section: form.get("section"),
     price: form.get("price"),
     available: form.get("available") === "on",
@@ -112,9 +116,17 @@ export async function saveMenuItemAction(form: FormData) {
   const { error } = await db.rpc("save_menu_item", {
     p_id: p.data.id,
     p_name: p.data.name,
+    p_description: p.data.description,
     p_section: p.data.section,
     p_price: p.data.price,
     p_available: p.data.available,
   });
   done("/admin/menu", error);
+}
+
+export async function deleteMenuItemAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  const { error } = await db.rpc("delete_menu_item", { p_id: id });
+  done("/admin/menu", error, "deleted");
 }

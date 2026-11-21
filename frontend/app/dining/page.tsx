@@ -5,16 +5,15 @@ import { PageBanner } from "@/components/page-banner";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { SetupNotice } from "@/components/setup-notice";
-import {
-  getSiteContent,
-  photo,
-  text,
-} from "@/lib/site-content";
+import { getSiteContent, photo, text } from "@/lib/site-content";
 import { TablePicker } from "@/components/table-picker";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
 import { businessDate } from "@/lib/operations/schema";
 import { visitorBookingEnabled } from "@/lib/captcha";
+import { getMenu } from "@/lib/orders";
+import { publicDiningMenu } from "@/lib/public-dining-menu";
+import { diningMenu } from "./menu-data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +24,17 @@ async function viewerRole() {
 }
 export default async function Dining() {
   const configured = isConfigured();
-  const [tables, role, content] = configured
+  const [tables, role, content, menuRows] = configured
     ? await Promise.all([
         getDiningTables(),
         viewerRole(),
         getSiteContent(),
+        getMenu(),
       ])
-    : [[], null, {}];
+    : [[], null, {}, []];
+  const categories = configured
+    ? publicDiningMenu(menuRows, content)
+    : diningMenu;
   return (
     <div className="public-page dining-page">
       <PageBanner
@@ -80,7 +83,11 @@ export default async function Dining() {
           <p className="eyebrow">A taste of Cozy Palace</p>
           <h2 id="menu-title">From Our Kitchen</h2>
         </div>
-        <MenuCategories />
+        {categories.length ? (
+          <MenuCategories categories={categories} />
+        ) : (
+          <p className="empty">No menu items are currently available.</p>
+        )}
       </section>
     </div>
   );

@@ -1,11 +1,11 @@
 import Image from "next/image";
 import Link from "next/link";
-import { diningMenu } from "./menu-data";
+import type { DiningCategory } from "./menu-data";
 
-export function MenuCategories() {
+export function MenuCategories({ categories }: { categories: DiningCategory[] }) {
   return (
     <div className="dining-card-grid">
-      {diningMenu.map((category) => (
+      {categories.map((category) => (
         <article className="room dining-card" key={category.id}>
           <div className="dining-card-photo">
             <Image

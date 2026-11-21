@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/auth/authorize";
-import { saveMenuItemAction } from "@/app/actions/orders";
+import { deleteMenuItemAction, saveMenuItemAction } from "@/app/actions/orders";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import {
   getMenu,
   menuSections,
@@ -23,6 +24,15 @@ function ItemForm({ item }: { item?: MenuRow }) {
       <label className="edit-wide">
         {colLabel("Name", compact)}
         <input name="name" required maxLength={80} defaultValue={item?.name} />
+      </label>
+      <label className="edit-wide">
+        {colLabel("Description", compact)}
+        <textarea
+          name="description"
+          maxLength={500}
+          rows={compact ? 2 : 3}
+          defaultValue={item?.description}
+        />
       </label>
       <label>
         {colLabel("Section", compact)}
@@ -53,6 +63,13 @@ function ItemForm({ item }: { item?: MenuRow }) {
         {colLabel("Available", compact)}
       </label>
       <button className="button">{item ? "Save" : "Add item"}</button>
+      {item && (
+        <ConfirmDeleteButton
+          action={deleteMenuItemAction}
+          title={`Delete ${item.name}?`}
+          message="Items already used on an order are kept to preserve order history. Mark them unavailable instead."
+        />
+      )}
     </form>
   );
 }

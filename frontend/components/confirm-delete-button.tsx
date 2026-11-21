@@ -1,0 +1,36 @@
+"use client";
+import { useConfirm } from "@/components/confirm-dialog";
+
+type DeleteAction = (formData: FormData) => void | Promise<void>;
+
+export function ConfirmDeleteButton({
+  action,
+  title,
+  message,
+}: {
+  action: DeleteAction;
+  title: string;
+  message: string;
+}) {
+  const [ask, dialog] = useConfirm();
+  return (
+    <>
+      <button
+        className="button secondary"
+        formAction={action}
+        formNoValidate
+        onClick={async (event) => {
+          event.preventDefault();
+          const button = event.currentTarget;
+          if (
+            await ask({ title, message, confirmLabel: "Delete", danger: true })
+          )
+            button.form?.requestSubmit(button);
+        }}
+      >
+        Delete
+      </button>
+      {dialog}
+    </>
+  );
+}

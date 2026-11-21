@@ -1,8 +1,12 @@
 import {
   createRoomAction,
   createRoomTypeAction,
+  deleteRoomAction,
+  deleteRoomTypeAction,
+  saveRoomAction,
   saveRoomTypeAction,
 } from "@/app/actions/inventory";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
 import {
@@ -42,7 +46,7 @@ export default async function RoomInventory({
             </label>
             <label>
               Description
-              <input name="description" maxLength={500} />
+              <textarea name="description" maxLength={500} rows={2} />
             </label>
             <label>
               Guests
@@ -86,6 +90,24 @@ export default async function RoomInventory({
                 </small>
               </div>
               <label>
+                Name
+                <input
+                  name="name"
+                  required
+                  maxLength={100}
+                  defaultValue={t.name}
+                />
+              </label>
+              <label className="edit-line">
+                Description
+                <textarea
+                  name="description"
+                  maxLength={500}
+                  rows={2}
+                  defaultValue={t.description}
+                />
+              </label>
+              <label>
                 Guests
                 <input
                   name="capacity"
@@ -109,6 +131,11 @@ export default async function RoomInventory({
                 />
               </label>
               <button className="button">Save</button>
+              <ConfirmDeleteButton
+                action={deleteRoomTypeAction}
+                title={`Delete ${t.name}?`}
+                message="Room types with rooms cannot be deleted. Their photo and description are removed if deletion is allowed."
+              />
             </form>
           ))}
           {!types.length && (
@@ -145,6 +172,45 @@ export default async function RoomInventory({
           {!types.length && (
             <p className="subtle">Add a room type before adding a room.</p>
           )}
+          <h2 id="room-list">Edit rooms</h2>
+          <p className="subtle">
+            Room types cannot be changed on rooms with booking history.
+          </p>
+          {rooms.map((room) => (
+            <form
+              key={room.id}
+              action={saveRoomAction}
+              className="room-type-card"
+            >
+              <input type="hidden" name="id" value={room.id} />
+              <label>
+                Room number
+                <input
+                  name="number"
+                  required
+                  maxLength={30}
+                  defaultValue={room.room_number}
+                />
+              </label>
+              <label>
+                Room type
+                <select name="typeId" defaultValue={room.room_types.id} required>
+                  {types.map((type) => (
+                    <option key={type.id} value={type.id}>
+                      {type.name} ({type.code})
+                    </option>
+                  ))}
+                </select>
+              </label>
+              <button className="button">Save</button>
+              <ConfirmDeleteButton
+                action={deleteRoomAction}
+                title={`Delete room ${room.room_number}?`}
+                message="Rooms with booking or room charge history are kept and cannot be deleted."
+              />
+            </form>
+          ))}
+          {!rooms.length && <p className="empty">No rooms have been added.</p>}
         </section>
         <ClosureSection
           page="/admin/rooms"
