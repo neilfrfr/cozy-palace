@@ -114,14 +114,6 @@ function ItemForm({
           />
           {colLabel("Available", compact)}
         </label>
-        <label className="edit-check">
-          <input
-            name="on_website"
-            type="checkbox"
-            defaultChecked={item?.on_website ?? true}
-          />
-          {colLabel("On website", compact)}
-        </label>
         <div className="admin-item-actions">
           <button className="button">{item ? "Save" : "Add item"}</button>
           {item && (
@@ -206,9 +198,8 @@ export default async function Menu({
       <h1>Menu</h1>
       <p className="intro">
         Prices, sections and order used for staff orders and the dining pages.
-        Untick <strong>On website</strong> to keep an item orderable by staff
-        but off the public menu. Changing a price never alters orders already
-        saved, and every change is recorded in the activity log.
+        Changing a price never alters orders already saved, and every change
+        is recorded in the activity log.
       </p>
       {message && (
         <p
@@ -228,7 +219,7 @@ export default async function Menu({
           title="Sections"
           count={sections.length}
           head={["Name", "Description", "Actions"]}
-          cols="minmax(140px,1fr) minmax(200px,2fr) auto"
+          cols="minmax(140px,1fr) minmax(200px,2fr) 250px"
         >
           {sections.map((s, i) => (
             <SectionRow
@@ -270,7 +261,7 @@ export default async function Menu({
           title="Archived"
           count={archived.length}
           head={["Name", "Section", "Price", "Actions"]}
-          cols="minmax(160px,1.5fr) minmax(120px,1fr) minmax(90px,.6fr) auto"
+          cols="minmax(160px,1.5fr) minmax(120px,1fr) minmax(90px,.6fr) 260px"
         >
           {archived.map((m) => (
             <form key={m.id} action={restoreMenuItemAction} className="edit-row">
@@ -282,12 +273,17 @@ export default async function Menu({
               <span>{peso(m.price)}</span>
               <div className="admin-item-actions">
                 <button className="button">Restore</button>
-                <ConfirmDeleteButton
-                  action={deleteMenuItemAction}
-                  label="Delete forever"
-                  title={`Delete ${m.name} for good?`}
-                  message="This can't be undone. Items on past orders can't be deleted and stay archived."
-                />
+                {/* Past order lines point at the item, so only a never-ordered item can be deleted. */}
+                {m.order_items?.[0]?.count ? (
+                  <span className="subtle">On past orders, kept for history</span>
+                ) : (
+                  <ConfirmDeleteButton
+                    action={deleteMenuItemAction}
+                    label="Delete forever"
+                    title={`Delete ${m.name} for good?`}
+                    message="It was never ordered, so it can be removed completely. This can't be undone."
+                  />
+                )}
               </div>
             </form>
           ))}
@@ -302,8 +298,8 @@ export default async function Menu({
                 key={section.id}
                 title={section.name}
                 count={items.length}
-                head={["Photo", "Name", "Section", "Price (₱)", "Description", "Available", "On website", "Actions"]}
-                cols="96px minmax(140px,1.35fr) minmax(110px,.9fr) minmax(96px,.65fr) minmax(160px,1.5fr) auto auto minmax(230px,auto)"
+                head={["Photo", "Name", "Section", "Price (₱)", "Description", "Available", "Actions"]}
+                cols="96px minmax(140px,1.35fr) minmax(110px,.9fr) minmax(96px,.65fr) minmax(160px,1.5fr) auto minmax(230px,auto)"
               >
                 {items.map((m, i) => (
                   <ItemForm

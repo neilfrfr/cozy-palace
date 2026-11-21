@@ -3,7 +3,7 @@ import { menuImage } from "@/lib/menu";
 import { itemPhoto, type SiteContent } from "@/lib/site-content";
 import type { MenuRow, MenuSection } from "@/lib/orders";
 
-/** Sections and items as the admin arranged them, limited to what is orderable and on the website. */
+/** Sections and items as the admin arranged them, limited to what is available. */
 export function publicDiningMenu(
   rows: MenuRow[],
   sections: MenuSection[],
@@ -16,7 +16,7 @@ export function publicDiningMenu(
       tag: "COURSE " + String(i + 1).padStart(2, "0"),
       description: section.description,
       dishes: rows
-        .filter((row) => row.available && row.on_website && row.section === section.name)
+        .filter((row) => row.available && row.section === section.name)
         .map((row) => ({
           id: row.id,
           name: row.name,

@@ -68,7 +68,7 @@ it("staff orders use server prices, save to the guest's account and stay private
   expect((await as(other, "select count(*)::int as c from orders")).rows).toEqual([{ c: 0 }]);
   expect((await as(other, "select count(*)::int as c from order_items")).rows).toEqual([{ c: 0 }]);
   // Later price changes leave the receipt alone.
-  await as(admin, "select save_menu_item($1,'Halo-halo','Shaved ice','Dessert',999,true,true)", [menu["Halo-halo"].id]);
+  await as(admin, "select save_menu_item($1,'Halo-halo','Shaved ice','Dessert',999,true)", [menu["Halo-halo"].id]);
   expect(
     (await db.query("select unit_price::int as p from order_items where order_id=$1 and name='Halo-halo'", [o.id])).rows,
   ).toEqual([{ p: Number(menu["Halo-halo"].price) }]);
@@ -83,13 +83,13 @@ it("walk-in orders have no owner; customers cannot create orders or edit the men
   expect(o.customer_id).toBeNull();
   await expect(order(owner, [["Fruit Smoothie", 1]])).rejects.toThrow("FORBIDDEN");
   await expect(as(owner, "insert into orders(staff_id,total,idempotency_key) values($1,0,$2)", [owner, key()])).rejects.toThrow();
-  await expect(as(staff, "select save_menu_item(null,'Free Food','','Dessert',0,true,true)")).rejects.toThrow("FORBIDDEN");
+  await expect(as(staff, "select save_menu_item(null,'Free Food','','Dessert',0,true)")).rejects.toThrow("FORBIDDEN");
   await expect(order(staff, [["Fruit Smoothie", 1]], "CP-NOPE")).rejects.toThrow("NOT_FOUND");
 });
 it("rejects bad items and enforces order status rules", async () => {
   await expect(order(staff, [["Fruit Smoothie", 0]])).rejects.toThrow("INVALID_INPUT");
   await expect(order(staff, [["Fruit Smoothie", 1], ["Fruit Smoothie", 2]])).rejects.toThrow("INVALID_INPUT");
-  await as(admin, "select save_menu_item($1,'Assorted Kakanin','','Dessert',160,false,true)", [menu["Assorted Kakanin"].id]);
+  await as(admin, "select save_menu_item($1,'Assorted Kakanin','','Dessert',160,false)", [menu["Assorted Kakanin"].id]);
   await expect(order(staff, [["Assorted Kakanin", 1]])).rejects.toThrow("INVALID_INPUT");
   const o = await order(staff, [["Halo-halo", 1]]);
   await expect(as(staff, "select transition_order($1,$2,'completed')", [o.id, o.version + 1])).rejects.toThrow(
@@ -110,21 +110,21 @@ it("admins archive, restore and delete menu items", async () => {
   // First delete archives; a new item may then reuse the name, which blocks restoring until it is renamed.
   await as(admin, "select delete_menu_item($1)", [id]);
   expect(await row()).toEqual({ archived: true, available: false });
-  const { m: twin } = (await as(admin, "select save_menu_item(null,'Halo-halo','','Dessert',100,true,true) as m")).rows[0] as {
+  const { m: twin } = (await as(admin, "select save_menu_item(null,'Halo-halo','','Dessert',100,true) as m")).rows[0] as {
     m: { id: string };
   };
   await expect(as(admin, "select restore_menu_item($1)", [id])).rejects.toThrow("DUPLICATE_NAME");
-  await as(admin, "select save_menu_item($1,'Halo-halo Special','','Dessert',100,true,true)", [twin.id]);
+  await as(admin, "select save_menu_item($1,'Halo-halo Special','','Dessert',100,true)", [twin.id]);
   await as(admin, "select restore_menu_item($1)", [id]);
   expect(await row()).toEqual({ archived: false, available: true });
   // An archived item that is on an order can't be deleted for good.
   await as(admin, "select delete_menu_item($1)", [id]);
   await expect(as(admin, "select delete_menu_item($1)", [id])).rejects.toThrow("MENU_ITEM_IN_USE");
   // One that was never ordered can.
-  const { m } = (await as(admin, "select save_menu_item(null,'Test Soup','Warm','Main Course',100,true,false) as m")).rows[0] as {
-    m: { id: string; description: string; on_website: boolean };
+  const { m } = (await as(admin, "select save_menu_item(null,'Test Soup','Warm','Main Course',100,true) as m")).rows[0] as {
+    m: { id: string; description: string };
   };
-  expect(m).toMatchObject({ description: "Warm", on_website: false });
+  expect(m.description).toBe("Warm");
   await as(admin, "select delete_menu_item($1)", [m.id]);
   await as(admin, "select delete_menu_item($1)", [m.id]);
   expect((await db.query("select count(*)::int as c from menu_items where id=$1", [m.id])).rows).toEqual([{ c: 0 }]);
