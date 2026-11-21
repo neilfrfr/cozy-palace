@@ -12,12 +12,14 @@ import {
 const bucket = "site-images";
 
 // Every public page reads site content; /about and /contact are static, so they need this to update.
-function done(error: { message?: string } | null, ok: string): never {
+function done(error: { message?: string } | null, ok: string, path = "/admin/website"): never {
   for (const p of ["/", "/rooms", "/dining", "/about", "/contact"])
     revalidatePath(p);
   revalidatePath("/rooms/[id]", "page");
+  revalidatePath("/dining/menu");
+  revalidatePath("/admin/menu");
   redirect(
-    "/admin/website?" + (error ? "error=REQUEST_FAILED" : "notice=" + ok),
+    path + "?" + (error ? "error=REQUEST_FAILED" : "notice=" + ok),
   );
 }
 
@@ -42,6 +44,7 @@ export async function saveSiteTextAction(form: FormData) {
 export async function uploadSitePhotoAction(form: FormData) {
   const { db } = await requireStaff(true);
   const key = String(form.get("key") ?? "");
+  const returnTo = form.get("returnTo") === "/admin/menu" ? "/admin/menu" : "/admin/website";
   const file = form.get("file");
   if (
     !isPhotoKey(key) ||
@@ -49,10 +52,10 @@ export async function uploadSitePhotoAction(form: FormData) {
     file.size === 0 ||
     file.size > maxPhotoBytes
   )
-    redirect("/admin/website?error=INVALID_PHOTO");
+    redirect(returnTo + "?error=INVALID_PHOTO");
   const bytes = new Uint8Array(await file.arrayBuffer());
   const image = sniffImage(bytes);
-  if (!image) redirect("/admin/website?error=INVALID_PHOTO");
+  if (!image) redirect(returnTo + "?error=INVALID_PHOTO");
   // A fresh path per upload, so CDN and browser caches never serve the old photo.
   // shortcut: replaced files stay in the bucket; add cleanup if storage use matters.
   const path = `${key}/${crypto.randomUUID()}.${image.ext}`;
@@ -61,11 +64,36 @@ export async function uploadSitePhotoAction(form: FormData) {
     contentType: image.type,
     cacheControl: "31536000",
   });
-  if (uploaded.error) done(uploaded.error, "uploaded");
+  if (uploaded.error) done(uploaded.error, "uploaded", returnTo);
   const { error } = await db.from("site_content").upsert({
     key,
     value: storage.getPublicUrl(path).data.publicUrl,
     updated_at: new Date().toISOString(),
   });
-  done(error, "uploaded");
+  done(error, "uploaded", returnTo);
+}
+
+export async function removeSitePhotoAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const key = String(form.get("key") ?? "");
+  const returnTo = form.get("returnTo") === "/admin/menu" ? "/admin/menu" : "/admin/website";
+  if (!isPhotoKey(key)) redirect(returnTo + "?error=INVALID_PHOTO");
+  const { data } = await db.from("site_content").select("value").eq("key", key).maybeSingle();
+  if (data?.value) {
+    const url = new URL(data.value);
+    const marker = "/storage/v1/object/public/" + bucket + "/";
+    const index = url.pathname.indexOf(marker);
+    if (index >= 0) {
+      const path = decodeURIComponent(url.pathname.slice(index + marker.length));
+      await db.storage.from(bucket).remove([path]);
+    }
+  }
+  const { error } = await db.from("site_content").delete().eq("key", key);
+  done(error, "restored", returnTo);
+}
+
+export async function restoreSiteDefaultsAction() {
+  const { db } = await requireStaff(true);
+  const { error } = await db.from("site_content").delete().like("key", "photo.%");
+  done(error, "restored");
 }

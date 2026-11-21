@@ -15,6 +15,7 @@ export type MenuRow = {
   section: (typeof menuSections)[number];
   price: number;
   available: boolean;
+  description: string;
 };
 export type Order = {
   id: string;
@@ -27,7 +28,7 @@ export type Order = {
   paid_at: string | null;
   payment_method: (typeof paymentMethods)[number] | null;
   payment_reference: string | null;
-  reservations: { reference: string } | null;
+  reservations: { reference: string; guest_full_name: string | null; customer: { full_name: string } | null } | null;
   /** Set on a room charge: the order waits on the stay's room bill. */
   rooms: { room_number: string } | null;
   staff: { full_name: string } | null;
@@ -47,15 +48,34 @@ export const peso = (n: number) =>
 
 export async function getMenu(): Promise<MenuRow[]> {
   const db = await createClient();
-  const { data } = await db
+  const current = await db
+    .from("menu_items")
+    .select("id,name,section,price,available,description")
+    .order("section")
+    .order("name");
+  if (!current.error) return (current.data ?? []) as MenuRow[];
+
+  // The description migration may not have reached this database yet. Read the
+  // existing menu rows while keeping description empty until the migration runs.
+  const legacy = await db
     .from("menu_items")
     .select("id,name,section,price,available")
     .order("section")
     .order("name");
-  return (data ?? []) as MenuRow[];
+  if (!legacy.error) {
+    console.warn("Menu description column is unavailable; loaded legacy menu rows", current.error.code);
+    return ((legacy.data ?? []) as Omit<MenuRow, "description">[]).map(
+      (item) => ({ ...item, description: "" }),
+    );
+  }
+  console.error("Menu read failed", current.error.code, current.error.message);
+  console.error("Legacy menu read failed", legacy.error.code, legacy.error.message);
+  throw new Error("MENU_READ_FAILED");
 }
 
 const orderFields =
+  "id,reference,status,total,note,version,created_at,paid_at,payment_method,payment_reference,reservations(reference,guest_full_name,customer:profiles!reservations_customer_id_fkey(full_name)),rooms(room_number),staff:profiles!orders_staff_id_fkey(full_name),order_items(name,unit_price,quantity)";
+const legacyOrderFields =
   "id,reference,status,total,note,version,created_at,paid_at,payment_method,payment_reference,reservations(reference),rooms(room_number),staff:profiles!orders_staff_id_fkey(full_name),order_items(name,unit_price,quantity)";
 
 /** RLS limits customers to their own orders; staff see all unless a customer is given. */
@@ -70,20 +90,48 @@ export async function getOrders(
     .order("created_at", { ascending: false })
     .limit(limit);
   if (customerId) query = query.eq("customer_id", customerId);
-  const { data } = await query;
-  return (data ?? []) as unknown as Order[];
+  const current = await query;
+  if (!current.error) return (current.data ?? []) as unknown as Order[];
+
+  // Guest names are an optional enhancement; retain order visibility if an
+  // older database does not yet expose the reservation guest-name relation.
+  let legacy = db
+    .from("orders")
+    .select(legacyOrderFields)
+    .order("created_at", { ascending: false })
+    .limit(limit);
+  if (customerId) legacy = legacy.eq("customer_id", customerId);
+  const fallback = await legacy;
+  if (!fallback.error) {
+    console.warn("Loaded orders without optional guest-name fields", current.error.code);
+    return (fallback.data ?? []) as unknown as Order[];
+  }
+  console.error("Order list read failed", fallback.error.code, fallback.error.message);
+  throw new Error("ORDERS_READ_FAILED");
 }
 
 /** A stay's room charges, oldest first, for its room bill. */
 export async function getRoomCharges(reservationId: string): Promise<Order[]> {
   const db = await createClient();
-  const { data } = await db
+  const current = await db
     .from("orders")
     .select(orderFields)
     .eq("reservation_id", reservationId)
     .not("room_id", "is", null)
     .order("created_at");
-  return (data ?? []) as unknown as Order[];
+  if (!current.error) return (current.data ?? []) as unknown as Order[];
+  const fallback = await db
+    .from("orders")
+    .select(legacyOrderFields)
+    .eq("reservation_id", reservationId)
+    .not("room_id", "is", null)
+    .order("created_at");
+  if (!fallback.error) {
+    console.warn("Loaded room orders without optional guest-name fields", current.error.code);
+    return (fallback.data ?? []) as unknown as Order[];
+  }
+  console.error("Room-order read failed", fallback.error.code, fallback.error.message);
+  throw new Error("ROOM_ORDERS_READ_FAILED");
 }
 
 /** The room bill: the booking (room and extras, paid online) plus room charges; cancelled charges don't count. */
@@ -138,6 +186,7 @@ export const menuItemSchema = z
     section: z.enum(menuSections),
     price: z.coerce.number().min(0).max(100000),
     available: z.boolean(),
+    description: z.string().trim().max(500),
   })
   .strict();
 
@@ -170,6 +219,14 @@ export const orderMessages: Record<string, string> = {
   PAYMENT_CLOSED:
     "This booking can't take a payment now: it has ended, been cancelled, or its hold has lapsed.",
   saved: "Saved.",
+  DESCRIPTION_MIGRATION_REQUIRED:
+    "Saved the menu item. Apply the menu description database migration to save descriptions.",
+  INVALID_PHOTO: "Choose a JPEG, PNG or WebP image under 5 MB.",
+  PHOTO_UPLOAD_FAILED: "The menu item was saved, but its photo could not be uploaded. Replace the photo from its row and try again.",
+  ITEM_HAS_ORDERS: "This item appears on saved orders, so it cannot be deleted. Mark it unavailable instead.",
+  deleted: "Menu item deleted.",
+  uploaded: "Menu photo updated.",
+  restored: "Menu photo removed.",
   FORBIDDEN: "You do not have access to this.",
   NOT_FOUND:
     "No reservation has that reference. Check it, or leave it blank for a walk-in.",

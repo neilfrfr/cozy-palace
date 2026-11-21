@@ -13,7 +13,7 @@ grant insert,update,delete on public.site_content to authenticated;
 
 -- Placeholder contact details for the admin to replace from the Website page.
 insert into public.site_content(key,value) values
- ('contact.phone','+63 2 8123 4567'),
+ ('contact.phone','+63 917 123 4567'),
  ('contact.email','hello@cozypalace.example'),
  ('contact.address','123 Placeholder Street, Makati City, Metro Manila, Philippines'),
  ('contact.hours',E'Front desk: open 24 hours\nRestaurant: 11:00–14:00 and 17:00–21:00')

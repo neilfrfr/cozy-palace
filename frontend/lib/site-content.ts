@@ -28,7 +28,7 @@ export const siteText = {
   "rooms.title": ["Rooms: banner heading", "Find Your Place to Unwind"],
   "rooms.intro": [
     "Rooms: banner text",
-    "Choose your dates and who is joining you. We’ll check availability again when you submit your reservation request.",
+    "Choose your dates and who is joining you. We'll check availability again when you submit your reservation request.",
   ],
   "dining.title": ["Dining: banner heading", "A Place to Gather."],
   "dining.intro": [
@@ -45,7 +45,7 @@ export const siteText = {
     "Contact: banner text",
     "Questions about your reservation?",
   ],
-  "contact.phone": ["Contact: phone", "+63 2 8123 4567"],
+  "contact.phone": ["Contact: phone", "+63 917 123 4567"],
   "contact.email": ["Contact: email", "cozypalace.bookings@gmail.com"],
   "contact.address": [
     "Contact: address",
@@ -141,6 +141,7 @@ export function sniffImage(b: Uint8Array) {
 export const siteMessages: Record<string, string> = {
   saved: "Saved. The public website now shows your changes.",
   uploaded: "Photo replaced.",
+  restored: "Photo defaults restored.",
   INVALID_INPUT: "Keep each text block under 2,000 characters.",
   INVALID_PHOTO: "Choose a JPEG, PNG or WebP photo of 5 MB or less.",
   FORBIDDEN: "Only administrators can edit the website.",

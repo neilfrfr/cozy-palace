@@ -29,7 +29,7 @@ export default async function Contact() {
             <div>
               <dt>PHONE</dt>
               <dd>
-                <a href="tel:+63281234567">+63 2 8123 4567</a>
+                <a href="tel:+639171234567">+63 917 123 4567</a>
               </dd>
             </div>
             <div>

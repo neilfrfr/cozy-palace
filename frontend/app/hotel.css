@@ -208,9 +208,9 @@
   color: white;
 }
 .homepage .home-dining-copy .button.explore-dining:focus-visible {
-  border-color: var(--gold);
+  border-color: var(--navy);
   color: white;
-  outline: 3px solid var(--gold);
+  outline: 2px solid var(--navy);
   outline-offset: 4px;
 }
 .site-header .nav-book {
@@ -1274,3 +1274,7 @@ body {
     display: none;
   }
 }
+/* Public-site focus rings follow the navy/stone focus system. */
+.homepage .home-dining-copy .button.explore-dining:focus-visible { border-color:var(--navy); color:white; outline:2px solid var(--navy); outline-offset:3px; }
+.booking-bar input:focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-bottom-color:var(--navy); box-shadow:none; }
+.dining-table-search select:focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-color:var(--navy); box-shadow:0 0 0 2px rgb(21 34 56 / .10); }

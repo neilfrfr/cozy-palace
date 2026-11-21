@@ -19,7 +19,7 @@ function done(
   error: { message?: string } | null,
   ok: string,
 ): never {
-  for (const p of [path, "/admin/activity", "/rooms", "/dining"])
+  for (const p of [path, "/", "/admin/activity", "/rooms", "/dining"])
     revalidatePath(p);
   redirect(path + (error ? "?error=" + publicError(error) : "?notice=" + ok));
 }

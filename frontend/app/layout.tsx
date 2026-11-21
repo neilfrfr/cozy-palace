@@ -44,7 +44,7 @@ export default function RootLayout({
               <p>
                 123 Placeholder Street, Makati City, Metro Manila, Philippines
                 <br />
-                +63 2 8123 4567
+                +63 917 123 4567
                 <br />
                 cozypalace.bookings@gmail.com
               </p>

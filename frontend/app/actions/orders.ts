@@ -2,9 +2,11 @@
 import { revalidatePath } from "next/cache";
 import { after } from "next/server";
 import { redirect } from "next/navigation";
+import { z } from "zod";
 import { requireStaff } from "@/lib/auth/authorize";
 import { deliverNotifications } from "@/lib/notifications";
 import { publicError } from "@/lib/reservations/errors";
+import { maxPhotoBytes, sniffImage, itemPhotoKey } from "@/lib/site-content";
 import {
   menuItemSchema,
   orderLines,
@@ -24,6 +26,9 @@ function done(
     "/admin/menu",
     "/purchases",
     "/admin/activity",
+    "/dining",
+    "/dining/menu",
+    "/admin/website",
   ])
     revalidatePath(p);
   // Order and room bill changes email the guest (FR09); sending never blocks the page.
@@ -107,14 +112,77 @@ export async function saveMenuItemAction(form: FormData) {
     section: form.get("section"),
     price: form.get("price"),
     available: form.get("available") === "on",
+    description: form.get("description") ?? "",
   });
   if (!p.success) redirect("/admin/menu?error=INVALID_INPUT");
-  const { error } = await db.rpc("save_menu_item", {
+  let save = await db.rpc("save_menu_item", {
     p_id: p.data.id,
     p_name: p.data.name,
     p_section: p.data.section,
     p_price: p.data.price,
     p_available: p.data.available,
+    p_description: p.data.description,
   });
-  done("/admin/menu", error);
+  let descriptionMigrationMissing = false;
+  if (save.error?.message.includes("save_menu_item")) {
+    const legacySave = await db.rpc("save_menu_item", {
+      p_id: p.data.id,
+      p_name: p.data.name,
+      p_section: p.data.section,
+      p_price: p.data.price,
+      p_available: p.data.available,
+    });
+    if (!legacySave.error) {
+      save = legacySave;
+      descriptionMigrationMissing = true;
+    }
+  }
+  const { data, error } = save;
+  if (error) done("/admin/menu", error);
+  const file = form.get("file");
+  if (file instanceof File && file.size) {
+    if (file.size > maxPhotoBytes) redirect("/admin/menu?error=INVALID_PHOTO");
+    const bytes = new Uint8Array(await file.arrayBuffer());
+    const image = sniffImage(bytes);
+    if (!image) redirect("/admin/menu?error=INVALID_PHOTO");
+    const row = data as { id?: string } | null;
+    if (row?.id) {
+      const key = itemPhotoKey("menu", row.id);
+      const storage = db.storage.from("site-images");
+      const path = `${key}/${crypto.randomUUID()}.${image.ext}`;
+      const uploaded = await storage.upload(path, bytes, { contentType: image.type, cacheControl: "31536000" });
+      if (uploaded.error) redirect("/admin/menu?error=PHOTO_UPLOAD_FAILED");
+      const savedPhoto = await db.from("site_content").upsert({ key, value: storage.getPublicUrl(path).data.publicUrl, updated_at: new Date().toISOString() });
+      if (savedPhoto.error) redirect("/admin/menu?error=PHOTO_UPLOAD_FAILED");
+    }
+  }
+  done(
+    "/admin/menu",
+    null,
+    descriptionMigrationMissing ? "DESCRIPTION_MIGRATION_REQUIRED" : "saved",
+  );
+}
+
+export async function deleteMenuItemAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  if (!z.uuid().safeParse(id).success) redirect("/admin/menu?error=INVALID_INPUT");
+  const key = itemPhotoKey("menu", id);
+  const { data: storedPhoto } = await db.from("site_content").select("value").eq("key", key).maybeSingle();
+  const { error } = await db.rpc("delete_menu_item", { p_id: id });
+  if (error) {
+    const code = error.message.includes("ITEM_HAS_ORDERS") ? "ITEM_HAS_ORDERS" : publicError(error);
+    redirect("/admin/menu?error=" + code);
+  }
+  await db.from("site_content").delete().eq("key", key);
+  if (storedPhoto?.value) {
+    const url = new URL(storedPhoto.value);
+    const marker = "/storage/v1/object/public/site-images/";
+    const index = url.pathname.indexOf(marker);
+    if (index >= 0) await db.storage.from("site-images").remove([decodeURIComponent(url.pathname.slice(index + marker.length))]);
+  }
+  revalidatePath("/admin/menu");
+  revalidatePath("/dining");
+  revalidatePath("/dining/menu");
+  redirect("/admin/menu?notice=deleted");
 }

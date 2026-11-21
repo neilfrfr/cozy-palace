@@ -15,6 +15,8 @@ import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
 import { businessDate } from "@/lib/operations/schema";
 import { visitorBookingEnabled } from "@/lib/captcha";
+import { getMenu, type MenuRow } from "@/lib/orders";
+import { diningMenu } from "./menu-data";
 
 export const dynamic = "force-dynamic";
 
@@ -25,13 +27,18 @@ async function viewerRole() {
 }
 export default async function Dining() {
   const configured = isConfigured();
-  const [tables, role, content] = configured
+  const [tables, role, content, menu] = configured
     ? await Promise.all([
         getDiningTables(),
         viewerRole(),
         getSiteContent(),
+        getMenu(),
       ])
-    : [[], null, {}];
+    : [[], null, {}, []];
+  const publishedMenu = configured ? menu : diningMenu.flatMap((category) => {
+    const section: MenuRow["section"] = category.id === "appetizer" ? "Appetizers" : category.id === "main-course" ? "Main Course" : category.id === "dessert" ? "Dessert" : "Drinks";
+    return category.dishes.map((dish) => ({ id: dish.name, name: dish.name, section, price: dish.price, available: true, description: dish.description }));
+  });
   return (
     <div className="public-page dining-page">
       <PageBanner
@@ -80,7 +87,7 @@ export default async function Dining() {
           <p className="eyebrow">A taste of Cozy Palace</p>
           <h2 id="menu-title">From Our Kitchen</h2>
         </div>
-        <MenuCategories />
+        <MenuCategories items={publishedMenu} content={content} />
       </section>
     </div>
   );

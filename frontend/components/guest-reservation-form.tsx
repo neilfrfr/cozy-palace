@@ -191,6 +191,7 @@ export function GuestReservationForm({
   if (booked)
     return (
       <div className="guest-workflow">
+
         <section className="notice" role="status">
           <h2>Booking request {booked.reference} received</h2>
           <p>
@@ -215,6 +216,7 @@ export function GuestReservationForm({
     );
   return (
     <div className="guest-workflow">
+
       <form className="form-panel" hidden={!!review} onSubmit={prepare}>
         <fieldset disabled={pending}>
           <legend>

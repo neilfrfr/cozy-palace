@@ -29,7 +29,7 @@ export default async function TableInventory({
           <h2 id="seats">Seats per table</h2>
           {tables.length ? (
             <ul className="capacity-grid">
-              {tables.map((table) => (
+              {[...tables].sort((a, b) => a.table_number.localeCompare(b.table_number, undefined, { numeric: true, sensitivity: "base" })).map((table) => (
                 <li key={table.id}>
                   <form action={saveTableAction}>
                     <input type="hidden" name="id" value={table.id} />

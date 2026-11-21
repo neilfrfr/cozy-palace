@@ -1,4 +1,4 @@
-import { randomUUID } from "node:crypto";
+﻿import { randomUUID } from "node:crypto";
 import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
 import { businessDate } from "@/lib/operations/schema";
 import { GuestReservationForm } from "@/components/guest-reservation-form";
@@ -18,12 +18,12 @@ export default async function NewGuestBooking() {
         </div>
       </header>
       {rooms.length ? (
-        <GuestReservationForm
+        <div className="new-guest-booking"><GuestReservationForm
           rooms={rooms}
           requestKey={randomUUID()}
           today={businessDate()}
           bookedNights={bookedNights}
-        />
+        /></div>
       ) : (
         <p className="notice">
           No available room inventory. Ask an administrator to review the room
