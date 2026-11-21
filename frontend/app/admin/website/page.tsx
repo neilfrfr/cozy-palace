@@ -1,6 +1,6 @@
 import Image from "next/image";
 import { requireStaff } from "@/lib/auth/authorize";
-import { getAdminRooms } from "@/lib/inventory/service";
+import { getAdminRoomTypes } from "@/lib/inventory/service";
 import { getMenu } from "@/lib/orders";
 import { menuImage } from "@/lib/menu";
 import { roomPhoto } from "@/lib/room-photos";
@@ -58,15 +58,12 @@ export default async function Website({
   searchParams: Promise<{ notice?: string; error?: string; tab?: string }>;
 }) {
   await requireStaff(true);
-  const [{ notice, error, tab }, content, rooms, menu] = await Promise.all([
+  const [{ notice, error, tab }, content, types, menu] = await Promise.all([
     searchParams,
     getSiteContent(),
-    getAdminRooms(),
+    getAdminRoomTypes(),
     getMenu(),
   ]);
-  const types = [
-    ...new Map(rooms.map((r) => [r.room_types.id, r.room_types])).values(),
-  ];
   const photos = tab === "photos";
   const textKeys = Object.keys(siteText) as TextKey[];
   // "Contact: email" belongs to the Contact group.

@@ -1,8 +1,20 @@
 import Link from "next/link";
 import "../dining.css";
 import { MenuSections } from "./menu-sections";
+import { getMenu } from "@/lib/orders";
+import { getSiteContent } from "@/lib/site-content";
+import { isConfigured } from "@/lib/supabase/config";
+import { publicDiningMenu } from "@/lib/public-dining-menu";
+import { diningMenu } from "../menu-data";
 
-export default function DiningMenuPage() {
+export const dynamic = "force-dynamic";
+
+export default async function DiningMenuPage() {
+  let categories = diningMenu;
+  if (isConfigured()) {
+    const [rows, content] = await Promise.all([getMenu(), getSiteContent()]);
+    categories = publicDiningMenu(rows, content);
+  }
   return (
     <div className="public-page dining-page dining-full-menu-page">
       <div className="dining-full-menu-content">
@@ -15,12 +27,17 @@ export default function DiningMenuPage() {
           <p>Explore the flavors prepared for your table.</p>
         </header>
         <nav className="dining-menu-nav" aria-label="Menu categories">
-          <a href="#appetizer">Appetizer</a>
-          <a href="#main-course">Main Course</a>
-          <a href="#dessert">Dessert</a>
-          <a href="#beverages">Beverages</a>
+          {categories.map((category) => (
+            <a key={category.id} href={`#${category.id}`}>
+              {category.title}
+            </a>
+          ))}
         </nav>
-        <MenuSections />
+        {categories.length ? (
+          <MenuSections categories={categories} />
+        ) : (
+          <p className="empty">No menu items are currently available.</p>
+        )}
       </div>
     </div>
   );

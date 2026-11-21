@@ -2,9 +2,9 @@
 
 import Image from "next/image";
 import { useEffect } from "react";
-import { diningMenu } from "../menu-data";
+import type { DiningCategory } from "../menu-data";
 
-export function MenuSections() {
+export function MenuSections({ categories }: { categories: DiningCategory[] }) {
   useEffect(() => {
     const id = window.location.hash.slice(1);
     if (!id) return;
@@ -18,7 +18,7 @@ export function MenuSections() {
 
   return (
     <div className="full-menu-sections">
-      {diningMenu.map((category) => (
+      {categories.map((category) => (
         <section
           className="full-menu-category"
           id={category.id}
@@ -33,9 +33,14 @@ export function MenuSections() {
           </div>
           <div className="full-menu-dishes">
             {category.dishes.map((dish) => (
-              <article className="full-menu-dish" key={dish.name}>
+              <article className="full-menu-dish" key={dish.id ?? dish.name}>
                 <div className="full-menu-dish-photo">
-                  <Image src={dish.image} alt={dish.name} fill sizes="(max-width: 760px) 100vw, 33vw" />
+                  <Image
+                    src={dish.image}
+                    alt={dish.name}
+                    fill
+                    sizes="(max-width: 760px) 100vw, 33vw"
+                  />
                 </div>
                 <div className="full-menu-dish-copy">
                   <div className="full-menu-dish-title">

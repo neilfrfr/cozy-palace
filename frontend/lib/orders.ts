@@ -12,6 +12,7 @@ export const menuSections = [
 export type MenuRow = {
   id: string;
   name: string;
+  description: string;
   section: (typeof menuSections)[number];
   price: number;
   available: boolean;
@@ -49,7 +50,7 @@ export async function getMenu(): Promise<MenuRow[]> {
   const db = await createClient();
   const { data } = await db
     .from("menu_items")
-    .select("id,name,section,price,available")
+    .select("id,name,description,section,price,available")
     .order("section")
     .order("name");
   return (data ?? []) as MenuRow[];
@@ -135,6 +136,7 @@ export const menuItemSchema = z
   .object({
     id: z.uuid().nullable(),
     name: z.string().trim().min(1).max(80),
+    description: z.string().trim().max(500),
     section: z.enum(menuSections),
     price: z.coerce.number().min(0).max(100000),
     available: z.boolean(),
@@ -170,6 +172,9 @@ export const orderMessages: Record<string, string> = {
   PAYMENT_CLOSED:
     "This booking can't take a payment now: it has ended, been cancelled, or its hold has lapsed.",
   saved: "Saved.",
+  deleted: "Menu item deleted.",
+  MENU_ITEM_IN_USE:
+    "This menu item appears on past orders and cannot be deleted. Mark it unavailable instead.",
   FORBIDDEN: "You do not have access to this.",
   NOT_FOUND:
     "No reservation has that reference. Check it, or leave it blank for a walk-in.",

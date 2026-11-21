@@ -8,6 +8,7 @@ import {
   newRoomSchema,
   newRoomTypeSchema,
   newTableSchema,
+  roomSchema,
   roomTypeSchema,
   tableSchema,
 } from "@/lib/inventory/forms";
@@ -22,7 +23,14 @@ function done(
   error: { message?: string } | null,
   ok: string,
 ): never {
-  for (const p of [path, "/admin/activity", "/rooms", "/dining"])
+  for (const p of [
+    path,
+    "/admin/activity",
+    "/admin/website",
+    "/rooms",
+    "/dining",
+    "/dining/menu",
+  ])
     revalidatePath(p);
   redirect(path + (error ? "?error=" + publicError(error) : "?notice=" + ok));
 }
@@ -31,16 +39,50 @@ export async function saveRoomTypeAction(form: FormData) {
   const { db } = await requireStaff(true);
   const p = roomTypeSchema.safeParse({
     id: form.get("id"),
+    name: form.get("name"),
+    description: form.get("description") ?? "",
     rate: form.get("rate"),
     capacity: form.get("capacity"),
   });
   if (!p.success) redirect("/admin/rooms?error=INVALID_INPUT");
   const { error } = await db.rpc("save_room_type", {
     p_id: p.data.id,
+    p_name: p.data.name,
+    p_description: p.data.description,
     p_nightly_rate: p.data.rate,
     p_capacity: p.data.capacity,
   });
   done("/admin/rooms", error, "saved");
+}
+
+export async function saveRoomAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const p = roomSchema.safeParse({
+    id: form.get("id"),
+    number: form.get("number"),
+    typeId: form.get("typeId"),
+  });
+  if (!p.success) redirect("/admin/rooms?error=INVALID_INPUT");
+  const { error } = await db.rpc("save_room", {
+    p_id: p.data.id,
+    p_room_number: p.data.number,
+    p_room_type_id: p.data.typeId,
+  });
+  done("/admin/rooms", error, "saved");
+}
+
+export async function deleteRoomAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  const { error } = await db.rpc("delete_room", { p_id: id });
+  done("/admin/rooms", error, "roomDeleted");
+}
+
+export async function deleteRoomTypeAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  const { error } = await db.rpc("delete_room_type", { p_id: id });
+  done("/admin/rooms", error, "roomTypeDeleted");
 }
 
 export async function saveTableAction(form: FormData) {
