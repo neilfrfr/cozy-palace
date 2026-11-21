@@ -3852,7 +3852,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(5) { width:10%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(6) { width:14%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(7) { width:19%; }
-.orders-table td { min-width:0; overflow-wrap:anywhere; }
+.orders-table td { min-width:0; overflow-wrap:anywhere; white-space:normal; }
 .orders-table td:nth-child(3) { padding-right:clamp(18px,2.5vw,34px); }
 .orders-table td:nth-child(4) { color:var(--navy); font-weight:650; white-space:nowrap; }
 .order-items-details { min-width:0; }
