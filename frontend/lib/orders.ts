@@ -3,19 +3,22 @@ import { z } from "zod";
 import { createClient } from "@/lib/supabase/server";
 import { normalizeReference } from "@/lib/format";
 
-export const menuSections = [
-  "Appetizers",
-  "Main Course",
-  "Dessert",
-  "Drinks",
-] as const;
+export type MenuSection = {
+  id: string;
+  name: string;
+  description: string;
+};
 export type MenuRow = {
   id: string;
   name: string;
   description: string;
-  section: (typeof menuSections)[number];
+  section: string;
   price: number;
+  /** Staff can order it. */
   available: boolean;
+  /** Shown on the public dining pages. */
+  on_website: boolean;
+  archived: boolean;
 };
 export type Order = {
   id: string;
@@ -50,14 +53,26 @@ export const paymentMethods = [
 export const peso = (n: number) =>
   "₱" + Number(n).toLocaleString("en-PH", { minimumFractionDigits: 2 });
 
-export async function getMenu(): Promise<MenuRow[]> {
+/** Active items in the admin's chosen order; pass true for the archived ones instead. */
+export async function getMenu(archived = false): Promise<MenuRow[]> {
   const db = await createClient();
   const { data } = await db
     .from("menu_items")
-    .select("id,name,description,section,price,available")
-    .order("section")
+    .select("id,name,description,section,price,available,on_website,archived")
+    .eq("archived", archived)
+    .order("position")
     .order("name");
   return (data ?? []) as MenuRow[];
+}
+
+export async function getMenuSections(): Promise<MenuSection[]> {
+  const db = await createClient();
+  const { data } = await db
+    .from("menu_sections")
+    .select("id,name,description")
+    .order("position")
+    .order("name");
+  return (data ?? []) as MenuSection[];
 }
 
 const orderFields =
@@ -141,9 +156,17 @@ export const menuItemSchema = z
     id: z.uuid().nullable(),
     name: z.string().trim().min(1).max(80),
     description: z.string().trim().max(500),
-    section: z.enum(menuSections),
+    section: z.string().trim().min(1).max(40),
     price: z.coerce.number().min(0).max(100000),
     available: z.boolean(),
+    on_website: z.boolean(),
+  })
+  .strict();
+export const menuSectionSchema = z
+  .object({
+    id: z.uuid().nullable(),
+    name: z.string().trim().min(1).max(40),
+    description: z.string().trim().max(200),
   })
   .strict();
 
@@ -176,13 +199,19 @@ export const orderMessages: Record<string, string> = {
   PAYMENT_CLOSED:
     "This booking can't take a payment now: it has ended, been cancelled, or its hold has lapsed.",
   saved: "Saved.",
-  deleted: "Menu item deleted.",
+  deleted: "Deleted.",
+  archived: "Menu item archived. Restore it from the Archived tab.",
+  unarchived: "Menu item restored to the menu.",
+  DUPLICATE_NAME: "That name is already used on the menu. Pick another.",
+  MENU_ITEM_IN_USE:
+    "This item is on past orders, so it stays archived to keep order history.",
+  SECTION_IN_USE:
+    "Move or archive this section's items before deleting it.",
+  LAST_SECTION: "The menu needs at least one section.",
   uploaded: "Menu photo updated.",
   restored: "Menu photo removed.",
   INVALID_PHOTO: "Choose a JPEG, PNG or WebP image under 5 MB.",
   REQUEST_FAILED: "The photo could not be saved. Try again.",
-  MENU_ITEM_IN_USE:
-    "This menu item appears on past orders and cannot be deleted. Mark it unavailable instead.",
   FORBIDDEN: "You do not have access to this.",
   NOT_FOUND:
     "No reservation has that reference. Check it, or leave it blank for a walk-in.",

@@ -8,7 +8,7 @@ export type DiningDish = {
 
 export type DiningCategory = {
   title: string;
-  id: "appetizer" | "main-course" | "dessert" | "beverages";
+  id: string;
   tag: string;
   description: string;
   dishes: DiningDish[];

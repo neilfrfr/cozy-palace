@@ -11,7 +11,7 @@ import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
 import { businessDate } from "@/lib/operations/schema";
 import { visitorBookingEnabled } from "@/lib/captcha";
-import { getMenu } from "@/lib/orders";
+import { getMenu, getMenuSections } from "@/lib/orders";
 import { publicDiningMenu } from "@/lib/public-dining-menu";
 import { diningMenu } from "./menu-data";
 
@@ -24,16 +24,17 @@ async function viewerRole() {
 }
 export default async function Dining() {
   const configured = isConfigured();
-  const [tables, role, content, menuRows] = configured
+  const [tables, role, content, menuRows, sections] = configured
     ? await Promise.all([
         getDiningTables(),
         viewerRole(),
         getSiteContent(),
         getMenu(),
+        getMenuSections(),
       ])
-    : [[], null, {}, []];
+    : [[], null, {}, [], []];
   const categories = configured
-    ? publicDiningMenu(menuRows, content)
+    ? publicDiningMenu(menuRows, sections, content)
     : diningMenu;
   return (
     <div className="public-page dining-page">
