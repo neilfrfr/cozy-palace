@@ -5,6 +5,9 @@ import { redirect } from "next/navigation";
 import { requireStaff } from "@/lib/auth/authorize";
 import { deliverNotifications } from "@/lib/notifications";
 import { publicError } from "@/lib/reservations/errors";
+import { itemPhotoKey } from "@/lib/site-content";
+import { readPhoto, storePhoto } from "@/lib/site-photos";
+import { z } from "zod";
 import {
   menuItemSchema,
   menuSectionSchema,
@@ -14,12 +17,8 @@ import {
   roomBillSchema,
 } from "@/lib/orders";
 
-// Plain form posts; the outcome comes back as ?notice= or ?error= so the pages need no client code.
-function done(
-  path: string,
-  error?: { message?: string } | null,
-  ok = "saved",
-): never {
+// Every page that shows menu or order data.
+function refresh() {
   for (const p of [
     "/staff/orders",
     "/admin/menu",
@@ -30,6 +29,15 @@ function done(
     "/admin/activity",
   ])
     revalidatePath(p);
+}
+
+// Plain form posts; the outcome comes back as ?notice= or ?error= so the pages need no client code.
+function done(
+  path: string,
+  error?: { message?: string } | null,
+  ok = "saved",
+): never {
+  refresh();
   // Order and room bill changes email the guest (FR09); sending never blocks the page.
   if (!error) after(() => deliverNotifications());
   const sep = path.endsWith("?") || path.endsWith("&") ? "" : "?";
@@ -115,7 +123,11 @@ export async function saveMenuItemAction(form: FormData) {
     available: form.get("available") === "on",
   });
   if (!p.success) redirect(menuPage(form) + "error=INVALID_INPUT");
-  const { error } = await db.rpc("save_menu_item", {
+  // The add form may carry a photo; check it before the item exists.
+  const file = form.get("photo");
+  const photo = file instanceof File && file.size ? await readPhoto(file) : null;
+  if (file instanceof File && file.size && !photo) redirect(menuPage(form) + "error=INVALID_PHOTO");
+  const { data, error } = await db.rpc("save_menu_item", {
     p_id: p.data.id,
     p_name: p.data.name,
     p_description: p.data.description,
@@ -123,6 +135,10 @@ export async function saveMenuItemAction(form: FormData) {
     p_price: p.data.price,
     p_available: p.data.available,
   });
+  if (!error && photo) {
+    const failed = await storePhoto(db, itemPhotoKey("menu", (data as { id: string }).id), photo);
+    if (failed) redirect(menuPage(form) + "error=REQUEST_FAILED");
+  }
   done(menuPage(form), error);
 }
 
@@ -145,18 +161,19 @@ export async function restoreMenuItemAction(form: FormData) {
   done(menuPage(form), error, "unarchived");
 }
 
-// Two actions, because React drops name/value on a button whose formAction is a function.
-async function moveMenu(form: FormData, up: boolean) {
+const idOrder = z.array(z.string().uuid()).min(1).max(500);
+/**
+ * Saves a dragged order and refreshes the page in place, so it keeps its scroll and focus.
+ * Returns the error code, or null. `ids` comes from the browser.
+ */
+export async function reorderMenuAction(kind: "item" | "section", ids: string[]) {
   const { db } = await requireStaff(true);
-  const fn = form.get("kind") === "section" ? "move_menu_section" : "move_menu_item";
-  const { error } = await db.rpc(fn, { p_id: String(form.get("id") ?? ""), p_up: up });
-  done(menuPage(form), error);
-}
-export async function moveMenuUpAction(form: FormData) {
-  await moveMenu(form, true);
-}
-export async function moveMenuDownAction(form: FormData) {
-  await moveMenu(form, false);
+  const p = idOrder.safeParse(ids);
+  if (!p.success) return "INVALID_INPUT";
+  const fn = kind === "section" ? "reorder_menu_sections" : "reorder_menu_items";
+  const { error } = await db.rpc(fn, { p_ids: p.data });
+  refresh();
+  return error ? publicError(error) : null;
 }
 
 export async function saveMenuSectionAction(form: FormData) {

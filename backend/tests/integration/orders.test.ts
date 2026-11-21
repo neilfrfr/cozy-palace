@@ -136,18 +136,23 @@ it("admins tailor sections and item order", async () => {
       (r) => (r as { name: string }).name,
     );
   const before = await order("Drinks");
-  await as(admin, "select move_menu_item($1,false)", [menu[before[0]].id]);
-  expect(await order("Drinks")).toEqual([before[1], before[0], ...before.slice(2)]);
-  // Moving past the end is a no-op.
-  await as(admin, "select move_menu_item($1,false)", [menu[before.at(-1)!].id]);
-  await expect(as(staff, "select move_menu_item($1,true)", [menu[before[0]].id])).rejects.toThrow("FORBIDDEN");
+  const ids = (names: string[]) => names.map((n) => menu[n].id);
+  const swapped = [before[1], before[0], ...before.slice(2)];
+  await as(admin, "select reorder_menu_items($1)", [ids(swapped)]);
+  expect(await order("Drinks")).toEqual(swapped);
+  // A stale page (a missing, extra or repeated item) can't save its order.
+  for (const stale of [swapped.slice(1), [...swapped, before[0]], [swapped[0], ...swapped.slice(0, -1)]])
+    await expect(as(admin, "select reorder_menu_items($1)", [ids(stale)])).rejects.toThrow("MENU_CHANGED");
+  await expect(as(staff, "select reorder_menu_items($1)", [ids(before)])).rejects.toThrow("FORBIDDEN");
 
   const sections = async () =>
     (await db.query("select name from menu_sections order by position,name")).rows.map((r) => (r as { name: string }).name);
   const { s } = (await as(admin, "select save_menu_section(null,'Specials','Chef picks') as s")).rows[0] as { s: { id: string } };
   expect((await sections()).at(-1)).toBe("Specials");
-  await as(admin, "select move_menu_section($1,true)", [s.id]);
+  const sectionIds = (await db.query("select id from menu_sections order by position,name")).rows.map((r) => (r as { id: string }).id);
+  await as(admin, "select reorder_menu_sections($1)", [[...sectionIds.slice(0, -2), s.id, sectionIds.at(-2)]]);
   expect((await sections()).at(-2)).toBe("Specials");
+  await expect(as(admin, "select reorder_menu_sections($1)", [sectionIds.slice(1)])).rejects.toThrow("MENU_CHANGED");
   await expect(as(admin, "select save_menu_section(null,'Drinks','')")).rejects.toThrow("DUPLICATE_NAME");
   // Renaming a section carries its items along.
   const drinks = (await db.query("select id from menu_sections where name='Drinks'")).rows[0] as { id: string };

@@ -12,7 +12,10 @@ const names = (p: Page, section: string) =>
     .locator('input[name="name"]')
     .evaluateAll((els) => els.map((e) => (e as HTMLInputElement).value));
 
-test("admin adds, reorders, archives, restores and deletes menu items and sections", async ({ page: p }) => {
+// Tall enough that a drag never needs to scroll: Playwright can't scroll mid-drag the way browsers auto-scroll.
+test.use({ viewport: { width: 1440, height: 2400 } });
+
+test("admin adds (with a photo), drags to reorder, archives, restores and deletes menu items and sections", async ({ page: p }) => {
   test.skip(!adminEmail || !adminPassword, "Requires a disposable administrator.");
   await p.goto("/staff/login");
   await p.getByLabel("Email address").fill(adminEmail!);
@@ -23,17 +26,29 @@ test("admin adds, reorders, archives, restores and deletes menu items and sectio
   // Add an item.
   await p.goto("/admin/menu?tab=Dessert");
   await p.getByText("+ Add a menu item").click();
-  const add = p.locator(".admin-menu-item-create");
+  const add = p.locator(".menu-add-form");
   await add.getByLabel("Name").fill(dish);
   await add.getByLabel("Section").selectOption("Dessert");
   await add.getByLabel("Price (₱)").fill("99");
+  await add.locator('input[name="photo"]').setInputFiles("public/design/dining.jpg");
+  await expect(add.getByRole("img", { name: "Chosen photo" })).toBeVisible();
   await add.getByRole("button", { name: "Add item" }).click();
   await expect(p.getByText("Saved.")).toBeVisible();
   expect((await names(p, "Dessert")).at(-1)).toBe(dish);
+  // The photo was stored with the new item, so it can be removed.
+  await expect(row(p).getByRole("button", { name: "Remove photo" })).toBeEnabled();
 
-  // Reorder: up one place.
-  await row(p).getByRole("button", { name: `Move ${dish} up` }).click();
-  await expect.poll(async () => (await names(p, "Dessert")).at(-2)).toBe(dish);
+  // Reorder: drag to the top, then one place down with the keyboard.
+  const before = await names(p, "Dessert");
+  await row(p)
+    .getByRole("button", { name: `Reorder ${dish}` })
+    .dragTo(p.locator(`.admin-menu-item:has(input[name="name"][value="${before[0]}"])`));
+  await expect(p.getByText("Order saved.")).toBeVisible();
+  await expect.poll(async () => (await names(p, "Dessert"))[0]).toBe(dish);
+  await row(p).getByRole("button", { name: `Reorder ${dish}` }).press("ArrowDown");
+  await expect.poll(async () => (await names(p, "Dessert"))[1]).toBe(dish);
+  await p.reload();
+  expect((await names(p, "Dessert"))[1]).toBe(dish);
 
   await p.goto("/dining/menu");
   await expect(p.getByText(dish)).toBeVisible();

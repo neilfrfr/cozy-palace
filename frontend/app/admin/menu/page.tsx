@@ -2,14 +2,15 @@ import { requireStaff } from "@/lib/auth/authorize";
 import {
   deleteMenuItemAction,
   deleteMenuSectionAction,
-  moveMenuDownAction,
-  moveMenuUpAction,
+  reorderMenuAction,
   restoreMenuItemAction,
   saveMenuItemAction,
   saveMenuSectionAction,
 } from "@/app/actions/orders";
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
+import { MenuPhotoPicker } from "@/components/menu-photo-picker";
 import { PhotoThumbnailUpload } from "@/components/photo-thumbnail-upload";
+import { DragHandle, SortableRows } from "@/components/sortable-rows";
 import { menuImage } from "@/lib/menu";
 import { getSiteContent, itemPhoto, itemPhotoKey } from "@/lib/site-content";
 import {
@@ -30,13 +31,42 @@ export const dynamic = "force-dynamic";
 
 const ARCHIVED = "archived";
 
-/** Up/down buttons; they submit the surrounding form's id. */
-function MoveButtons({ name, first, last }: { name: string; first: boolean; last: boolean }) {
+/** The add form: photo on the left, fields in two rows on the right. */
+function AddItemForm({ sections, tab }: { sections: MenuSection[]; tab: string }) {
   return (
-    <>
-      <button className="button secondary" formAction={moveMenuUpAction} formNoValidate disabled={first} aria-label={`Move ${name} up`}>↑</button>
-      <button className="button secondary" formAction={moveMenuDownAction} formNoValidate disabled={last} aria-label={`Move ${name} down`}>↓</button>
-    </>
+    <form action={saveMenuItemAction} className="menu-add-form">
+      <input type="hidden" name="tab" value={tab} />
+      <MenuPhotoPicker />
+      <div className="menu-add-fields">
+        <label>
+          Name
+          <input name="name" required maxLength={80} />
+        </label>
+        <label>
+          Section
+          <select name="section" defaultValue={(sections.find((s) => s.name === tab) ?? sections[0])?.name}>
+            {sections.map((s) => (
+              <option key={s.id}>{s.name}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Price (₱)
+          <input name="price" type="number" required min={0} max={100000} step="0.01" />
+        </label>
+        <label className="menu-add-description">
+          Description
+          <input name="description" maxLength={500} />
+        </label>
+        <div className="menu-add-end">
+          <label className="edit-check">
+            <input name="available" type="checkbox" defaultChecked />
+            Available
+          </label>
+          <button className="button">Add item</button>
+        </div>
+      </div>
+    </form>
   );
 }
 
@@ -45,109 +75,70 @@ function ItemForm({
   photo,
   sections,
   tab,
-  first = false,
-  last = false,
 }: {
-  item?: MenuRow;
+  item: MenuRow;
   photo?: string;
   sections: MenuSection[];
   tab: string;
-  first?: boolean;
-  last?: boolean;
 }) {
-  // Saved rows sit under a shared header; the add form keeps its labels.
-  const compact = !!item;
   return (
-    <div className={"admin-menu-item" + (item ? "" : " admin-menu-item-create")}>
-      {item && (
-        <div className="admin-item-photo">
-          <PhotoThumbnailUpload
-            name={item.name}
-            photoKey={itemPhotoKey("menu", item.id)}
-            src={photo ?? menuImage(item.name) ?? "/design/dining.jpg"}
-            returnTo="/admin/menu"
-            canRemove={!!photo}
-          />
-        </div>
-      )}
+    <div className="admin-menu-item">
+      <div className="admin-item-photo">
+        <PhotoThumbnailUpload
+          name={item.name}
+          photoKey={itemPhotoKey("menu", item.id)}
+          src={photo ?? menuImage(item.name) ?? "/design/dining.jpg"}
+          returnTo="/admin/menu"
+          canRemove={!!photo}
+        />
+      </div>
       {/* The form uses display: contents, so its fields and actions sit in the row grid. */}
       <form action={saveMenuItemAction} className="edit-row">
-        {item && <input type="hidden" name="id" value={item.id} />}
+        <input type="hidden" name="id" value={item.id} />
         <input type="hidden" name="tab" value={tab} />
         <label className="edit-wide">
-          {colLabel("Name", compact)}
-          <input name="name" required maxLength={80} defaultValue={item?.name} />
+          {colLabel("Name", true)}
+          <input name="name" required maxLength={80} defaultValue={item.name} />
         </label>
         <label>
-          {colLabel("Section", compact)}
-          <select name="section" defaultValue={item?.section ?? (sections.find((s) => s.name === tab) ?? sections[0])?.name}>
+          {colLabel("Section", true)}
+          <select name="section" defaultValue={item.section}>
             {sections.map((s) => (
               <option key={s.id}>{s.name}</option>
             ))}
           </select>
         </label>
         <label>
-          {colLabel("Price (₱)", compact)}
-          <input
-            name="price"
-            type="number"
-            required
-            min={0}
-            max={100000}
-            step="0.01"
-            defaultValue={item?.price}
-          />
+          {colLabel("Price (₱)", true)}
+          <input name="price" type="number" required min={0} max={100000} step="0.01" defaultValue={item.price} />
         </label>
         <label className="menu-description-field">
-          {colLabel("Description", compact)}
-          <input
-            name="description"
-            maxLength={500}
-            defaultValue={item?.description}
-          />
+          {colLabel("Description", true)}
+          <input name="description" maxLength={500} defaultValue={item.description} />
         </label>
         <label className="edit-check">
-          <input
-            name="available"
-            type="checkbox"
-            defaultChecked={item?.available ?? true}
-          />
-          {colLabel("Available", compact)}
+          <input name="available" type="checkbox" defaultChecked={item.available} />
+          {colLabel("Available", true)}
         </label>
         <div className="admin-item-actions">
-          <button className="button">{item ? "Save" : "Add item"}</button>
-          {item && (
-            <>
-              <MoveButtons name={item.name} first={first} last={last} />
-              <ConfirmDeleteButton
-                action={deleteMenuItemAction}
-                label="Archive"
-                title={`Archive ${item.name}?`}
-                message="It leaves the menu, staff ordering and the website. Past orders still show it, and you can restore it from the Archived tab."
-              />
-            </>
-          )}
+          <DragHandle />
+          <button className="button">Save</button>
+          <ConfirmDeleteButton
+            action={deleteMenuItemAction}
+            label="Archive"
+            title={`Archive ${item.name}?`}
+            message="It leaves the menu, staff ordering and the website. Past orders still show it, and you can restore it from the Archived tab."
+          />
         </div>
       </form>
     </div>
   );
 }
 
-function SectionRow({
-  section,
-  tab,
-  first = false,
-  last = false,
-}: {
-  section?: MenuSection;
-  tab: string;
-  first?: boolean;
-  last?: boolean;
-}) {
+function SectionRow({ section, tab }: { section?: MenuSection; tab: string }) {
   return (
     <form action={saveMenuSectionAction} className="edit-row">
       {section && <input type="hidden" name="id" value={section.id} />}
-      <input type="hidden" name="kind" value="section" />
       <input type="hidden" name="tab" value={tab} />
       <label>
         {colLabel("Name", !!section)}
@@ -158,10 +149,10 @@ function SectionRow({
         <input name="description" maxLength={200} defaultValue={section?.description} placeholder="Shown on the dining pages" />
       </label>
       <div className="admin-item-actions">
+        {section && <DragHandle />}
         <button className="button">{section ? "Save" : "Add section"}</button>
         {section && (
           <>
-            <MoveButtons name={section.name} first={first} last={last} />
             <ConfirmDeleteButton
               action={deleteMenuSectionAction}
               title={`Delete the ${section.name} section?`}
@@ -199,7 +190,8 @@ export default async function Menu({
       <p className="intro">
         Prices, sections and order used for staff orders and the dining pages.
         Changing a price never alters orders already saved, and every change
-        is recorded in the activity log.
+        is recorded in the activity log. Drag a row by its ⠿ handle to
+        reorder it.
       </p>
       {message && (
         <p
@@ -210,9 +202,7 @@ export default async function Menu({
         </p>
       )}
       <AddCard title="Add a menu item">
-        <div className="admin-menu-create-scroll">
-          <ItemForm sections={sections} tab={tab} />
-        </div>
+        <AddItemForm sections={sections} tab={tab} />
       </AddCard>
       <AddCard title="Edit sections">
         <SectionCard
@@ -221,15 +211,16 @@ export default async function Menu({
           head={["Name", "Description", "Actions"]}
           cols="minmax(140px,1fr) minmax(200px,2fr) 250px"
         >
-          {sections.map((s, i) => (
-            <SectionRow
-              key={s.id}
-              section={s}
-              tab={tab}
-              first={i === 0}
-              last={i === sections.length - 1}
-            />
-          ))}
+          <SortableRows
+            ids={sections.map((s) => s.id)}
+            names={sections.map((s) => s.name)}
+            save={reorderMenuAction.bind(null, "section")}
+            messages={orderMessages}
+          >
+            {sections.map((s) => (
+              <SectionRow key={s.id} section={s} tab={tab} />
+            ))}
+          </SortableRows>
           <SectionRow tab={tab} />
         </SectionCard>
       </AddCard>
@@ -301,17 +292,22 @@ export default async function Menu({
                 head={["Photo", "Name", "Section", "Price (₱)", "Description", "Available", "Actions"]}
                 cols="96px minmax(140px,1.35fr) minmax(110px,.9fr) minmax(96px,.65fr) minmax(160px,1.5fr) auto minmax(230px,auto)"
               >
-                {items.map((m, i) => (
-                  <ItemForm
-                    key={m.id}
-                    item={m}
-                    photo={itemPhoto(content, "menu", m.id)}
-                    sections={sections}
-                    tab={tab}
-                    first={i === 0}
-                    last={i === items.length - 1}
-                  />
-                ))}
+                <SortableRows
+                  ids={items.map((m) => m.id)}
+                  names={items.map((m) => m.name)}
+                  save={reorderMenuAction.bind(null, "item")}
+                  messages={orderMessages}
+                >
+                  {items.map((m) => (
+                    <ItemForm
+                      key={m.id}
+                      item={m}
+                      photo={itemPhoto(content, "menu", m.id)}
+                      sections={sections}
+                      tab={tab}
+                    />
+                  ))}
+                </SortableRows>
               </SectionCard>
             );
           })
