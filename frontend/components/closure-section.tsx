@@ -44,38 +44,29 @@ export function ClosureSection({
         </label>
         <button className="button closure-submit">Close dates</button>
       </form>
-      <div className="table-wrap">
-        <table>
-          <caption className="hidden-label">Closed dates</caption>
-          <thead>
-            <tr>
-              <th>{noun}</th>
-              <th>Closed from</th>
-              <th>Reopens on</th>
-              <th>Reason</th>
-              <th>Actions</th>
-            </tr>
-          </thead>
-          <tbody>
-            {closures.map((c) => (
-              <tr key={c.id}>
-                <td>{label.get((c.room_id ?? c.table_id)!) ?? "—"}</td>
-                <td>{day(c.starts_on)}</td>
-                <td>{day(c.ends_on)}</td>
-                <td>{c.reason}</td>
-                <td>
-                  <form action={removeClosureAction}>
-                    <input type="hidden" name="page" value={page} />
-                    <input type="hidden" name="id" value={c.id} />
-                    <button className="button secondary">Reopen</button>
-                  </form>
-                </td>
-              </tr>
-            ))}
-          </tbody>
-        </table>
-        {!closures.length && <p className="empty">Nothing is closed.</p>}
-      </div>
+      {/* A list, not a table: the card can be narrow, and a table cut off its Reopen column. */}
+      {closures.length ? (
+        <ul className="closure-list">
+          {closures.map((c) => (
+            <li key={c.id}>
+              <div>
+                <strong>{label.get((c.room_id ?? c.table_id)!) ?? "—"}</strong>
+                <span>
+                  {day(c.starts_on)} to {day(c.ends_on)}
+                </span>
+                <small>{c.reason}</small>
+              </div>
+              <form action={removeClosureAction}>
+                <input type="hidden" name="page" value={page} />
+                <input type="hidden" name="id" value={c.id} />
+                <button className="button secondary">Reopen</button>
+              </form>
+            </li>
+          ))}
+        </ul>
+      ) : (
+        <p className="empty closure-empty">Nothing is closed.</p>
+      )}
     </section>
   );
 }

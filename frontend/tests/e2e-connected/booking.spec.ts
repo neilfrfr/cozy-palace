@@ -39,8 +39,13 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await expect(page.getByLabel("Guests", { exact: true })).toHaveValue("2");
   await page.getByLabel("Guests", { exact: true }).fill("1");
   await page.getByRole("button", { name: "Save changes" }).click();
-  await page.reload();
-  await expect(page.getByLabel("Guests", { exact: true })).toHaveValue("1");
+  // Reloading straight after the click can beat the save, so reload until it shows.
+  await expect
+    .poll(async () => {
+      await page.reload();
+      return page.getByLabel("Guests", { exact: true }).inputValue();
+    })
+    .toBe("1");
   await page.getByRole("button", { name: "Delete draft", exact: true }).click();
   await page.getByRole("alertdialog").getByRole("button", { name: "Delete draft", exact: true }).click();
   await expect(page).toHaveURL(/\/reservations$/);

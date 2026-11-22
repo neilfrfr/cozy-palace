@@ -2,7 +2,9 @@ import {
   markOrderPaidAction,
   transitionOrderAction,
 } from "@/app/actions/orders";
+import { PayToggle } from "@/components/pay-toggle";
 import { bookedAt, formatLabel } from "@/lib/format";
+import { Fragment } from "react";
 import { paymentMethods, peso, type Order } from "@/lib/orders";
 
 export const methodLabel = (m: string) =>
@@ -33,8 +35,11 @@ export function OrderList({
           </tr>
         </thead>
         <tbody>
-          {rows.map((o) => (
-            <tr key={o.id}>
+          {rows.map((o) => {
+            const payable = staff && !o.paid_at && !o.rooms && o.status !== "cancelled";
+            return (
+            <Fragment key={o.id}>
+            <tr>
               <td>
                 <strong>{o.reference}</strong>
                 {o.reservations && (
@@ -88,30 +93,10 @@ export function OrderList({
               </td>
               {staff && (
                 <td>
-                  {!o.paid_at && !o.rooms && o.status !== "cancelled" && (
-                    <form action={markOrderPaidAction} className="inline-form order-payment-actions">
-                      <input type="hidden" name="id" value={o.id} />
-                      <input type="hidden" name="version" value={o.version} />
-                      <label>
-                        Method
-                        <select name="method" defaultValue="cash">
-                          {paymentMethods.map((m) => (
-                            <option key={m} value={m}>
-                              {methodLabel(m)}
-                            </option>
-                          ))}
-                        </select>
-                      </label>
-                      <label>
-                        Reference (optional)
-                        <input name="reference" maxLength={100} />
-                      </label>
-                      <button className="button">Mark paid</button>
-                    </form>
-                  )}
-                  {o.status === "open" &&
+                  {(payable || o.status === "open") &&
                     <div className="order-transition-actions">
-                    {(["completed", "cancelled"] as const)
+                    {payable && <PayToggle target={"pay-" + o.id} />}
+                    {o.status === "open" && (["completed", "cancelled"] as const)
                       .filter((s) => s === "completed" || !o.paid_at)
                       .map((s) => (
                         <form key={s} action={transitionOrderAction}>
@@ -135,7 +120,35 @@ export function OrderList({
                 </td>
               )}
             </tr>
-          ))}
+            {payable && (
+              <tr id={"pay-" + o.id} className="order-pay-row" hidden>
+                <td colSpan={7}>
+                  <form action={markOrderPaidAction} className="inline-form order-payment-actions">
+                    <input type="hidden" name="id" value={o.id} />
+                    <input type="hidden" name="version" value={o.version} />
+                    <strong>Payment for order {o.reference}</strong>
+                    <label>
+                      Method
+                      <select name="method" defaultValue="cash">
+                        {paymentMethods.map((m) => (
+                          <option key={m} value={m}>
+                            {methodLabel(m)}
+                          </option>
+                        ))}
+                      </select>
+                    </label>
+                    <label>
+                      Reference (optional)
+                      <input name="reference" maxLength={100} />
+                    </label>
+                    <button className="button">Confirm payment</button>
+                  </form>
+                </td>
+              </tr>
+            )}
+            </Fragment>
+            );
+          })}
         </tbody>
       </table>
     </div>
