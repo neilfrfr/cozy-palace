@@ -1326,3 +1326,126 @@ body {
     display: none;
   }
 }
+
+/* ---------- About: statement, pillars, photo stories, closing band ---------- */
+.about-statement {
+  max-width: 760px;
+  margin: 0 auto;
+  padding: 72px 0 80px;
+  color: var(--navy);
+  font-family: var(--serif);
+  font-size: clamp(24px, 3vw, 34px);
+  line-height: 1.35;
+  text-align: center;
+}
+.about-page .page-banner + .about-statement {
+  margin-top: 0;
+}
+.about-pillars {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 40px;
+  padding-bottom: 104px;
+}
+.about-pillars h2,
+.about-story h2 {
+  margin: 0 0 12px;
+  color: var(--navy);
+  font-size: clamp(24px, 2.4vw, 30px);
+  line-height: 1.15;
+}
+.about-pillars .eyebrow {
+  margin: 24px 0 10px;
+}
+.about-pillars p:last-child,
+.about-story p {
+  margin: 0;
+  color: var(--muted);
+}
+.about-photo {
+  position: relative;
+  overflow: hidden;
+  aspect-ratio: 4 / 3;
+  background: var(--stone);
+}
+.about-photo-tall {
+  aspect-ratio: 4 / 5;
+}
+.about-photo img {
+  object-fit: cover;
+}
+.about-story {
+  display: grid;
+  grid-template-columns: minmax(0, 11fr) minmax(0, 9fr);
+  align-items: center;
+  gap: clamp(32px, 6vw, 88px);
+  padding-bottom: 104px;
+}
+.about-story.flip .about-photo {
+  order: 2;
+}
+.about-story-copy a {
+  display: inline-block;
+  margin-top: 24px;
+  color: var(--brass);
+  font-size: 12px;
+  font-weight: 700;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  text-decoration: none;
+}
+.about-story-copy a:hover {
+  color: var(--navy);
+}
+.about-cta {
+  margin: 0 calc(50% - 50vw);
+  padding: 96px 24px;
+  background: var(--navy);
+  color: white;
+  text-align: center;
+}
+.about-page .about-cta h2 {
+  margin: 0;
+  color: white;
+  font-size: clamp(32px, 4vw, 48px);
+}
+.about-cta p {
+  max-width: 56ch;
+  margin: 16px auto 32px;
+  color: rgb(255 255 255 / 0.8);
+}
+/* The closing band meets the footer. */
+main:has(.about-cta) {
+  padding-bottom: 0;
+}
+.about-cta .actions {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: center;
+  gap: 16px;
+}
+.about-cta .button.gold {
+  border: 1px solid var(--gold);
+  background: var(--gold);
+  color: #1b2a4a;
+}
+@media (max-width: 760px) {
+  .about-pillars,
+  .about-story {
+    grid-template-columns: minmax(0, 1fr);
+  }
+  .about-pillars {
+    gap: 56px;
+    padding-bottom: 72px;
+  }
+  .about-story {
+    gap: 24px;
+    padding-bottom: 72px;
+  }
+  .about-story.flip .about-photo {
+    order: 0;
+  }
+  .about-statement {
+    padding: 48px 0 56px;
+  }
+}
