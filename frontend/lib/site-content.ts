@@ -40,10 +40,53 @@ export const siteText = {
     "Dining: table booking hours",
     "Prototype seating records are fictional. Tables can be booked from 11:00 to 14:00 and 17:00 to 21:00.",
   ],
-  "about.title": ["About: banner heading", "Your Stay, in One Place."],
+  "about.title": ["About: banner heading", "A Palace Built on Care."],
   "about.intro": [
     "About: banner text",
-    "Manage your hotel reservations and find information about dining at Cozy Palace Hotel and Restaurant.",
+    "Cozy Palace is a small hotel and restaurant where rest, good food and a warm welcome come first.",
+  ],
+  "about.statement": [
+    "About: statement",
+    "We believe a good stay is made of small kindnesses: a quiet room, a meal shared slowly, and people who are glad you came.",
+  ],
+  "about.rest.eyebrow": ["About: first pillar label", "Rest"],
+  "about.rest.title": ["About: first pillar heading", "Rooms to settle into"],
+  "about.rest.body": [
+    "About: first pillar text",
+    "Calm, comfortable rooms with everything you need and nothing you don’t, so you can settle in from the first night.",
+  ],
+  "about.gather.eyebrow": ["About: second pillar label", "Gather"],
+  "about.gather.title": ["About: second pillar heading", "A table to linger at"],
+  "about.gather.body": [
+    "About: second pillar text",
+    "Filipino favourites and comforting classics, made for long lunches and unhurried dinners.",
+  ],
+  "about.welcome.eyebrow": ["About: third pillar label", "Welcome"],
+  "about.welcome.title": [
+    "About: third pillar heading",
+    "Looked after, start to finish",
+  ],
+  "about.welcome.body": [
+    "About: third pillar text",
+    "Our team takes care of reservations, dining and special requests, so every visit feels easy from booking to check-out.",
+  ],
+  "about.rooms.title": ["About: rooms story heading", "A room for every kind of stay"],
+  "about.rooms.body": [
+    "About: rooms story text",
+    "From a garden-view retreat for two to a suite with space to spread out. Choose your dates, send a request, and follow it from request to arrival.",
+  ],
+  "about.dining.title": [
+    "About: dining story heading",
+    "Halo-halo on a warm afternoon",
+  ],
+  "about.dining.body": [
+    "About: dining story text",
+    "Or dinner with the whole family. Our dining room is a place to slow down. Browse the menu and book a table before you arrive.",
+  ],
+  "about.cta.title": ["About: closing heading", "Your stay, in one place."],
+  "about.cta.body": [
+    "About: closing text",
+    "Sign in to see your reservations, table bookings and receipts, and follow each one from request to arrival.",
   ],
   "contact.title": ["Contact: banner heading", "Get in Touch."],
   "contact.intro": [
@@ -73,6 +116,14 @@ export const sitePhotos = {
   ],
   "photo.rooms": ["Rooms banner", "/design/hotel-hero.jpg"],
   "photo.about": ["About banner", "/design/hotel-hero.jpg"],
+  "photo.about.rest": ["About: first pillar photo", "/design/rooms/garden-deluxe.jpg"],
+  "photo.about.gather": [
+    "About: second pillar photo",
+    "/design/menu/kare-kare-lechon-kawali.jpg",
+  ],
+  "photo.about.welcome": ["About: third pillar photo", "/design/dining.jpg"],
+  "photo.about.rooms": ["About: rooms story photo", "/design/rooms/palace-suite.jpg"],
+  "photo.about.dining": ["About: dining story photo", "/design/menu/halo-halo.jpg"],
   "photo.contact": ["Contact banner", "/design/hotel-hero.jpg"],
 } as const;
 export type PhotoKey = keyof typeof sitePhotos;
