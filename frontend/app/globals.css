@@ -3957,3 +3957,67 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .sortable-status { margin:0; padding:0 20px; font-size:12px; color:var(--success); }
 .sortable-status:empty { display:none; }
 .sortable-status.error { color:var(--danger); }
+
+/* Rooms: room types in a wide main column; rooms and closed dates in a side column. */
+.rooms-split { grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr); }
+.rooms-main, .rooms-side { display:grid; gap:24px; align-content:start; min-width:0; }
+.rooms-main .section-card { margin:0; }
+.rooms-main .add-card { margin:0; }
+.room-type-create { grid-template-columns:minmax(0,2fr) minmax(0,.7fr) minmax(0,1fr); }
+.room-type-create .room-type-create-description { grid-column:1 / -1; }
+.room-type-create .button { grid-column:-2 / -1; justify-self:end; }
+.room-type-row label { display:grid; gap:4px; min-width:0; margin:0; }
+.room-type-row input, .room-type-row textarea { width:100%; min-width:0; margin:0; }
+.room-type-row textarea { min-height:44px; resize:vertical; }
+.room-type-row .row-caption { color:var(--muted); font-size:12px; }
+.room-type-row .admin-item-actions { flex-wrap:nowrap; }
+.room-create { grid-template-columns:1fr; }
+.room-create .button { justify-self:stretch; }
+.room-row { display:grid; grid-template-columns:88px minmax(0,1fr); gap:8px; padding:12px 0; border-top:1px solid var(--line); }
+.room-row label { margin:0; min-width:0; }
+.room-row input, .room-row select { width:100%; min-width:0; min-height:40px; margin:0; }
+.room-row .admin-item-actions { grid-column:1 / -1; }
+/* Closed dates as a list, so the Reopen button is never cut off. */
+.closure-list { display:grid; margin:16px 0 0; padding:0; list-style:none; border-top:1px solid var(--line); }
+.closure-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+.closure-list li > div { display:grid; gap:2px; min-width:0; }
+.closure-list span, .closure-list small { color:var(--muted); font-size:13px; }
+.closure-list form { margin:0; flex:none; }
+.closure-empty { margin:16px 0 0; padding:16px 0 0; border-top:1px solid var(--line); color:var(--muted); font-style:italic; }
+
+/* Orders: Mark paid opens a row under the order, so the Actions column only holds buttons. */
+.orders-table .order-pay-row td { padding-top:0; background:var(--stone); }
+.order-pay-row .order-payment-actions { grid-template-columns:auto minmax(130px,180px) minmax(160px,260px) auto; justify-content:start; align-items:end; gap:8px 12px; min-width:0; padding:12px 0 4px; }
+.order-pay-row .order-payment-actions strong { align-self:center; font-size:13px; }
+.order-transition-actions { margin-top:0; }
+@media (max-width:760px) { .order-pay-row .order-payment-actions { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .order-pay-row .order-payment-actions strong { grid-column:1 / -1; } }
+
+/* Activity log: full record and account IDs wrap instead of pushing the table wider than the page. */
+.activity-log-table table { width:100%; }
+.activity-log-table td:nth-child(5), .activity-log-table td small { white-space:normal; overflow-wrap:anywhere; font-size:12px; }
+.activity-log-table td:nth-child(5) { min-width:14ch; }
+
+/* Menu rows below 1000px: photo on the left, fields in two columns (the seven-column row no longer fits). */
+@media (max-width:1000px) {
+  .admin-menu-item { grid-template-columns:96px minmax(0,1fr) minmax(0,1fr); grid-auto-flow:row dense; align-items:end; }
+  .admin-menu-item > .admin-item-photo { grid-column:1; grid-row:1 / span 4; align-self:start; }
+  .admin-menu-item .edit-row > .menu-description-field, .admin-menu-item .edit-row > .admin-item-actions { grid-column:2 / -1; }
+}
+@media (max-width:560px) {
+  .admin-menu-item { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .admin-menu-item > .admin-item-photo { grid-column:1 / -1; grid-row:auto; }
+  .admin-menu-item .edit-row > .menu-description-field, .admin-menu-item .edit-row > .admin-item-actions { grid-column:1 / -1; }
+}
+@media (max-width:1000px) {
+  .add-card-body .section-card .edit-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
+  .add-card-body .section-card .edit-row > .admin-item-actions { grid-column:1 / -1; }
+}
+/* Reports: the seven-column transactions table wraps its cells instead of scrolling at laptop widths. */
+.report-transactions td { white-space:normal; }
+.section-card .room-type-row { align-items:start; }
+.room-type-row textarea { box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; font:inherit; font-size:14px; }
+.room-type-row .admin-item-actions { padding-top:4px; }
+.rooms-side .closure-form { grid-template-columns:minmax(0,1fr); }
+.rooms-side .closure-form label:first-of-type, .rooms-side .closure-form .closure-submit { grid-column:auto; }
+@media (max-width:1100px) { .rooms-split { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:1000px) { .room-type-row .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; font-size:12px; } }

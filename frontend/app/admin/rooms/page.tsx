@@ -9,6 +9,7 @@ import {
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
+import { AddCard, colLabel, SectionCard } from "@/components/admin-ui";
 import {
   getAdminRooms,
   getAdminRoomTypes,
@@ -36,165 +37,89 @@ export default async function RoomInventory({
         recorded in the activity log.
       </p>
       <InventoryNotice notice={notice} error={error} />
-      <div className="admin-split">
-        <section className="panel-card" aria-labelledby="room-types">
-          <h2 id="room-types">Room types</h2>
-          <form action={createRoomTypeAction} className="inventory-create-form">
-            <label>
-              Name
-              <input name="name" required maxLength={100} />
-            </label>
-            <label>
-              Description
-              <textarea name="description" maxLength={500} rows={2} />
-            </label>
-            <label>
-              Guests
-              <input
-                name="capacity"
-                type="number"
-                required
-                min={1}
-                max={20}
-                step={1}
-              />
-            </label>
-            <label>
-              Nightly rate (₱)
-              <input
-                name="rate"
-                type="number"
-                required
-                min={0}
-                max={1000000}
-                step="0.01"
-              />
-            </label>
-            <button className="button">Add room type</button>
-          </form>
-          {types.map((t) => (
-            <form
-              key={t.id}
-              action={saveRoomTypeAction}
-              className="room-type-card"
-            >
-              <input type="hidden" name="id" value={t.id} />
-              <div className="room-type-name">
-                <strong>{t.name}</strong>
-                <small>
-                  {t.code} · Rooms{" "}
-                  {rooms
-                    .filter((r) => r.room_types.id === t.id)
-                    .map((r) => r.room_number)
-                    .join(", ") || "None yet"}
-                </small>
-              </div>
+      <div className="admin-split rooms-split">
+        <div className="rooms-main">
+          <AddCard title="Add a room type">
+            <form action={createRoomTypeAction} className="inventory-create-form room-type-create">
               <label>
                 Name
-                <input
-                  name="name"
-                  required
-                  maxLength={100}
-                  defaultValue={t.name}
-                />
-              </label>
-              <label className="edit-line">
-                Description
-                <textarea
-                  name="description"
-                  maxLength={500}
-                  rows={2}
-                  defaultValue={t.description}
-                />
+                <input name="name" required maxLength={100} />
               </label>
               <label>
                 Guests
-                <input
-                  name="capacity"
-                  type="number"
-                  required
-                  min={1}
-                  max={20}
-                  defaultValue={t.capacity}
-                />
+                <input name="capacity" type="number" required min={1} max={20} step={1} />
               </label>
               <label>
                 Nightly rate (₱)
-                <input
-                  name="rate"
-                  type="number"
-                  required
-                  min={0}
-                  max={1000000}
-                  step="0.01"
-                  defaultValue={t.nightly_rate}
-                />
+                <input name="rate" type="number" required min={0} max={1000000} step="0.01" />
               </label>
-              <button className="button">Save</button>
-              <ConfirmDeleteButton
-                action={deleteRoomTypeAction}
-                title={`Delete ${t.name}?`}
-                message="Room types with rooms cannot be deleted. Their photo and description are removed if deletion is allowed."
-              />
+              <label className="room-type-create-description">
+                Description
+                <textarea name="description" maxLength={500} rows={2} />
+              </label>
+              <button className="button">Add room type</button>
             </form>
-          ))}
-          {!types.length && (
-            <p className="empty">No room types have been added.</p>
-          )}
-          <h2 id="rooms">Rooms</h2>
-          <form action={createRoomAction} className="inventory-create-form">
-            <label>
-              Room number
-              <input name="number" required maxLength={30} />
-            </label>
-            <label>
-              Room type
-              <select
-                name="typeId"
-                required
-                defaultValue=""
-                disabled={!types.length}
-              >
-                <option value="" disabled>
-                  Choose a room type
-                </option>
-                {types.map((type) => (
-                  <option key={type.id} value={type.id}>
-                    {type.name} ({type.code})
-                  </option>
-                ))}
-              </select>
-            </label>
-            <button className="button" disabled={!types.length}>
-              Add room
-            </button>
-          </form>
-          {!types.length && (
-            <p className="subtle">Add a room type before adding a room.</p>
-          )}
-          <h2 id="room-list">Edit rooms</h2>
-          <p className="subtle">
-            Room types cannot be changed on rooms with booking history.
-          </p>
-          {rooms.map((room) => (
-            <form
-              key={room.id}
-              action={saveRoomAction}
-              className="room-type-card"
-            >
-              <input type="hidden" name="id" value={room.id} />
+          </AddCard>
+          <SectionCard
+            title="Room types"
+            count={types.length}
+            head={["Name", "Guests", "Nightly rate (₱)", "Actions"]}
+            cols="minmax(0,1.6fr) minmax(0,.55fr) minmax(0,.9fr) auto"
+          >
+            {types.map((t) => (
+              <form key={t.id} action={saveRoomTypeAction} className="edit-row room-type-row">
+                <input type="hidden" name="id" value={t.id} />
+                <label>
+                  {colLabel("Name", true)}
+                  <input name="name" required maxLength={100} defaultValue={t.name} />
+                  <small className="row-caption">
+                    {t.code} · Rooms{" "}
+                    {rooms
+                      .filter((r) => r.room_types.id === t.id)
+                      .map((r) => r.room_number)
+                      .join(", ") || "none yet"}
+                  </small>
+                </label>
+                <label className="edit-line">
+                  {colLabel("Description", true)}
+                  <textarea name="description" maxLength={500} rows={2} placeholder="Description" defaultValue={t.description} />
+                </label>
+                <label>
+                  {colLabel("Guests", true)}
+                  <input name="capacity" type="number" required min={1} max={20} defaultValue={t.capacity} />
+                </label>
+                <label>
+                  {colLabel("Nightly rate (₱)", true)}
+                  <input name="rate" type="number" required min={0} max={1000000} step="0.01" defaultValue={t.nightly_rate} />
+                </label>
+                <div className="admin-item-actions">
+                  <button className="button">Save</button>
+                  <ConfirmDeleteButton
+                    action={deleteRoomTypeAction}
+                    title={`Delete ${t.name}?`}
+                    message="Room types with rooms cannot be deleted. Their photo and description are removed if deletion is allowed."
+                  />
+                </div>
+              </form>
+            ))}
+          </SectionCard>
+        </div>
+        <div className="rooms-side">
+          <section className="panel-card" aria-labelledby="rooms">
+            <h2 id="rooms">
+              Rooms <span className="count-chip">{rooms.length}</span>
+            </h2>
+            <form action={createRoomAction} className="inventory-create-form room-create">
               <label>
                 Room number
-                <input
-                  name="number"
-                  required
-                  maxLength={30}
-                  defaultValue={room.room_number}
-                />
+                <input name="number" required maxLength={30} />
               </label>
               <label>
                 Room type
-                <select name="typeId" defaultValue={room.room_types.id} required>
+                <select name="typeId" required defaultValue="" disabled={!types.length}>
+                  <option value="" disabled>
+                    Choose a room type
+                  </option>
                   {types.map((type) => (
                     <option key={type.id} value={type.id}>
                       {type.name} ({type.code})
@@ -202,25 +127,51 @@ export default async function RoomInventory({
                   ))}
                 </select>
               </label>
-              <button className="button">Save</button>
-              <ConfirmDeleteButton
-                action={deleteRoomAction}
-                title={`Delete room ${room.room_number}?`}
-                message="Rooms with booking or room charge history are kept and cannot be deleted."
-              />
+              <button className="button" disabled={!types.length}>
+                Add room
+              </button>
             </form>
-          ))}
-          {!rooms.length && <p className="empty">No rooms have been added.</p>}
-        </section>
-        <ClosureSection
-          page="/admin/rooms"
-          noun="Room"
-          resources={rooms.map((r) => ({
-            id: r.id,
-            label: `Room ${r.room_number} (${r.room_types.name})`,
-          }))}
-          closures={closures.filter((c) => c.room_id)}
-        />
+            {!types.length && <p className="subtle">Add a room type before adding a room.</p>}
+            <p className="subtle">Room types cannot be changed on rooms with booking history.</p>
+            {rooms.map((room) => (
+              <form key={room.id} action={saveRoomAction} className="room-row">
+                <input type="hidden" name="id" value={room.id} />
+                <label>
+                  <span className="hidden-label">Room number</span>
+                  <input name="number" required maxLength={30} defaultValue={room.room_number} />
+                </label>
+                <label>
+                  <span className="hidden-label">Room type for room {room.room_number}</span>
+                  <select name="typeId" defaultValue={room.room_types.id} required>
+                    {types.map((type) => (
+                      <option key={type.id} value={type.id}>
+                        {type.name}
+                      </option>
+                    ))}
+                  </select>
+                </label>
+                <div className="admin-item-actions">
+                  <button className="button">Save</button>
+                  <ConfirmDeleteButton
+                    action={deleteRoomAction}
+                    title={`Delete room ${room.room_number}?`}
+                    message="Rooms with booking or room charge history are kept and cannot be deleted."
+                  />
+                </div>
+              </form>
+            ))}
+            {!rooms.length && <p className="empty">No rooms have been added.</p>}
+          </section>
+          <ClosureSection
+            page="/admin/rooms"
+            noun="Room"
+            resources={rooms.map((r) => ({
+              id: r.id,
+              label: `Room ${r.room_number} (${r.room_types.name})`,
+            }))}
+            closures={closures.filter((c) => c.room_id)}
+          />
+        </div>
       </div>
     </>
   );

@@ -305,7 +305,7 @@ export default async function Reports({
           <dd>{peso(sum.refunded)}</dd>
         </div>
       </dl>
-      <div className="table-wrap">
+      <div className="table-wrap report-transactions">
         <table>
           <caption className="hidden-label">Payments</caption>
           <thead>

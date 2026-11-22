@@ -52,7 +52,7 @@ export default async function Activity({
         </label>
         <button className="button">Show</button>
       </form>
-      <div className="table-wrap">
+      <div className="table-wrap activity-log-table">
         <table>
           <caption className="hidden-label">
             Employee and system activity

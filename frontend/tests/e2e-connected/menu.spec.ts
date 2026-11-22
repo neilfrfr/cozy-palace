@@ -47,8 +47,13 @@ test("admin adds (with a photo), drags to reorder, archives, restores and delete
   await expect.poll(async () => (await names(p, "Dessert"))[0]).toBe(dish);
   await row(p).getByRole("button", { name: `Reorder ${dish}` }).press("ArrowDown");
   await expect.poll(async () => (await names(p, "Dessert"))[1]).toBe(dish);
-  await p.reload();
-  expect((await names(p, "Dessert"))[1]).toBe(dish);
+  // The keyboard move saves in the background, so reload until the saved order shows.
+  await expect
+    .poll(async () => {
+      await p.reload();
+      return (await names(p, "Dessert"))[1];
+    })
+    .toBe(dish);
 
   await p.goto("/dining/menu");
   await expect(p.getByText(dish)).toBeVisible();
