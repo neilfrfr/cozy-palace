@@ -221,8 +221,9 @@ test("staff and admin sign in on their own login page", async ({ page }) => {
 test("operational tables scroll locally without widening mobile pages", async ({ page }) => {
   await page.setViewportSize({ width: 360, height: 800 });
   await page.goto("/");
+  // Add the fixture beside React's nodes; replacing them made React throw removeChild on teardown.
   await page.locator("main").evaluate((main) => {
-    main.innerHTML = '<div class="staff-layout"><aside></aside><div class="admin-content operations-content"><div class="table-wrap operations-table"><table><caption class="hidden-label">Test queue</caption><tbody><tr><td>Guest test fixture</td><td>2027-06-01</td><td>Room 101</td><td>Staff-entered guest</td><td>Confirmed</td><td><a href="#">Open<span class="hidden-label"> CP-TEST-FIXTURE</span></a></td></tr></tbody></table></div></div></div>';
+    main.insertAdjacentHTML("beforeend", '<div class="staff-layout"><aside></aside><div class="admin-content operations-content"><div class="table-wrap operations-table"><table><caption class="hidden-label">Test queue</caption><tbody><tr><td>Guest test fixture</td><td>2027-06-01</td><td>Room 101</td><td>Staff-entered guest</td><td>Confirmed</td><td><a href="#">Open<span class="hidden-label"> CP-TEST-FIXTURE</span></a></td></tr></tbody></table></div></div></div>');
   });
   expect(await page.evaluate(() => document.documentElement.scrollWidth <= innerWidth)).toBe(true);
   expect(await page.locator(".operations-table").evaluate((element) => element.scrollWidth > element.clientWidth)).toBe(true);
