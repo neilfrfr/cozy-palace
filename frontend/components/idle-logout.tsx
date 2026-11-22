@@ -3,7 +3,7 @@ import { startTransition, useEffect } from "react";
 import { idleLogoutAction } from "@/app/login/actions";
 const limit = 5 * 60 * 1000;
 const key = "cp-staff-last-activity";
-const events = ["pointerdown", "pointermove", "keydown", "scroll", "touchstart"];
+const events = ["pointerdown", "pointermove", "keydown", "scroll", "wheel", "touchstart"];
 /**
  * Signs staff and admin out after 5 minutes without input. Tabs share one session,
  * so the last activity is shared through localStorage and any active tab keeps all of them signed in.

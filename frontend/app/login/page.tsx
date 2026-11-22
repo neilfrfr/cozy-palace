@@ -14,7 +14,9 @@ export default async function Login({
       notice={
         p.notice === "invalid-link"
           ? "This link is invalid or expired. Request a fresh confirmation or recovery link."
-          : undefined
+          : p.notice === "expired"
+            ? "Your session ended, so you were signed out. Sign in again to continue."
+            : undefined
       }
       next={p.next ? safeRedirect(p.next) : ""}
       portal="guest"
