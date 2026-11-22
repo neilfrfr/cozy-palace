@@ -1,4 +1,5 @@
 import "server-only";
+import { cookies } from "next/headers";
 import { redirect } from "next/navigation";
 import { createClient } from "@/lib/supabase/server";
 import { safeRedirect } from "@/lib/auth/redirect";
@@ -7,8 +8,11 @@ export async function requireIdentity(next = "/reservations", login = "/login") 
   if (!isConfigured()) redirect("/setup");
   const db = await createClient();
   const { data, error } = await db.auth.getUser();
-  if (error || !data.user)
-    redirect(login + "?next=" + encodeURIComponent(safeRedirect(next)));
+  if (error || !data.user) {
+    // An auth cookie without a valid user means the session ended elsewhere (sign-out on another device, expiry), so say why.
+    const ended = (await cookies()).getAll().some((c) => c.name.startsWith("sb-") && c.name.includes("-auth-token"));
+    redirect(login + "?next=" + encodeURIComponent(safeRedirect(next)) + (ended ? "&notice=expired" : ""));
+  }
   return { userId: data.user.id, email: data.user.email, db };
 }
 export async function requireStaff(adminOnly = false) {

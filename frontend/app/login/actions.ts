@@ -29,18 +29,18 @@ async function signIn(form: FormData, portal: "guest" | "staff") {
   try {
     role = await readRole(db, data.user.id);
   } catch {
-    await db.auth.signOut();
+    await db.auth.signOut({ scope: "local" });
     return {
       message: "Account permissions could not be verified. Please try again.",
     };
   }
   const employee = role !== "customer";
   if (portal === "guest" && employee) {
-    await db.auth.signOut();
+    await db.auth.signOut({ scope: "local" });
     return { message: "Staff and admin accounts sign in at /staff/login." };
   }
   if (portal === "staff" && !employee) {
-    await db.auth.signOut();
+    await db.auth.signOut({ scope: "local" });
     return {
       message: "This login is for staff and admin. Guests sign in at /login.",
     };
@@ -71,7 +71,7 @@ export async function logoutAction() {
       const role = await readRole(db, data.user.id).catch(() => "customer");
       if (role !== "customer") to = "/staff/login";
     }
-    await db.auth.signOut();
+    await db.auth.signOut({ scope: "local" });
   }
   redirect(to);
 }
@@ -79,7 +79,7 @@ export async function logoutAction() {
 export async function idleLogoutAction() {
   if (isConfigured()) {
     const db = await createClient();
-    await db.auth.signOut();
+    await db.auth.signOut({ scope: "local" });
   }
   redirect("/staff/login?notice=timeout");
 }

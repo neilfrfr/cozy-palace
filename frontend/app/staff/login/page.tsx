@@ -18,7 +18,9 @@ export default async function StaffLogin({
       notice={
         p.notice === "timeout"
           ? "You were signed out after 5 minutes of inactivity. Sign in again to continue."
-          : undefined
+          : p.notice === "expired"
+            ? "Your session ended, so you were signed out. Sign in again to continue."
+            : undefined
       }
       next={p.next ? safeRedirect(p.next) : ""}
       portal="staff"
