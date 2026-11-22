@@ -29,8 +29,24 @@ export default async function RootLayout({
 }) {
   const content = await getSiteContent();
   return (
-    <html lang="en">
+    // The inline script marks a tab that already saw the intro before first paint, so it never flashes again.
+    <html lang="en" suppressHydrationWarning>
+      <head>
+        <link rel="preload" href="/fonts/bodoni-moda-opsz.woff2" as="font" type="font/woff2" crossOrigin="" />
+        <script
+          dangerouslySetInnerHTML={{
+            __html:
+              'try{sessionStorage.getItem("cp-intro")?document.documentElement.classList.add("intro-seen"):sessionStorage.setItem("cp-intro","1")}catch(e){}',
+          }}
+        />
+      </head>
       <body>
+        {/* Once per tab: the Cozy Palace name fills in, then fades out (CSS only, never blocks clicks). */}
+        <div className="site-intro" aria-hidden="true">
+          <span className="page-loader-mark" data-text="Cozy Palace">
+            Cozy Palace
+          </span>
+        </div>
         <a href="#main" className="hidden-label focus:not-sr-only">
           Skip to content
         </a>

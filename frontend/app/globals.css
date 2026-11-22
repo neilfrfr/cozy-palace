@@ -35,6 +35,7 @@
 :root {
   --sans: "Nunito", Arial, Helvetica, sans-serif;
   --serif: "Fraunces", Georgia, serif;
+  --brand: "Bodoni Moda", "Didot", Georgia, serif;
   --paper: #faf7f1;
   --surface: #ffffff;
   --ink: #262320;
@@ -102,7 +103,7 @@ button:disabled {
 }
 .brand {
   text-decoration: none;
-  font-family: var(--serif);
+  font-family: var(--brand);
   font-size: 24px;
   letter-spacing: -0.6px;
   color: var(--green);
@@ -1262,7 +1263,7 @@ main:has(.admin-layout) {
   width: fit-content;
   margin: 0 auto 18px;
   color: var(--navy);
-  font-family: var(--display);
+  font-family: var(--brand);
   font-size: 24px;
   line-height: 1;
   text-align: center;
@@ -2613,7 +2614,7 @@ button.primary.danger:hover {
   background: var(--navy);
 }
 .desk-sidebar .brand {
-  font-family: var(--serif);
+  font-family: var(--brand);
   font-size: 22px;
   line-height: 1.2;
   margin: 0 0 28px 10px;
@@ -4026,3 +4027,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .rooms-side .closure-form label:first-of-type, .rooms-side .closure-form .closure-submit { grid-column:auto; }
 @media (max-width:1100px) { .rooms-split { grid-template-columns:minmax(0,1fr); } }
 @media (max-width:1000px) { .room-type-row .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; font-size:12px; } }
+
+/* The Cozy Palace name keeps Bodoni Moda; headings use Fraunces. */
+.brand {
+  font-family: var(--brand);
+}

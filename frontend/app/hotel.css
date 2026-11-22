@@ -3,6 +3,15 @@
  * overlapping booking bar, serif display type and square gold actions.
  * Loaded after globals.css. Staff and admin screens keep their own styles.
  */
+/* Bodoni Moda is kept for the Cozy Palace name only (header, footer, sidebars, loader). */
+@font-face {
+  font-family: "Bodoni Moda";
+  src: url("/fonts/bodoni-moda-opsz.woff2") format("woff2-variations");
+  font-style: normal;
+  font-weight: 400 900;
+  font-display: swap;
+}
+
 :root {
   --night: #0f1a2c;
   --navy: #152238;
@@ -53,7 +62,7 @@
   grid-column: 2;
   color: white;
   text-align: center;
-  font-family: var(--display);
+  font-family: var(--brand);
   font-size: 30px;
   font-weight: 400;
   line-height: 1;
@@ -787,6 +796,7 @@ main:has(.page-banner) {
   margin: 0 auto;
 }
 .footer .brand {
+  font-family: var(--brand);
   display: inline-block;
   color: white;
   font-size: 28px;
@@ -846,7 +856,7 @@ main:has(.page-banner) {
 }
 .page-loader-mark {
   position: relative;
-  font-family: var(--display);
+  font-family: var(--brand);
   font-size: clamp(40px, 8vw, 72px);
   line-height: 1;
   /* Faint outline of the name; the ::after copy fills it from the bottom. */
@@ -1270,3 +1280,49 @@ body {
 .homepage .home-dining-copy .button.explore-dining:focus-visible { border-color:var(--navy); color:white; outline:2px solid var(--navy); outline-offset:3px; }
 .booking-bar input:focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-bottom-color:var(--navy); box-shadow:none; }
 .dining-table-search select:focus-visible { outline:2px solid var(--navy); outline-offset:2px; border-color:var(--navy); box-shadow:0 0 0 2px rgb(21 34 56 / .10); }
+
+/* ---------- Intro on site open (once per tab, see app/layout.tsx) ---------- */
+.site-intro {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  display: grid;
+  place-items: center;
+  background: var(--paper);
+  pointer-events: none;
+  animation: intro-out 400ms ease 1500ms forwards;
+}
+.site-intro .page-loader-mark::after {
+  animation: intro-fill 1300ms ease-in-out 100ms both;
+}
+.intro-seen .site-intro {
+  display: none;
+}
+@keyframes intro-fill {
+  from {
+    clip-path: inset(100% 0 -0.3em 0);
+  }
+  to {
+    clip-path: inset(-0.3em 0 -0.3em 0);
+  }
+}
+@keyframes intro-out {
+  to {
+    opacity: 0;
+    visibility: hidden;
+  }
+}
+@media (prefers-reduced-motion: reduce) {
+  .site-intro {
+    animation-delay: 400ms;
+  }
+  .site-intro .page-loader-mark::after {
+    animation: none;
+    clip-path: none;
+  }
+}
+@media print {
+  .site-intro {
+    display: none;
+  }
+}
