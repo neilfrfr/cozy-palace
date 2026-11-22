@@ -1,16 +1,8 @@
 /*
  * Public site redesign: full-photo hero under a transparent header, an
- * overlapping booking bar, Didone display type and square gold actions.
+ * overlapping booking bar, serif display type and square gold actions.
  * Loaded after globals.css. Staff and admin screens keep their own styles.
  */
-@font-face {
-  font-family: "Bodoni Moda";
-  src: url("/fonts/bodoni-moda-opsz.woff2") format("woff2-variations");
-  font-style: normal;
-  font-weight: 400 900;
-  font-display: swap;
-}
-
 :root {
   --night: #0f1a2c;
   --navy: #152238;
@@ -18,7 +10,7 @@
   --gold-soft: #dcc183;
   --brass: #7d5f22;
   --stone: #f4f2ee;
-  --display: "Bodoni Moda", "Didot", Georgia, serif;
+  --display: var(--serif);
   --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
   --header-h: 132px;
 }
@@ -73,7 +65,7 @@
 .footer .brand span {
   display: block;
   margin-top: 6px;
-  font-family: "Inter", sans-serif;
+  font-family: var(--sans);
   font-size: 10px;
   font-weight: 600;
   line-height: 1.2;
@@ -404,7 +396,7 @@ main:has(.homepage) {
   background: var(--gold);
   border: 1px solid var(--gold);
   color: var(--night);
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
 }
 @media (hover: hover) and (pointer: fine) {
   .booking-bar button.primary:hover:not(:disabled) {
@@ -425,7 +417,7 @@ main:has(.homepage) {
   margin: 28px 0 40px;
   padding: 30px 32px 32px;
   box-sizing: border-box;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
 }
 .public-page .dining-table-search.fields-only {
   grid-template-columns: 1fr 1fr 0.7fr;
@@ -441,14 +433,14 @@ main:has(.homepage) {
     8px;
   padding-right: 24px;
   color: white;
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 400;
 }
 .dining-table-search select option {
   background: #fffdf8;
   color: var(--navy);
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 400;
 }
@@ -461,7 +453,7 @@ main:has(.homepage) {
   color: #9aa1ac;
 }
 .dining-table-search input {
-  font-family: Inter, Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   font-weight: 400;
 }
@@ -474,7 +466,7 @@ main:has(.homepage) {
 }
 .dining-table-search button.primary {
   min-width: 220px;
-  font: 600 12px/1.2 Inter, Arial, Helvetica, sans-serif;
+  font: 600 12px/1.2 var(--sans);
   letter-spacing: 0.14em;
   text-transform: uppercase;
 }
@@ -815,7 +807,7 @@ main:has(.page-banner) {
 .footer-links h2 {
   margin: 0 0 8px;
   color: var(--gold-soft);
-  font-family: "Inter", sans-serif;
+  font-family: var(--sans);
   font-size: 12px;
   font-weight: 600;
   letter-spacing: 0.2em;

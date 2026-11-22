@@ -1,33 +1,40 @@
 @import "tailwindcss";
+/* Fraunces (headings) and Nunito (text), self-hosted variable fonts. latin-ext carries the peso sign. */
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter.ttf") format("truetype");
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-latin.woff2") format("woff2");
   font-style: normal;
-  font-weight: 400;
+  font-weight: 400 600;
   font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-semibold.ttf") format("truetype");
+  font-family: "Fraunces";
+  src: url("/fonts/fraunces-latin-ext.woff2") format("woff2");
   font-style: normal;
-  font-weight: 500 600;
+  font-weight: 400 600;
   font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
 }
 @font-face {
-  font-family: "Inter";
-  src: url("/fonts/inter-bold.ttf") format("truetype");
+  font-family: "Nunito";
+  src: url("/fonts/nunito-latin.woff2") format("woff2");
   font-style: normal;
-  font-weight: 700 900;
+  font-weight: 400 900;
   font-display: swap;
+  unicode-range: U+0000-00FF,U+0131,U+0152-0153,U+02BB-02BC,U+02C6,U+02DA,U+02DC,U+0304,U+0308,U+0329,U+2000-206F,U+20AC,U+2122,U+2191,U+2193,U+2212,U+2215,U+FEFF,U+FFFD;
 }
 @font-face {
-  font-family: "Playfair Display";
-  src: url("/fonts/playfair-display.ttf") format("truetype");
+  font-family: "Nunito";
+  src: url("/fonts/nunito-latin-ext.woff2") format("woff2");
   font-style: normal;
-  font-weight: 600;
+  font-weight: 400 900;
   font-display: swap;
+  unicode-range: U+0100-02BA,U+02BD-02C5,U+02C7-02CC,U+02CE-02D7,U+02DD-02FF,U+0304,U+0308,U+0329,U+1D00-1DBF,U+1E00-1E9F,U+1EF2-1EFF,U+2020,U+20A0-20AB,U+20AD-20C0,U+2113,U+2C60-2C7F,U+A720-A7FF;
 }
 :root {
+  --sans: "Nunito", Arial, Helvetica, sans-serif;
+  --serif: "Fraunces", Georgia, serif;
   --paper: #faf7f1;
   --surface: #ffffff;
   --ink: #262320;
@@ -43,7 +50,7 @@ body {
   margin: 0;
   background: var(--paper);
   color: var(--ink);
-  font-family: "Inter", Arial, Helvetica, sans-serif;
+  font-family: var(--sans);
   font-size: 16px;
   line-height: 1.65;
 }
@@ -95,13 +102,13 @@ button:disabled {
 }
 .brand {
   text-decoration: none;
-  font-family: Georgia, serif;
+  font-family: var(--serif);
   font-size: 24px;
   letter-spacing: -0.6px;
   color: var(--green);
 }
 .brand span {
-  font-family: Arial, sans-serif;
+  font-family: var(--sans);
   display: block;
   font-size: 10px;
   letter-spacing: 2px;
@@ -130,7 +137,7 @@ main {
 h1,
 h2,
 h3 {
-  font-family: Georgia, "Times New Roman", serif;
+  font-family: var(--serif);
   font-weight: 400;
   line-height: 1.13;
   letter-spacing: -0.025em;
@@ -289,12 +296,10 @@ button.primary:hover {
 }
 .price {
   font-size: 22px;
-  font-family: Georgia, serif;
+  font-family: var(--serif);
 }
 .price small {
-  font:
-    12px Arial,
-    sans-serif;
+  font: 12px var(--sans);
   color: var(--muted);
 }
 .form-panel {
@@ -599,7 +604,7 @@ h2,
 h3,
 h4,
 .brand {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-weight: 600;
   color: var(--navy);
 }
@@ -785,7 +790,7 @@ main:has(.admin-layout) {
   margin: 0;
 }
 .eyebrow {
-  font-family: "Inter", sans-serif;
+  font-family: var(--sans);
   color: #846421;
   letter-spacing: 0.12em;
   text-transform: uppercase;
@@ -931,7 +936,7 @@ main:has(.admin-layout) {
   margin-top: 8px;
 }
 .status {
-  font-family: "Inter", sans-serif;
+  font-family: var(--sans);
   border-radius: 999px;
   font-size: 12px;
   overflow-wrap: anywhere;
@@ -1046,7 +1051,7 @@ main:has(.admin-layout) {
 .auth-top .brand span {
   display: block;
   margin-top: 4px;
-  font-family: Inter, sans-serif;
+  font-family: var(--sans);
   font-size: 10px;
   letter-spacing: 0.16em;
   text-transform: uppercase;
@@ -1210,7 +1215,7 @@ main:has(.admin-layout) {
   color: #fff;
 }
 .auth-photo-caption p:first-child {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 24px;
   line-height: 1.25;
 }
@@ -1267,7 +1272,7 @@ main:has(.admin-layout) {
   display: block;
   margin-top: 6px;
   color: #8a6d2c;
-  font-family: Inter, sans-serif;
+  font-family: var(--sans);
   font-size: 9px;
   font-weight: 600;
   letter-spacing: 0.2em;
@@ -1401,7 +1406,7 @@ body:has(.admin-layout) .footer {
   margin: 28px 0;
 }
 .dashboard-grid .count {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 36px;
   color: var(--navy);
   margin: 10px 0;
@@ -1683,7 +1688,7 @@ body:has(.staff-layout) .footer {
 }
 .operations-content h2,
 .operations-content h3 {
-  font-family: Inter, sans-serif;
+  font-family: var(--sans);
   letter-spacing: -0.025em;
   overflow-wrap: anywhere;
 }
@@ -2079,7 +2084,7 @@ button.primary:hover {
   max-width: 680px;
 }
 .terms-page h2 {
-  font: 600 16px/1.4 "Inter", sans-serif;
+  font: 600 16px/1.4 var(--sans);
   margin: 28px 0 6px;
 }
 .terms-page p {
@@ -2608,7 +2613,7 @@ button.primary.danger:hover {
   background: var(--navy);
 }
 .desk-sidebar .brand {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 22px;
   line-height: 1.2;
   margin: 0 0 28px 10px;
@@ -2616,7 +2621,7 @@ button.primary.danger:hover {
 .desk-sidebar .brand span {
   display: block;
   margin-top: 4px;
-  font: 400 13px/1.4 "Inter", sans-serif;
+  font: 400 13px/1.4 var(--sans);
   color: var(--brass);
 }
 .desk-menu-button {
@@ -2728,7 +2733,7 @@ button.primary.danger:hover {
   margin-inline: auto;
 }
 .operations-content h1 {
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-weight: 600;
   font-size: 40px;
   line-height: 1.15;
@@ -2816,7 +2821,7 @@ button.primary.danger:hover {
   background: radial-gradient(circle at 35% 30%, #e6c977, var(--brass) 55%, #a8832f);
   border: 1px solid #8f6f26;
   box-shadow: 0 3px 6px rgba(21, 34, 56, 0.22);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 28px;
   font-weight: 600;
   line-height: 1;
@@ -3055,7 +3060,7 @@ option {
 .order-menu legend {
   margin-bottom: 12px;
   color: var(--navy);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 20px;
   font-weight: 600;
 }
@@ -3221,7 +3226,7 @@ option {
   border-radius: 999px;
   background: var(--cubby, #f1ebdf);
   color: var(--navy);
-  font-family: Inter, Arial, sans-serif;
+  font-family: var(--sans);
   font-size: 12px;
   font-weight: 600;
   line-height: 20px;
@@ -3507,7 +3512,7 @@ option {
   width: 100%;
   margin: 0 0 4px;
   color: var(--navy);
-  font-family: "Playfair Display", Georgia, serif;
+  font-family: var(--serif);
   font-size: 20px;
   font-weight: 600;
 }
@@ -3683,7 +3688,7 @@ option {
 .calendar-day.selected { background: var(--navy); color: white; }
 .calendar-day.today:not(.selected) { box-shadow: inset 0 0 0 1px var(--gold); }
 .calendar-day.in-range { background: #f8f0dc; }
-.unavailable-badge { display: inline-flex; margin-top: 8px; padding: 4px 10px; border: 1px solid #e5c2bc; border-radius: 999px; background: #fbefed; color: #963c35; font: 600 12px Inter,sans-serif; }
+.unavailable-badge { display: inline-flex; margin-top: 8px; padding: 4px 10px; border: 1px solid #e5c2bc; border-radius: 999px; background: #fbefed; color: #963c35; font: 600 12px var(--sans); }
 .full-menu-dish.unavailable { opacity: .78; }
 @media (max-width: 900px) { .new-guest-booking .guest-workflow { grid-template-columns: 1fr; } .new-guest-booking .guest-back-top,.new-guest-booking .guest-workflow > .form-panel,.new-guest-booking .booking-review { grid-column: 1; grid-row: auto; } .new-guest-booking .booking-review { position: static; } }
 @media (max-width: 760px) { .payments-table { table-layout: auto; } .payments-table th:nth-child(n) { width: auto; } .manual-refund[open] .manual-refund-panel { grid-template-columns: 1fr; } .new-guest-booking .guest-workflow > .form-panel { padding: 18px; } }
@@ -3824,7 +3829,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .closure-form .closure-submit { grid-column:2; justify-self:stretch; align-self:end; }
 .closure-form + .table-wrap > .empty { padding:18px 16px; margin:0; }
 .capacity-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr)); align-items:stretch; }
-.website-field-count { margin-left:auto; color:var(--muted); font:500 11px Inter,sans-serif; white-space:nowrap; }
+.website-field-count { margin-left:auto; color:var(--muted); font:500 11px var(--sans); white-space:nowrap; }
 .site-text { padding-bottom:clamp(56px,10vh,110px); scroll-padding-bottom:120px; }
 .site-text-group { grid-template-columns:minmax(0,1fr); gap:14px; }
 .site-text-group legend { float:none; display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
@@ -3875,7 +3880,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 /* #118: place website section headings fully inside their cards. */
 .site-text-group { display:grid; grid-template-columns:minmax(0,1fr); padding:clamp(16px,2vw,24px); border:1px solid var(--line); border-radius:12px; background:#fff; }
 .site-text-group-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding-bottom:12px; border-bottom:1px solid var(--line); }
-.site-text-group-heading h2 { margin:0; color:var(--navy); font:600 20px/1.25 "Playfair Display",Georgia,serif; }
+.site-text-group-heading h2 { margin:0; color:var(--navy); font:600 20px/1.25 var(--serif); }
 .site-text-group-heading .website-field-count { margin:0; }
 
 /* #119-120: every photo card shares a title line, thumbnail frame and bottom action. */
