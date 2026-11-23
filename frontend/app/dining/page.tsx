@@ -26,14 +26,16 @@ export default async function Dining() {
   const configured = isConfigured();
   const [tables, role, content, menuRows, sections] = configured
     ? await Promise.all([
-        getDiningTables(),
-        viewerRole(),
+        getDiningTables().catch(() => null),
+        // undefined = the role could not be checked, so no booking form is safe to show.
+        viewerRole().catch(() => undefined),
         getSiteContent(),
         getMenu().catch(() => null),
         getMenuSections().catch(() => null),
       ])
     : [[], null, {}, [], []];
   const menuFailed = !menuRows || !sections;
+  const bookingFailed = !tables || role === undefined;
   const categories = !configured
     ? diningMenu
     : menuFailed
@@ -50,30 +52,36 @@ export default async function Dining() {
       />
 
       <div className="dining-booking-wrap" id="table-reservations">
-        <TablePicker
-          tables={tables}
-          today={businessDate()}
-          visitor={role === null && visitorBookingEnabled()}
-          deferAvailability
-          instead={
-            role === null ? (
-              visitorBookingEnabled() ? undefined : (
-                <Link className="button" href="/register?next=/dining">
-                  Sign up to book
+        {bookingFailed ? (
+          <div className="notice error" role="alert">
+            We could not load table booking. Please refresh and try again.
+          </div>
+        ) : (
+          <TablePicker
+            tables={tables}
+            today={businessDate()}
+            visitor={role === null && visitorBookingEnabled()}
+            deferAvailability
+            instead={
+              role === null ? (
+                visitorBookingEnabled() ? undefined : (
+                  <Link className="button" href="/register?next=/dining">
+                    Sign up to book
+                  </Link>
+                )
+              ) : role !== "customer" ? (
+                <Link className="button" href="/staff/tables">
+                  Book walk-ins in Table Service
                 </Link>
-              )
-            ) : role !== "customer" ? (
-              <Link className="button" href="/staff/tables">
-                Book walk-ins in Table Service
-              </Link>
-            ) : undefined
-          }
-        />
+              ) : undefined
+            }
+          />
+        )}
       </div>
 
       <section className="dining-intro" aria-label="Reservation details">
         {!configured && <SetupNotice />}
-        {configured && !tables.length && (
+        {configured && tables?.length === 0 && (
           <p className="empty">No restaurant tables are listed yet.</p>
         )}
         <p className="subtle pre-line">{text(content, "dining.hours")}</p>
