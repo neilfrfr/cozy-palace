@@ -3937,7 +3937,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 
 /* Add a menu item: photo on the left, fields in two rows. */
-.menu-add-form { display:grid; grid-template-columns:200px minmax(0,1fr); gap:20px 24px; align-items:start; }
+.menu-add-form { display:grid; grid-template-columns:200px minmax(0,1fr); gap:20px 24px; align-items:start; container-type:inline-size; }
 .menu-add-fields { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(220px,.9fr); gap:16px; align-items:end; }
 .menu-add-fields label { display:grid; gap:5px; min-width:0; margin:0; font-size:13px; font-weight:500; }
 .menu-add-fields input:not([type="checkbox"]), .menu-add-fields select { box-sizing:border-box; width:100%; min-width:0; height:44px; min-height:0; margin:0; }
@@ -3946,6 +3946,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .menu-add-end .edit-check { display:flex; align-items:center; gap:7px; white-space:nowrap; }
 .menu-add-end .edit-check input { flex:none; width:18px; height:18px; min-height:0; margin:0; }
 .menu-add-end .button { min-height:44px; padding-block:0; white-space:nowrap; }
+/* Three columns squeeze Section to a sliver under ~940px of form width, so go to two by the form's own width. */
+@container (max-width:940px) {
+  .menu-add-fields { grid-template-columns:1fr 1fr; }
+  .menu-add-fields .menu-add-description, .menu-add-end { grid-column:1 / -1; }
+}
 .menu-photo-picker { display:grid; gap:10px; }
 .menu-photo-drop { display:grid; place-items:center; aspect-ratio:4/3; overflow:hidden; border:1px dashed var(--line); border-radius:8px; background:var(--stone); color:var(--muted); text-align:center; cursor:pointer; transition:border-color .15s; }
 .menu-photo-drop:hover, .menu-photo-picker input:focus-visible + .menu-photo-drop { border-color:var(--navy); }
@@ -3957,8 +3962,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 @media (max-width:900px) {
   .menu-add-form { grid-template-columns:1fr; }
   .menu-photo-picker { max-width:240px; }
-  .menu-add-fields { grid-template-columns:1fr 1fr; }
-  .menu-add-fields .menu-add-description, .menu-add-end { grid-column:1 / -1; }
 }
 
 /* Drag-to-reorder rows. */
