@@ -43,6 +43,11 @@
   --muted: #6b665f;
   --line: #e7e0d3;
   --copper: #c9a24b;
+  --navy: #152238;
+  --gold: #c9a24b;
+  --success: #4f8f6c;
+  --warning: #c77f2e;
+  --danger: #b7524b; --gold-soft: #dcc183; --ease-out: cubic-bezier(.2,.8,.2,1); --stone:#f4f2ee;
 }
 * {
   box-sizing: border-box;
@@ -74,10 +79,6 @@ select {
 summary {
   user-select: none;
 }
-:focus-visible {
-  outline: 3px solid #a45530;
-  outline-offset: 4px;
-}
 ::selection {
   background: #cbd9bd;
   color: #142b24;
@@ -88,47 +89,24 @@ input {
 button {
   cursor: pointer;
 }
-button:disabled {
-  cursor: wait;
-  opacity: 0.6;
-}
 .site-header {
   border-bottom: 1px solid var(--line);
-  background: var(--surface);
 }
 .nav {
-  max-width: 1240px;
   margin: auto;
-  padding: 23px 40px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 24px;
 }
 .brand {
   text-decoration: none;
-  font-family: var(--brand);
-  font-size: 24px;
-  letter-spacing: -0.6px;
-  color: var(--green);
 }
 .brand span {
-  font-family: var(--sans);
   display: block;
-  font-size: 10px;
-  letter-spacing: 2px;
-  line-height: 1.2;
-  text-transform: uppercase;
 }
 .nav-links {
   display: flex;
   align-items: center;
-  gap: 25px;
-  font-size: 14px;
-  flex-wrap: wrap;
-}
-.nav-links a {
-  text-decoration: none;
 }
 .nav-links a:hover {
   text-decoration: underline;
@@ -137,7 +115,6 @@ main {
   max-width: 1240px;
   margin: auto;
   padding: 60px 40px 90px;
-  min-height: 70vh;
 }
 h1,
 h2,
@@ -150,7 +127,6 @@ h3 {
   margin: 0 0 20px;
 }
 h1 {
-  font-size: clamp(36px, 5.5vw, 70px);
   max-width: 830px;
 }
 h2 {
@@ -220,13 +196,6 @@ button.primary {
 button.primary:hover {
   background: #2d5447;
 }
-.button.secondary {
-  background: transparent;
-  color: var(--green);
-}
-.button.secondary:hover {
-  background: #e6ecdf;
-}
 .text-link {
   color: var(--green);
   font-size: 14px;
@@ -261,14 +230,8 @@ button.primary:hover {
 }
 .notice {
   padding: 16px 20px;
-  background: #e8eddf;
   border-radius: 4px;
   margin: 24px 0;
-  color: #294034;
-}
-.notice.error {
-  background: #f5e5dc;
-  color: #75391f;
 }
 .notice p {
   margin: 4px 0;
@@ -285,27 +248,16 @@ button.primary:hover {
   border-radius: 8px;
 }
 .room-number {
-  font-size: 13px;
-  color: var(--muted);
   margin-bottom: 28px;
 }
 .room p {
   color: var(--muted);
 }
-.room-bottom {
-  display: flex;
-  justify-content: space-between;
-  gap: 12px;
-  align-items: center;
-  margin-top: 28px;
-}
 .price {
-  font-size: 22px;
   font-family: var(--serif);
 }
 .price small {
   font: 12px var(--sans);
-  color: var(--muted);
 }
 .form-panel {
   max-width: 730px;
@@ -352,22 +304,12 @@ input:disabled {
   color: var(--muted);
   font-size: 14px;
 }
-.login {
-  max-width: 530px;
-  margin: 20px auto 0;
-}
-.login h1 {
-  font-size: 48px;
-}
 .login .form-panel {
   margin-top: 28px;
 }
 .table-wrap {
   width: 100%;
   overflow: auto;
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: 6px;
 }
 table {
   width: 100%;
@@ -389,12 +331,9 @@ th {
 }
 .status {
   display: inline-block;
-  border-radius: 4px;
   background: #e7ecde;
   color: #2a4536;
   padding: 3px 9px;
-  font-size: 12px;
-  text-transform: capitalize;
 }
 .status.pending {
   background: #f1e5c9;
@@ -403,7 +342,6 @@ th {
 .details {
   display: grid;
   grid-template-columns: repeat(4, 1fr);
-  gap: 28px;
   padding: 26px 0;
   border-top: 1px solid var(--line);
   border-bottom: 1px solid var(--line);
@@ -428,32 +366,24 @@ th {
   font-size: 28px;
 }
 .search {
-  display: flex;
-  gap: 18px;
-  align-items: end;
   flex-wrap: wrap;
   margin: 28px 0;
 }
 .search label {
   flex: 1;
-  min-width: 155px;
 }
 .search button {
   margin-bottom: 0;
 }
 .footer {
   padding: 30px 40px;
-  border-top: 1px solid var(--line);
-  font-size: 13px;
   color: var(--muted);
   display: flex;
   justify-content: space-between;
-  gap: 24px;
 }
 .workspace-nav {
   display: flex;
   gap: 18px;
-  flex-wrap: wrap;
   align-items: center;
   margin: 0 0 35px;
   font-size: 14px;
@@ -476,19 +406,8 @@ th {
   clip-path: inset(50%);
 }
 @media (max-width: 760px) {
-  .nav {
-    padding: 20px 22px;
-    align-items: start;
-    flex-direction: column;
-    gap: 18px;
-  }
   .nav-links {
-    gap: 18px;
     width: 100%;
-    font-size: 13px;
-  }
-  main {
-    padding: 34px 22px 60px;
   }
   .hero {
     grid-template-columns: 1fr;
@@ -528,9 +447,6 @@ th {
     padding: 25px 22px;
     flex-direction: column;
   }
-  .workspace-nav form {
-    margin-left: 0;
-  }
   .search {
     gap: 14px;
   }
@@ -553,18 +469,7 @@ th {
   padding-top: 1rem;
   border-top: 1px solid var(--line, #d9ded8);
   display: flex;
-  gap: 1rem;
-  align-items: center;
   flex-wrap: wrap;
-}
-.staff-removal label {
-  display: flex;
-  align-items: center;
-  gap: 0.6rem;
-}
-.staff-removal input[type="checkbox"] {
-  width: auto;
-  margin: 0;
 }
 
 .password-field {
@@ -597,13 +502,6 @@ th {
 }
 
 /* Shared visual system from the approved Cozy Palace Figma file. */
-:root {
-  --navy: #152238;
-  --gold: #c9a24b;
-  --success: #4f8f6c;
-  --warning: #c77f2e;
-  --danger: #b7524b;
-}
 h1,
 h2,
 h3,
@@ -631,6 +529,7 @@ textarea {
   min-width: 0;
 }
 button:disabled {
+  opacity: 0.6;
   cursor: not-allowed;
 }
 button.primary,
@@ -706,12 +605,6 @@ button.gold {
   background: transparent;
   border: 1px solid var(--gold);
   white-space: nowrap;
-}
-.nav-account:hover {
-  background: #26364d;
-}
-.site-header :focus-visible {
-  outline-color: var(--navy);
 }
 main {
   min-height: 65vh;
@@ -1109,11 +1002,6 @@ main:has(.admin-layout) {
   border-radius: 0;
   background: transparent;
   padding-left: 0;
-}
-.auth-content input:not([type="checkbox"]):focus-visible {
-  outline: none;
-  border-bottom-color: var(--gold);
-  box-shadow: 0 1.5px 0 var(--gold);
 }
 .auth-content p {
   font-size: 13px;
@@ -1699,8 +1587,6 @@ body:has(.staff-layout) .footer {
 }
 .operations-content h1 {
   overflow-wrap: anywhere;
-  font-size: 32px;
-  line-height: 1.2;
   margin: 0 0 10px;
 }
 .operations-content h2 {
@@ -1714,7 +1600,6 @@ body:has(.staff-layout) .footer {
 .operations-heading {
   display: flex;
   justify-content: space-between;
-  align-items: flex-start;
   gap: 24px;
   margin-bottom: 32px;
 }
@@ -1724,11 +1609,6 @@ body:has(.staff-layout) .footer {
 }
 .operations-heading > .button {
   flex-shrink: 0;
-}
-.operations-section {
-  margin-top: 36px;
-  padding-top: 24px;
-  border-top: 1px solid var(--line);
 }
 .management-columns {
   display: grid;
@@ -1751,15 +1631,11 @@ body:has(.staff-layout) .footer {
   gap: 16px;
   padding: 24px;
   border: 1px solid var(--line);
-  background: white;
 }
 .operations-filters label {
   min-width: 0;
 }
 .operations-filters .filter-checkbox {
-  display: flex;
-  align-items: center;
-  gap: 8px;
   grid-column: span 2;
   font-weight: 400;
 }
@@ -1769,15 +1645,12 @@ body:has(.staff-layout) .footer {
 .operations-filters .actions {
   grid-column: span 2;
   justify-content: flex-end;
-  align-items: center;
   margin: 0;
 }
 /* Small forms inside table cells (rates, seats, order payments). */
 .inline-form {
-  display: flex;
   flex-wrap: wrap;
   align-items: end;
-  gap: 8px;
 }
 .inline-form label {
   min-width: 7rem;
@@ -1907,9 +1780,6 @@ body:has(.staff-layout) .footer {
   border-top: 0;
   padding-top: 0;
 }
-.guest-workflow {
-  max-width: 880px;
-}
 .guest-workflow fieldset {
   border: 0;
   padding: 0;
@@ -1934,10 +1804,6 @@ body:has(.staff-layout) .footer {
 .operations-content .back-link {
   display: inline-block;
   margin-bottom: 24px;
-}
-.operations-content :focus-visible {
-  outline: 3px solid #856422;
-  outline-offset: 4px;
 }
 .operations-content input {
   caret-color: var(--green);
@@ -1972,9 +1838,6 @@ body:has(.staff-layout) .footer {
   .management-columns {
     grid-template-columns: 1fr;
     gap: 0;
-  }
-  .operations-content h1 {
-    font-size: 28px;
   }
 }
 @media (max-width: 480px) {
@@ -2359,7 +2222,6 @@ button.primary:hover {
   border-radius: 8px;
   background: #fff;
   color: var(--ink);
-  box-shadow: 0 18px 40px rgba(21, 34, 56, 0.18);
   letter-spacing: 0;
   text-transform: none;
 }
@@ -2433,12 +2295,9 @@ button.primary:hover {
   border-color: var(--gold);
 }
 .calendar-day.selected {
-  background: var(--navy);
-  color: #fff;
   font-weight: 600;
 }
 .calendar-day.in-range {
-  background: #f2e8d1;
   color: var(--navy);
 }
 .calendar-day.range-start,
@@ -2454,7 +2313,6 @@ button.primary:hover {
   cursor: not-allowed;
 }
 .calendar-day:focus-visible {
-  outline: 2px solid var(--navy);
   outline-offset: 1px;
 }
 .calendar-legend {
@@ -2502,7 +2360,6 @@ button.primary:hover {
 }
 /* Only the refund cell breaks mid-word (long Xendit IDs); its min-width stops it collapsing. */
 .payments-table .refund {
-  min-width: 12rem;
   overflow-wrap: anywhere;
   vertical-align: top;
 }
@@ -2510,18 +2367,11 @@ button.primary:hover {
   vertical-align: top;
 }
 /* Manual refund: a quiet pill that opens its own panel, apart from Refund via Xendit. */
-.manual-refund {
-  margin-top: 12px;
-}
 .manual-refund > summary {
   display: inline-flex;
   align-items: center;
   gap: 6px;
-  padding: 4px 12px;
-  border: 1px solid var(--gold);
   border-radius: 999px;
-  color: var(--navy);
-  font-size: 13px;
   font-weight: 600;
   cursor: pointer;
   list-style: none;
@@ -2594,6 +2444,11 @@ button.primary.danger {
 button.primary.danger:hover {
   background: #a14740;
 }
+
+/* Calm gold treatment for the manual refund control, with navy keyboard focus. */
+.manual-refund > summary { border:1px solid var(--gold); color:var(--navy); transition:background-color .16s var(--ease-out),border-color .16s var(--ease-out); }
+.manual-refund > summary:hover,.manual-refund[open] > summary { border-color:var(--gold); background:var(--gold-soft); color:var(--navy); }
+.manual-refund > summary:focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
 
 /* Front desk workspace (staff and admin): a key cabinet sidebar and a pigeonhole overview. */
 .operations-layout,
@@ -3037,10 +2892,6 @@ select {
 select:hover:not(:disabled) {
   border-color: var(--gold);
 }
-select:focus-visible {
-  border-color: var(--navy);
-  box-shadow: 0 0 0 3px rgb(201 162 75 / 0.25);
-}
 select:disabled {
   background-color: #f1f1e9;
   cursor: not-allowed;
@@ -3174,6 +3025,35 @@ option {
   }
 }
 
+/* Contain long item summaries and keep totals in a stable separate column. */
+.orders-table table { width:100%; table-layout:fixed; }
+.orders-table th:nth-child(1) { width:14%; }
+.orders-table th:nth-child(2) { width:13%; }
+.orders-table th:nth-child(3) { width:29%; }
+.orders-table th:nth-child(4) { width:12%; }
+.orders-table th:nth-child(5) { width:12%; }
+.orders-table th:nth-child(6) { width:20%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(1) { width:12%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(2) { width:11%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(3) { width:24%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(4) { width:10%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(5) { width:10%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(6) { width:14%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(7) { width:19%; }
+.orders-table td { min-width:0; overflow-wrap:anywhere; white-space:normal; vertical-align:top; }
+.orders-table td:nth-child(3) { padding-right:clamp(18px,2.5vw,34px); }
+.orders-table td:nth-child(4) { color:var(--navy); font-weight:650; white-space:nowrap; }
+.order-items-details { min-width:0; }
+/* Top-aligned so opening the items list doesn't shift its toggle under the next click. */
+.order-items-details summary { display:-webkit-box; max-width:100%; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
+
+/* Orders: Mark paid opens a row under the order, so the Actions column only holds buttons. */
+.orders-table .order-pay-row td { padding-top:0; background:var(--stone); }
+.order-pay-row .order-payment-actions { grid-template-columns:auto minmax(130px,180px) minmax(160px,260px) auto; justify-content:start; align-items:end; gap:8px 12px; min-width:0; padding:12px 0 4px; }
+.order-pay-row .order-payment-actions strong { align-self:center; font-size:13px; }
+.order-transition-actions { margin-top:0; }
+@media (max-width:760px) { .order-pay-row .order-payment-actions { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .order-pay-row .order-payment-actions strong { grid-column:1 / -1; } }
+
 /* Admin lists: "+ Add" card, filter tabs, section cards with one shared header row. */
 .add-card {
   margin: 0 0 24px;
@@ -3191,7 +3071,6 @@ option {
 }
 .add-card[open] > summary .button {
   background: #fff;
-  color: var(--navy);
   border: 1px solid var(--navy);
 }
 .add-card-body {
@@ -3337,7 +3216,6 @@ option {
 }
 .capacity-grid {
   display: grid;
-  grid-template-columns: repeat(3, minmax(0, 1fr));
   gap: 10px;
   margin: 0;
   padding: 0;
@@ -3429,9 +3307,7 @@ option {
 }
 .closure-form {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(130px, 1fr));
   gap: 12px;
-  align-items: end;
   margin: 0 0 20px;
   padding: 0 0 20px;
   border-bottom: 1px solid var(--line);
@@ -3461,6 +3337,30 @@ option {
     grid-column: 1 / -1;
   }
 }
+
+/* Rooms: room types in a wide main column; rooms and closed dates in a side column. */
+.rooms-split { grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr); }
+.rooms-main, .rooms-side { display:grid; gap:24px; align-content:start; min-width:0; }
+.rooms-main .section-card { margin:0; }
+.rooms-main .add-card { margin:0; }
+.room-type-row label { display:grid; gap:4px; min-width:0; margin:0; }
+.room-type-row input, .room-type-row textarea { width:100%; min-width:0; margin:0; }
+.room-type-row textarea { min-height:44px; resize:vertical; }
+.room-type-row .row-caption { color:var(--muted); font-size:12px; }
+.room-type-row .admin-item-actions { flex-wrap:nowrap; }
+.room-create { grid-template-columns:1fr; }
+.room-create .button { justify-self:stretch; }
+.room-row { display:grid; grid-template-columns:88px minmax(0,1fr); gap:8px; padding:12px 0; border-top:1px solid var(--line); }
+.room-row label { margin:0; min-width:0; }
+.room-row input, .room-row select { width:100%; min-width:0; min-height:40px; margin:0; }
+.room-row .admin-item-actions { grid-column:1 / -1; }
+/* Closed dates as a list, so the Reopen button is never cut off. */
+.closure-list { display:grid; margin:16px 0 0; padding:0; list-style:none; border-top:1px solid var(--line); }
+.closure-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
+.closure-list li > div { display:grid; gap:2px; min-width:0; }
+.closure-list span, .closure-list small { color:var(--muted); font-size:13px; }
+.closure-list form { margin:0; flex:none; }
+.closure-empty { margin:16px 0 0; padding:16px 0 0; border-top:1px solid var(--line); color:var(--muted); font-style:italic; }
 
 /* Staff directory: one-line add card, then member cards with removal set apart. */
 .staff-add {
@@ -3501,20 +3401,19 @@ option {
   }
 }
 
+/* Activity log: full record and account IDs wrap instead of pushing the table wider than the page. */
+.activity-log-table table { width:100%; }
+.activity-log-table td:nth-child(5), .activity-log-table td small { white-space:normal; overflow-wrap:anywhere; font-size:12px; }
+.activity-log-table td:nth-child(5) { min-width:14ch; }
+
 /* Website editor: text grouped by page with one sticky save bar; photos as a compact card grid. */
 .site-text {
   display: grid;
-  gap: 20px;
 }
 .site-text-group {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(min(100%, 320px), 1fr));
-  gap: 18px 24px;
   margin: 0;
 }
 .site-text-group legend {
-  float: left;
-  width: 100%;
   margin: 0 0 4px;
   color: var(--navy);
   font-family: var(--serif);
@@ -3523,20 +3422,17 @@ option {
 }
 .site-text-group label {
   display: grid;
-  gap: 6px;
   margin: 0;
   font-size: 13px;
 }
 .site-text-group textarea {
   width: 100%;
-  min-height: 64px;
   padding: 10px 12px;
   border: 1px solid var(--line);
   border-radius: 6px;
   font: inherit;
   font-size: 15px;
   font-weight: 400;
-  resize: vertical;
 }
 .site-text-save {
   position: sticky;
@@ -3553,16 +3449,13 @@ option {
   box-shadow: 0 -6px 18px rgba(21, 34, 56, 0.06);
 }
 .photo-section {
-  margin: 0 0 32px;
+  margin: 0 0 32px; scroll-margin-top:24px;
 }
 .photo-grid {
   display: grid;
-  grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
   gap: 16px;
 }
 .photo-card {
-  display: grid;
-  gap: 10px;
   padding: 12px;
   border: 1px solid var(--line);
   border-radius: 10px;
@@ -3593,6 +3486,22 @@ option {
 .photo-card .button {
   min-height: 38px;
 }
+
+/* Place website section headings fully inside their cards. */
+.site-text-group { display:grid; grid-template-columns:minmax(0,1fr); padding:clamp(16px,2vw,24px); border:1px solid var(--line); border-radius:12px; background:#fff; }
+.site-text-group-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding-bottom:12px; border-bottom:1px solid var(--line); }
+.site-text-group-heading h2 { margin:0; color:var(--navy); font:600 20px/1.25 var(--serif); }
+.site-text-group-heading .website-field-count { margin:0; }
+
+/* Every photo card shares a title line, thumbnail frame and bottom action. */
+.photo-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); align-items:stretch; }
+.photo-card { display:flex; flex-direction:column; height:100%; min-height:260px; gap:10px; }
+.photo-card-name { height:1.35em; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; line-height:1.35; }
+.photo-card .thumbnail-upload-control { flex:1; grid-template-rows:minmax(0,1fr) auto; gap:10px; }
+.photo-card .thumbnail-upload-form { min-height:0; }
+.photo-card .photo-thumbnail-trigger { aspect-ratio:4/3; height:auto; }
+.photo-card .remove-photo-button { margin-top:auto; }
+.photo-card .remove-photo-button:disabled { opacity:.58; cursor:not-allowed; }
 
 /* Reports: room to breathe between sections, cards and tables; CSV exports as small buttons. */
 .report-page h2 {
@@ -3647,23 +3556,24 @@ option {
   background: var(--navy);
   color: #fff;
 }
+/* Reports: the seven-column transactions table wraps its cells instead of scrolling at laptop widths. */
+.report-transactions td { white-space:normal; }
+.section-card .room-type-row { align-items:start; }
+.room-type-row textarea { box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; font:inherit; font-size:14px; }
+.room-type-row .admin-item-actions { padding-top:4px; }
+.rooms-side .closure-form { grid-template-columns:minmax(0,1fr); }
+.rooms-side .closure-form label:first-of-type, .rooms-side .closure-form .closure-submit { grid-column:auto; }
+@media (max-width:1100px) { .rooms-split { grid-template-columns:minmax(0,1fr); } }
+@media (max-width:1000px) { .room-type-row .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; font-size:12px; } }
+
 /* Targeted Cozy Palace refinements: fluid grids, focused cards and stable tables. */
-:root { --stone: #f3eee3; --gold-soft: #dcc183; --ease-out: cubic-bezier(.2,.8,.2,1); }
 .activity-table .empty { display: grid; place-items: center; min-height: 180px; margin: 0; }
-.table-service-walkin { margin-top: clamp(44px, 7vw, 88px); padding-top: clamp(28px, 4vw, 48px); border-top: 1px solid var(--line); }
-.recent-orders-card { padding: clamp(18px, 3vw, 28px); border: 1px solid var(--line); border-radius: 12px; background: #fff; }
-.payments-table { table-layout: fixed; }
-.payments-table th:nth-child(1) { width: 15%; }
-.payments-table th:nth-child(2) { width: 16%; }
-.payments-table th:nth-child(3) { width: 12%; }
-.payments-table th:nth-child(4) { width: 21%; }
-.payments-table th:nth-child(5) { width: 21%; }
+.table-service-walkin { padding-top: clamp(28px, 4vw, 48px); border-top: 1px solid var(--line); }
+.recent-orders-card { border: 1px solid var(--line); border-radius: 12px; background: #fff; }
 .payments-table th:nth-child(6) { width: 15%; }
 .payments-table td { white-space: normal; overflow-wrap: anywhere; }
-.manual-refund[open] .manual-refund-panel { display: grid; grid-template-columns: minmax(0,1fr) auto; align-items: end; gap: 10px; width: min(100%, 420px); padding: 14px; margin-top: 10px; border: 1px solid var(--line); border-radius: 8px; background: var(--stone); }
-.manual-refund-panel .subtle { grid-column: 1 / -1; margin: 0; }
-.manual-refund-panel input { min-width: 0; }
-.closure-form .closure-submit { grid-column: auto; justify-self: stretch; align-self: end; min-height: 44px; }
+.manual-refund[open] .manual-refund-panel { align-items: end; }
+.closure-form .closure-submit { min-height: 44px; }
 .extras-grid { display: grid; grid-template-columns: repeat(auto-fit,minmax(min(100%,280px),1fr)); gap: 14px; }
 .extra-card { display: grid; grid-template-columns: minmax(0,1fr) auto; gap: 12px; align-items: center; padding: 16px; border: 1px solid var(--line); border-radius: 10px; background: var(--stone); transition: border-color .18s var(--ease-out), background-color .18s var(--ease-out), box-shadow .18s var(--ease-out); }
 .extra-card.is-selected { border-color: var(--gold); background: #fffaf0; box-shadow: inset 3px 0 var(--gold), 0 4px 14px rgb(21 34 56 / .06); }
@@ -3681,7 +3591,7 @@ option {
 .guest-workflow { width: 100%; max-width: none; }
 .guest-back-top { margin: 0 0 16px; }
 .new-guest-booking .guest-workflow { display: grid; grid-template-columns: minmax(0,1.35fr) minmax(280px,.65fr); align-items: start; gap: 20px; }
-.new-guest-booking .guest-workflow > .form-panel { grid-column: 1; grid-row: 1 / span 3; }
+.new-guest-booking .guest-workflow > .form-panel { grid-column: 1; }
 .new-guest-booking .guest-back-top { grid-column: 1 / -1; grid-row: 1; margin-bottom: 0; }
 .new-guest-booking .guest-workflow > .form-panel { grid-row: 2; }
 .new-guest-booking .booking-review { grid-column: 2; grid-row: 2; position: sticky; top: 24px; }
@@ -3700,36 +3610,30 @@ option {
 .website-editor-layout { display: grid; grid-template-columns: minmax(190px,240px) minmax(0,1fr); gap: clamp(20px,3vw,36px); align-items: start; }
 .website-section-rail { position: sticky; top: 20px; display: grid; gap: 6px; padding: 18px; border: 1px solid var(--line); border-radius: 12px; background: #fff; }
 .website-section-rail .eyebrow { margin: 0 0 8px; }
-.website-section-rail a { display: grid; gap: 2px; padding: 10px 12px; border-left: 3px solid transparent; border-radius: 5px; color: var(--navy); font-size: 14px; text-decoration: none; }
+.website-section-rail a { display: grid; gap: 2px; padding: 10px 12px; border-left: 3px solid transparent; border-radius: 5px; color: var(--navy); font-size: 14px; text-decoration: none; scroll-margin-top:24px; }
 .website-section-rail a:hover, .website-section-rail a:focus-visible { border-left-color: var(--gold); background: #fbf8f1; }
 .website-section-rail small { color: var(--muted); font-size: 11px; }
 .website-editor-main { display: grid; gap: 20px; min-width: 0; }
 .website-editor-main > form:has(> .button) { justify-self: end; }
-.site-text-group textarea { resize: vertical; min-height: 54px; }
 .site-text-group label:has(textarea[name*="title"]) textarea { min-height: 48px; }
 .photo-card form { margin: 0; }
 .photo-card form .button { width: 100%; }
 @media(max-width:900px) { .website-editor-layout { grid-template-columns: 1fr; } .website-section-rail { position: static; grid-template-columns: repeat(auto-fit,minmax(140px,1fr)); } .website-section-rail .eyebrow { grid-column: 1/-1; } }
-.admin-menu-item { display: grid; grid-template-columns: 140px minmax(0,1fr) minmax(180px,.55fr); align-items: center; gap: 14px; min-width: 0; }
 .admin-item-photo { position: relative; aspect-ratio: 4 / 3; overflow: hidden; border: 1px solid var(--line); border-radius: 8px; background: var(--stone); }
 .admin-item-photo-actions { display: grid; gap: 8px; }
-.admin-item-photo-actions form { display: grid; gap: 6px; }
-.admin-item-photo-actions label { font-size: 12px; }
-.admin-item-photo-actions input[type="file"] { min-height: 0; margin-top: 4px; padding: 5px; font-size: 11px; }
+.admin-item-photo-actions input[type="file"] { margin-top: 4px; }
 .admin-item-photo-actions .button { min-height: 36px; }
 @media(max-width:900px) { .admin-menu-item { grid-template-columns: 110px minmax(0,1fr); } .admin-item-photo-actions { grid-column: 1/-1; grid-template-columns: 1fr auto; align-items: end; } }
-@media(max-width:560px) { .admin-menu-item { grid-template-columns: 1fr; } .admin-item-photo { max-width: 220px; } .admin-item-photo-actions { grid-template-columns: 1fr; } }
+@media(max-width:560px) { .admin-item-photo { max-width: 220px; } .admin-item-photo-actions { grid-template-columns: 1fr; } }
 .manual-refund-toggle { display: inline-flex; align-items: center; padding: 5px 10px; border: 1px solid var(--navy); border-radius: 999px; background: var(--stone); color: var(--navy); font-size: 12px; font-weight: 600; text-align: left; }
 .manual-refund-toggle:hover, .manual-refund-toggle[aria-expanded="true"] { background: #e9e5dd; }
 .refund-expansion-row > td { padding: 0 16px 14px; background: #fbfaf7; white-space: normal; }
 .refund-expansion-panel { padding: 14px 16px; border: 1px solid var(--line); border-radius: 8px; background: var(--stone); }
 .manual-refund-panel { display: flex; flex-wrap: wrap; gap: 12px; align-items: end; }
 .manual-refund-panel .subtle { flex: 1 0 100%; margin: 0; }
-.manual-refund-panel label { flex: 1 1 240px; min-width: 0; }
-.manual-refund-panel input { width: 100%; min-width: 0; }
+.manual-refund-panel label { flex: 1 1 240px; }
 .manual-refund-panel button { flex: 0 0 auto; }
 /* Neutral focus treatment on all updated app controls. */
-:focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
 select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 34 56 / .12); }
 .calendar-day:focus-visible { outline: 2px solid var(--navy); }
 .operations-content :focus-visible { outline: 2px solid var(--navy); outline-offset: 2px; }
@@ -3738,13 +3642,8 @@ select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 3
 .inquiry-field:focus-visible { border-color:var(--navy); box-shadow:0 0 0 3px rgb(21 34 56 / .12); outline:2px solid var(--navy); outline-offset:2px; }
 .inquiry-trap { position:absolute; left:-10000px; width:1px; height:1px; overflow:hidden; }
 /* Responsive menu editor row: fixed thumbnail and aligned fields/actions. */
-.admin-menu-item { display:grid; grid-template-columns:64px minmax(140px,1.6fr) minmax(120px,1fr) minmax(95px,.7fr) minmax(84px,auto) auto; align-items:center; gap:10px; min-width:0; padding:12px 16px; border-top:1px solid var(--line); }
-.admin-menu-item > .admin-item-photo { grid-column:1; width:64px; aspect-ratio:1; }
-.admin-menu-item > .edit-row { display:contents; }
-.admin-menu-item .edit-row label { display:grid; gap:4px; min-width:0; margin:0; font-size:12px; }
-.admin-menu-item .edit-row input,.admin-menu-item .edit-row select { min-width:0; min-height:40px; margin:0; }
-.admin-menu-item .edit-row .edit-check { display:flex; flex-direction:row; align-items:center; gap:7px; white-space:nowrap; }
-.admin-menu-item .edit-row .edit-check input { width:18px; height:18px; }
+.admin-menu-item { display:grid; gap:10px; min-width:0; padding:12px 16px; border-top:1px solid var(--line); }
+.admin-menu-item > .admin-item-photo { grid-column:1; }
 .admin-menu-item .edit-row .button { min-height:40px; }
 .admin-menu-item > .admin-item-photo-actions { grid-column:2 / -1; display:flex; flex-wrap:wrap; align-items:end; gap:8px 12px; }
 .admin-item-photo-actions form { display:flex; flex-wrap:wrap; gap:8px; align-items:end; min-width:0; }
@@ -3765,22 +3664,17 @@ select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 3
 .table-service-walkin { margin-top:56px; }
 .table-service-upcoming select { min-width:150px; }
 .closure-form .date-field { min-width:0; align-self:end; }
-.website-editor-toolbar { display:flex; align-items:flex-start; justify-content:space-between; flex-wrap:wrap; gap:12px; }
+.website-editor-toolbar { display:flex; justify-content:space-between; flex-wrap:wrap; gap:12px; align-items:center; }
 .website-editor-toolbar .filter-tabs { flex:1 1 auto; min-width:0; }
-.website-editor-toolbar > form { margin:0 0 20px; }
-.site-text { gap:14px; padding-bottom:32px; }
-.photo-card { display:flex; flex-direction:column; height:100%; }
+.site-text { gap:14px; }
 .photo-card > img { width:100%; aspect-ratio:4/3; height:auto; object-fit:cover; }
 .photo-card .photo-upload-form { display:flex; flex-direction:column; flex:1; gap:10px; }
 .photo-card .photo-upload-form label { margin-top:auto; }
 .photo-card .photo-upload-form .button { width:100%; }
-.photo-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); align-items:stretch; }
-@media(max-width:1000px) { .admin-menu-item { grid-template-columns:56px minmax(0,1fr) minmax(0,1fr); } .admin-menu-item > .admin-item-photo { grid-row:1 / span 2; width:56px; } .admin-menu-item .edit-row label { grid-column:auto; } .admin-menu-item > .admin-item-photo-actions { grid-column:2/-1; } }
+@media(max-width:1000px) { .admin-menu-item > .admin-item-photo { width:56px; } .admin-menu-item .edit-row label { grid-column:auto; } .admin-menu-item > .admin-item-photo-actions { grid-column:2/-1; } }
 @media(max-width:620px) { .admin-menu-item { grid-template-columns:1fr 1fr; } .admin-menu-item > .admin-item-photo { grid-row:auto; } .admin-menu-item .edit-row label { grid-column:auto; } .admin-menu-item > .admin-item-photo-actions { grid-column:1/-1; } .table-service-upcoming .table-wrap td,.table-service-upcoming .table-wrap th { padding-inline:12px; } }
 .admin-item-photo-actions form:first-child { flex:1 1 250px; }
-:root { --stone:#f4f2ee; }
 .site-header :focus-visible { outline-color:var(--navy); }
-.website-editor-toolbar { align-items:center; }
 .website-editor-toolbar .filter-tabs { margin:0; }
 .website-editor-toolbar > form { margin:0; }
 .recent-orders-heading { display:flex; align-items:center; justify-content:space-between; flex-wrap:wrap; gap:8px; padding:14px 20px; border-bottom:1px solid var(--line); background:#faf8f3; }
@@ -3796,8 +3690,6 @@ select:focus-visible { border-color: var(--navy); box-shadow: 0 0 0 3px rgb(21 3
 /* Keep the "+ Add …" text in place (invisible) so the button keeps its width when it reads "Cancel". */
 .add-card[open] > summary .button { position:relative; color:transparent; }
 .add-card[open] > summary .button::after { content:"Cancel"; position:absolute; inset:0; display:grid; place-items:center; color:var(--navy); }
-/* Items 103–112 refinements */
-:root { --stone:#f4f2ee; }
 /* Gold remains a brand accent; focus feedback uses a thin navy outline and low-opacity halo. */
 :focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
 input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-visible { border-color:var(--navy); box-shadow:0 0 0 2px rgb(21 34 56 / .10); }
@@ -3819,13 +3711,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .manual-refund-panel label { min-width:0; }
 .manual-refund-panel input { width:100%; min-width:0; min-height:38px; padding:7px; font-size:12px; }
 .manual-refund-panel button { min-height:36px; padding:6px 10px; font-size:12px; }
-.order-items-details summary { max-width:34ch; color:var(--navy); cursor:pointer; overflow-wrap:anywhere; }
+.order-items-details summary { color:var(--navy); cursor:pointer; }
 .order-items-expanded { display:grid; gap:3px; margin-top:7px; padding:8px; border:1px solid var(--line); border-radius:6px; background:var(--stone); }
 .order-payment-actions { display:grid; grid-template-columns:repeat(2,minmax(0,1fr)) auto; align-items:end; gap:6px; min-width:280px; }
 .order-payment-actions label { display:grid; gap:3px; min-width:0; font-size:11px; }
 .order-payment-actions input,.order-payment-actions select { width:100%; min-width:0; min-height:36px; margin:0; padding:5px 7px; font-size:12px; }
 .order-payment-actions .button { min-height:36px; padding:6px 9px; font-size:11px; white-space:nowrap; }
-.order-transition-actions { display:flex; flex-wrap:wrap; gap:6px; margin-top:6px; }
+.order-transition-actions { display:flex; flex-wrap:wrap; gap:6px; }
 .order-transition-actions form { margin:0; }
 .order-transition-actions .button { min-height:34px; padding:5px 9px; font-size:12px; }
 .closure-form { grid-template-columns:repeat(2,minmax(0,1fr)); align-items:end; }
@@ -3837,14 +3729,12 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .capacity-grid { grid-template-columns:repeat(auto-fit,minmax(min(100%,170px),1fr)); align-items:stretch; }
 .website-field-count { margin-left:auto; color:var(--muted); font:500 11px var(--sans); white-space:nowrap; }
 .site-text { padding-bottom:clamp(56px,10vh,110px); scroll-padding-bottom:120px; }
-.site-text-group { grid-template-columns:minmax(0,1fr); gap:14px; }
+.site-text-group { gap:14px; }
 .site-text-group legend { float:none; display:flex; align-items:center; justify-content:space-between; gap:14px; width:100%; }
 .site-text-group label { gap:5px; }
 .site-text-group textarea { min-height:140px; resize:vertical; }
 .site-text-group textarea[rows="1"] { min-height:46px; height:46px; resize:none; }
 .website-editor-toolbar > form .button { min-height:36px; padding:7px 11px; font-size:12px; }
-.photo-section { scroll-margin-top:24px; }
-.website-section-rail a { scroll-margin-top:24px; }
 .thumbnail-upload-control { display:grid; gap:8px; min-width:0; }
 .thumbnail-upload-form { min-width:0; }
 .visually-hidden-file { position:absolute!important; width:1px!important; height:1px!important; padding:0!important; margin:-1px!important; overflow:hidden!important; clip:rect(0,0,0,0)!important; white-space:nowrap!important; border:0!important; }
@@ -3857,51 +3747,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .remove-photo-button { width:100%; min-height:36px; padding:6px 10px; font-size:12px; }
 @media(max-width:760px) { .order-payment-actions { grid-template-columns:repeat(2,minmax(0,1fr)); min-width:0; } .order-payment-actions .button { grid-column:1/-1; } .closure-form { grid-template-columns:minmax(0,1fr); } .closure-form label:first-of-type { grid-column:auto; } .closure-form .closure-submit { grid-column:auto; } }
 
-/* #113: calm gold treatment for the manual refund control, with navy keyboard focus. */
-.manual-refund > summary { border:1px solid var(--gold); color:var(--navy); transition:background-color .16s var(--ease-out),border-color .16s var(--ease-out); }
-.manual-refund > summary:hover,.manual-refund[open] > summary { border-color:var(--gold); background:var(--gold-soft); color:var(--navy); }
-.manual-refund > summary:focus-visible { outline:2px solid var(--navy); outline-offset:2px; }
-
-/* #114: contain long item summaries and keep totals in a stable separate column. */
-.orders-table table { width:100%; table-layout:fixed; }
-.orders-table th:nth-child(1) { width:14%; }
-.orders-table th:nth-child(2) { width:13%; }
-.orders-table th:nth-child(3) { width:29%; }
-.orders-table th:nth-child(4) { width:12%; }
-.orders-table th:nth-child(5) { width:12%; }
-.orders-table th:nth-child(6) { width:20%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(1) { width:12%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(2) { width:11%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(3) { width:24%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(4) { width:10%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(5) { width:10%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(6) { width:14%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(7) { width:19%; }
-.orders-table td { min-width:0; overflow-wrap:anywhere; white-space:normal; }
-.orders-table td:nth-child(3) { padding-right:clamp(18px,2.5vw,34px); }
-.orders-table td:nth-child(4) { color:var(--navy); font-weight:650; white-space:nowrap; }
-.order-items-details { min-width:0; }
-/* Top-aligned so opening the items list doesn't shift its toggle under the next click. */
-.orders-table td { vertical-align:top; }
-.order-items-details summary { display:-webkit-box; max-width:100%; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
-
-/* #118: place website section headings fully inside their cards. */
-.site-text-group { display:grid; grid-template-columns:minmax(0,1fr); padding:clamp(16px,2vw,24px); border:1px solid var(--line); border-radius:12px; background:#fff; }
-.site-text-group-heading { display:flex; align-items:center; justify-content:space-between; gap:16px; width:100%; padding-bottom:12px; border-bottom:1px solid var(--line); }
-.site-text-group-heading h2 { margin:0; color:var(--navy); font:600 20px/1.25 var(--serif); }
-.site-text-group-heading .website-field-count { margin:0; }
-
-/* #119-120: every photo card shares a title line, thumbnail frame and bottom action. */
-.photo-grid { grid-template-columns:repeat(auto-fill,minmax(min(100%,220px),1fr)); align-items:stretch; }
-.photo-card { display:flex; flex-direction:column; height:100%; min-height:260px; gap:10px; }
-.photo-card-name { height:1.35em; overflow:hidden; white-space:nowrap; text-overflow:ellipsis; font-size:13px; line-height:1.35; }
-.photo-card .thumbnail-upload-control { flex:1; grid-template-rows:minmax(0,1fr) auto; gap:10px; }
-.photo-card .thumbnail-upload-form { min-height:0; }
-.photo-card .photo-thumbnail-trigger { aspect-ratio:4/3; height:auto; }
-.photo-card .remove-photo-button { margin-top:auto; }
-.photo-card .remove-photo-button:disabled { opacity:.58; cursor:not-allowed; }
-
-/* #116-117: one-row menu editing, a left-anchored photo, and actions in the Actions column. */
+/* One-row menu editing, a left-anchored photo, and actions in the Actions column. */
 .admin-menu-item { grid-template-columns:96px minmax(140px,1.25fr) minmax(105px,.85fr) minmax(92px,.6fr) minmax(150px,1.35fr) auto minmax(136px,auto); align-items:center; }
 .admin-menu-item > .admin-item-photo { width:92px; aspect-ratio:1; overflow:visible; border:0; background:transparent; }
 .admin-menu-item .thumbnail-upload-control { gap:4px; }
@@ -3915,7 +3761,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .admin-item-actions { display:flex; flex-wrap:wrap; align-items:center; justify-content:flex-start; gap:6px; min-width:0; }
 .admin-item-actions > .button,.admin-item-actions .button { min-height:36px; padding:6px 9px; font-size:11px; }
 .admin-item-actions form { margin:0; }
-.section-card:has(.admin-menu-item) { overflow-x:auto; }
+.section-card:has(.admin-menu-item) { overflow-x:auto; container-type:inline-size; }
 .section-card:has(.admin-menu-item) .edit-head,.section-card:has(.admin-menu-item) .admin-menu-item { min-width:990px; }
 .section-card:has(.admin-menu-item) .edit-head { grid-template-columns:var(--cols); }
 .section-card:has(.admin-menu-item) .admin-menu-item { grid-template-columns:var(--cols); }
@@ -3926,7 +3772,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 @media(max-width:1000px) { .section-card .edit-head { display:none; } .admin-menu-item .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; } }
 /* When a menu card is narrower than its 990px row grid, stack each row instead of scrolling sideways. */
-.section-card:has(.admin-menu-item) { container-type:inline-size; }
 @container (max-width:989px) {
   .section-card:has(.admin-menu-item) .admin-menu-item { min-width:0; grid-template-columns:72px minmax(0,1fr) minmax(0,1fr); grid-auto-flow:dense; }
   .admin-menu-item > .admin-item-photo { width:72px; grid-row:span 2; }
@@ -3937,7 +3782,7 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 }
 
 /* Add a menu item: photo on the left, fields in two rows. */
-.menu-add-form { display:grid; grid-template-columns:200px minmax(0,1fr); gap:20px 24px; align-items:start; }
+.menu-add-form { display:grid; grid-template-columns:200px minmax(0,1fr); gap:20px 24px; align-items:start; container-type:inline-size; }
 .menu-add-fields { display:grid; grid-template-columns:minmax(0,2fr) minmax(0,1fr) minmax(220px,.9fr); gap:16px; align-items:end; }
 .menu-add-fields label { display:grid; gap:5px; min-width:0; margin:0; font-size:13px; font-weight:500; }
 .menu-add-fields input:not([type="checkbox"]), .menu-add-fields select { box-sizing:border-box; width:100%; min-width:0; height:44px; min-height:0; margin:0; }
@@ -3946,6 +3791,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .menu-add-end .edit-check { display:flex; align-items:center; gap:7px; white-space:nowrap; }
 .menu-add-end .edit-check input { flex:none; width:18px; height:18px; min-height:0; margin:0; }
 .menu-add-end .button { min-height:44px; padding-block:0; white-space:nowrap; }
+/* Three columns squeeze Section to a sliver under ~940px of form width, so go to two by the form's own width. */
+@container (max-width:940px) {
+  .menu-add-fields { grid-template-columns:1fr 1fr; }
+  .menu-add-fields .menu-add-description, .menu-add-end { grid-column:1 / -1; }
+}
 .menu-photo-picker { display:grid; gap:10px; }
 .menu-photo-drop { display:grid; place-items:center; aspect-ratio:4/3; overflow:hidden; border:1px dashed var(--line); border-radius:8px; background:var(--stone); color:var(--muted); text-align:center; cursor:pointer; transition:border-color .15s; }
 .menu-photo-drop:hover, .menu-photo-picker input:focus-visible + .menu-photo-drop { border-color:var(--navy); }
@@ -3957,8 +3807,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 @media (max-width:900px) {
   .menu-add-form { grid-template-columns:1fr; }
   .menu-photo-picker { max-width:240px; }
-  .menu-add-fields { grid-template-columns:1fr 1fr; }
-  .menu-add-fields .menu-add-description, .menu-add-end { grid-column:1 / -1; }
 }
 
 /* Drag-to-reorder rows. */
@@ -3970,42 +3818,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .sortable-status { margin:0; padding:0 20px; font-size:12px; color:var(--success); }
 .sortable-status:empty { display:none; }
 .sortable-status.error { color:var(--danger); }
-
-/* Rooms: room types in a wide main column; rooms and closed dates in a side column. */
-.rooms-split { grid-template-columns:minmax(0,1.85fr) minmax(300px,1fr); }
-.rooms-main, .rooms-side { display:grid; gap:24px; align-content:start; min-width:0; }
-.rooms-main .section-card { margin:0; }
-.rooms-main .add-card { margin:0; }
-.room-type-row label { display:grid; gap:4px; min-width:0; margin:0; }
-.room-type-row input, .room-type-row textarea { width:100%; min-width:0; margin:0; }
-.room-type-row textarea { min-height:44px; resize:vertical; }
-.room-type-row .row-caption { color:var(--muted); font-size:12px; }
-.room-type-row .admin-item-actions { flex-wrap:nowrap; }
-.room-create { grid-template-columns:1fr; }
-.room-create .button { justify-self:stretch; }
-.room-row { display:grid; grid-template-columns:88px minmax(0,1fr); gap:8px; padding:12px 0; border-top:1px solid var(--line); }
-.room-row label { margin:0; min-width:0; }
-.room-row input, .room-row select { width:100%; min-width:0; min-height:40px; margin:0; }
-.room-row .admin-item-actions { grid-column:1 / -1; }
-/* Closed dates as a list, so the Reopen button is never cut off. */
-.closure-list { display:grid; margin:16px 0 0; padding:0; list-style:none; border-top:1px solid var(--line); }
-.closure-list li { display:flex; align-items:center; justify-content:space-between; gap:12px; padding:12px 0; border-bottom:1px solid var(--line); }
-.closure-list li > div { display:grid; gap:2px; min-width:0; }
-.closure-list span, .closure-list small { color:var(--muted); font-size:13px; }
-.closure-list form { margin:0; flex:none; }
-.closure-empty { margin:16px 0 0; padding:16px 0 0; border-top:1px solid var(--line); color:var(--muted); font-style:italic; }
-
-/* Orders: Mark paid opens a row under the order, so the Actions column only holds buttons. */
-.orders-table .order-pay-row td { padding-top:0; background:var(--stone); }
-.order-pay-row .order-payment-actions { grid-template-columns:auto minmax(130px,180px) minmax(160px,260px) auto; justify-content:start; align-items:end; gap:8px 12px; min-width:0; padding:12px 0 4px; }
-.order-pay-row .order-payment-actions strong { align-self:center; font-size:13px; }
-.order-transition-actions { margin-top:0; }
-@media (max-width:760px) { .order-pay-row .order-payment-actions { grid-template-columns:minmax(0,1fr) minmax(0,1fr); } .order-pay-row .order-payment-actions strong { grid-column:1 / -1; } }
-
-/* Activity log: full record and account IDs wrap instead of pushing the table wider than the page. */
-.activity-log-table table { width:100%; }
-.activity-log-table td:nth-child(5), .activity-log-table td small { white-space:normal; overflow-wrap:anywhere; font-size:12px; }
-.activity-log-table td:nth-child(5) { min-width:14ch; }
 
 /* Menu rows below 1000px: photo on the left, fields in two columns (the seven-column row no longer fits). */
 @media (max-width:1000px) {
@@ -4022,21 +3834,11 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
   .add-card-body .section-card .edit-row { grid-template-columns:minmax(0,1fr) minmax(0,1fr); }
   .add-card-body .section-card .edit-row > .admin-item-actions { grid-column:1 / -1; }
 }
-/* Reports: the seven-column transactions table wraps its cells instead of scrolling at laptop widths. */
-.report-transactions td { white-space:normal; }
-.section-card .room-type-row { align-items:start; }
-.room-type-row textarea { box-sizing:border-box; padding:10px 12px; border:1px solid var(--line); border-radius:6px; background:#fff; font:inherit; font-size:14px; }
-.room-type-row .admin-item-actions { padding-top:4px; }
-.rooms-side .closure-form { grid-template-columns:minmax(0,1fr); }
-.rooms-side .closure-form label:first-of-type, .rooms-side .closure-form .closure-submit { grid-column:auto; }
-@media (max-width:1100px) { .rooms-split { grid-template-columns:minmax(0,1fr); } }
-@media (max-width:1000px) { .room-type-row .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; font-size:12px; } }
-
 /* The Cozy Palace name keeps Bodoni Moda; headings use Fraunces. */
 .brand {
   font-family: var(--brand);
 }
-/* Photo crop dialog (#128): drag to move, slider or +/- to zoom. */
+/* Photo crop dialog: drag to move, slider or +/- to zoom. */
 .photo-crop-dialog { width:min(640px, calc(100vw - 32px)); }
 /* Shrinks on short screens so the buttons stay in view. */
 .photo-crop-frame { position:relative; overflow:hidden; width:min(100%, calc((100dvh - 320px) * var(--aspect))); aspect-ratio:var(--aspect); margin:18px auto 0; border-radius:8px; background:var(--stone); cursor:grab; touch-action:none; user-select:none; }
