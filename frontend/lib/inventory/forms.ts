@@ -81,6 +81,9 @@ export const inventoryMessages: Record<string, string> = {
   roomDeleted: "Room deleted.",
   roomTypeDeleted: "Room type deleted.",
   roomTypeCreated: "Room type added.",
+  roomTypeCreatedNoPhoto:
+    "Room type added, but its photo didn't upload. Add it from Website → Photos.",
+  INVALID_PHOTO: "Choose a JPEG, PNG or WebP image under 5 MB.",
   roomCreated: "Room added.",
   tableCreated: "Table added.",
   REQUEST_FAILED: "We could not save your changes. Please try again.",

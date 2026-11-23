@@ -9,6 +9,7 @@ import {
 import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
+import { MenuPhotoPicker } from "@/components/menu-photo-picker";
 import { AddCard, colLabel, SectionCard } from "@/components/admin-ui";
 import {
   getAdminRooms,
@@ -40,24 +41,30 @@ export default async function RoomInventory({
       <div className="admin-split rooms-split">
         <div className="rooms-main">
           <AddCard title="Add a room type">
-            <form action={createRoomTypeAction} className="inventory-create-form room-type-create">
-              <label>
-                Name
-                <input name="name" required maxLength={100} />
-              </label>
-              <label>
-                Guests
-                <input name="capacity" type="number" required min={1} max={20} step={1} />
-              </label>
-              <label>
-                Nightly rate (₱)
-                <input name="rate" type="number" required min={0} max={1000000} step="0.01" />
-              </label>
-              <label className="room-type-create-description">
-                Description
-                <textarea name="description" maxLength={500} rows={2} />
-              </label>
-              <button className="button">Add room type</button>
+            {/* Same layout as the menu add form: photo on the left, fields on the right. */}
+            <form action={createRoomTypeAction} className="menu-add-form">
+              <MenuPhotoPicker id="room-type-add-photo" />
+              <div className="menu-add-fields">
+                <label>
+                  Name
+                  <input name="name" required maxLength={100} />
+                </label>
+                <label>
+                  Guests
+                  <input name="capacity" type="number" required min={1} max={20} step={1} />
+                </label>
+                <label>
+                  Nightly rate (₱)
+                  <input name="rate" type="number" required min={0} max={1000000} step="0.01" />
+                </label>
+                <label className="menu-add-description">
+                  Description
+                  <input name="description" maxLength={500} />
+                </label>
+                <div className="menu-add-end">
+                  <button className="button">Add room type</button>
+                </div>
+              </div>
             </form>
           </AddCard>
           <SectionCard
