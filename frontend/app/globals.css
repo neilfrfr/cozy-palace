@@ -70,6 +70,10 @@ input,
 select {
   -webkit-tap-highlight-color: transparent;
 }
+/* Toggles behave like buttons: fast clicks shouldn't select text (or reveal the label hidden behind "Cancel"). */
+summary {
+  user-select: none;
+}
 :focus-visible {
   outline: 3px solid #a45530;
   outline-offset: 4px;
@@ -3877,6 +3881,8 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .orders-table td:nth-child(3) { padding-right:clamp(18px,2.5vw,34px); }
 .orders-table td:nth-child(4) { color:var(--navy); font-weight:650; white-space:nowrap; }
 .order-items-details { min-width:0; }
+/* Top-aligned so opening the items list doesn't shift its toggle under the next click. */
+.orders-table td { vertical-align:top; }
 .order-items-details summary { display:-webkit-box; max-width:100%; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
 
 /* #118: place website section headings fully inside their cards. */
