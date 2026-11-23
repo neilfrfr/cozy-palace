@@ -104,7 +104,23 @@ it("emails a notice with the guest's name escaped, and reports why a send failed
   expect(sent.text).toContain(
     "Booking 42: a stay from 2027-01-10 to 2027-01-12, 2 guests",
   );
-  expect(sent.text).not.toContain("http");
+  // Visitors get the public lookup page, never a private booking link.
+  expect(sent.text).toContain(
+    "Find my reservation: http://localhost:3000/find-reservation",
+  );
+  expect(sent.text).not.toMatch(/token|\/stay\//);
+  expect(sent.text).toContain("123 Placeholder Street, Makati City");
+  expect(sent.text).toContain(
+    "sent to walk@example.test because of booking 42 with Cozy Palace",
+  );
+  // Supabase-matching layout: notice title as the heading, tagline and contact email from the website settings.
+  expect(sent.html).toContain(">Your booking is confirmed</h1>");
+  expect(sent.html).toContain("Hotel and Restaurant");
+  expect(sent.html).toContain("This email was sent to walk@example.test");
+  expect(sent.text).toContain("Cozy Palace · Hotel and Restaurant");
+  expect(sent.text).toContain(
+    "+63 2 8123 4567 · cozypalace.bookings@gmail.com",
+  );
   const refund = emailFor(
     { id: "n2", event: "refunded", email: "walk@example.test" },
     {
@@ -143,12 +159,10 @@ it("purchase emails describe the extras, the order, or the amount", async () => 
       },
     ],
   };
-  const text = (event: Parameters<typeof emailFor>[0]["event"], d = {}) =>
-    emailFor(
-      { id: "n", event, email: "a@example.test" },
-      booking,
-      d,
-    ).lines.join(" ");
+  const text = (event: Parameters<typeof emailFor>[0]["event"], d = {}) => {
+    const m = emailFor({ id: "n", event, email: "a@example.test" }, booking, d);
+    return [m.heading, ...m.lines].join(" ");
+  };
   expect(text("received")).toContain("2 guests with Breakfast × 2 (₱1,000)");
   expect(text("received")).toContain("change or cancel");
   const order = {

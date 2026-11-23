@@ -163,17 +163,27 @@ export function emailFor(
   d: NoticeDetail = {},
 ) {
   const t = noticeText(n.event, b, d);
+  const origin = siteOrigin();
+  // Account holders see bookings in My reservations; visitors look theirs up by name and number.
+  const button = origin
+    ? b.customer
+      ? { label: "View my reservations", url: origin + "/reservations" }
+      : { label: "Find my reservation", url: origin + "/find-reservation" }
+    : undefined;
   return {
+    button,
+    reason: `because of booking ${b.reference} with Cozy Palace`,
     to: n.email,
     subject: `${t.title} · Booking ${b.reference}`,
+    heading: t.title,
+    preheader: t.next,
     lines: [
       `Hello ${b.customer?.full_name ?? b.guest_full_name ?? "there"},`,
-      `${t.title}. ${t.booking}.`,
+      `${t.booking}.`,
       t.next,
       !bookingEvents.includes(n.event)
         ? `For questions, contact the front desk and quote booking number ${b.reference}.`
         : `To change or cancel it, contact the front desk and quote booking number ${b.reference}.`,
-      "Cozy Palace Hotel and Restaurant",
     ],
     id: "notice-" + n.id,
   };
