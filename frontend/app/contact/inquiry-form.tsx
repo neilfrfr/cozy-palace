@@ -1,17 +1,21 @@
 "use client";
 
-import { useState, type FormEvent } from "react";
+import { startTransition, useActionState, useState } from "react";
+import { Turnstile } from "@/components/turnstile";
+import { sendInquiryAction } from "./actions";
 
 const fieldClassName =
   "!mt-2 !min-h-12 !w-full !rounded-md !border-[var(--line)] !bg-[var(--paper)] !px-4 !py-3 !font-[inherit] !text-base !text-[var(--ink)]";
 
 export function InquiryForm() {
-  const [submitted, setSubmitted] = useState(false);
-
-  function handleSubmit(event: FormEvent<HTMLFormElement>) {
-    event.preventDefault();
-    setSubmitted(true);
-  }
+  const [state, submit, pending] = useActionState(sendInquiryAction, {
+    message: "",
+    success: false,
+  });
+  // Each Turnstile token works once, so remount the widget on every submit.
+  const [captcha, setCaptcha] = useState("");
+  const [round, setRound] = useState(0);
+  const needsCaptcha = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
     <section
@@ -20,15 +24,26 @@ export function InquiryForm() {
     >
       <h2 id="inquiry-title">Send an Inquiry</h2>
       <p className="intro">
-        Prototype inquiry form — messages are simulated for demonstration.
+        Send us a message and our front desk will reply by email.
       </p>
 
-      {submitted ? (
+      {state.success ? (
         <p className="notice" role="status">
-          Thank you for reaching out. We have received your inquiry.
+          {state.message}
         </p>
       ) : (
-        <form className="form-grid" onSubmit={handleSubmit}>
+        <form
+          className="form-grid"
+          // Submitted by hand so a failed send keeps what the guest typed (form actions reset fields).
+          onSubmit={(e) => {
+            e.preventDefault();
+            const data = new FormData(e.currentTarget);
+            startTransition(() => submit(data));
+            setCaptcha("");
+            setRound((n) => n + 1);
+          }}
+        >
+          <input type="hidden" name="captchaToken" value={captcha} />
           <label className="full">
             Full Name
             <input
@@ -75,8 +90,22 @@ export function InquiryForm() {
               required
             />
           </label>
-          <button className="primary full" type="submit">
-            Send Message
+          {needsCaptcha && (
+            <div className="full">
+              <Turnstile key={round} action="inquiry" onToken={setCaptcha} />
+            </div>
+          )}
+          {state.message && (
+            <p role="alert" className="notice error full">
+              {state.message}
+            </p>
+          )}
+          <button
+            className="primary full"
+            type="submit"
+            disabled={pending || (needsCaptcha && !captcha)}
+          >
+            {pending ? "Sending…" : "Send Message"}
           </button>
         </form>
       )}

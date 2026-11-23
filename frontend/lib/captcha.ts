@@ -21,7 +21,7 @@ export function captchaConfigured() {
   return hostnames().size > 0;
 }
 /** Widget actions, one per protected form; the server checks the token came from that form. */
-export type CaptchaAction = "book_room" | "book_table";
+export type CaptchaAction = "book_room" | "book_table" | "inquiry";
 /** Cloudflare Turnstile check. Tokens are single-use and expire after five minutes. */
 export async function verifyCaptcha(
   token: string,
