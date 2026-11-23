@@ -1238,6 +1238,26 @@ body {
     transform: translate(-50%, -50%) scale(1.1);
   }
 }
+/* Tables with no spot on the drawing: the same wooden pins, laid out in a row under the plan. */
+.table-picker-others { display: grid; gap: 8px; margin-top: 12px; }
+.table-picker-others p { margin: 0; font-size: 13px; color: var(--muted); }
+.table-picker-others > div { display: flex; flex-wrap: wrap; gap: 10px; }
+.table-pin.table-pin-other {
+  position: static;
+  transform: none;
+  display: inline-grid;
+  place-items: center;
+  width: auto;
+  min-width: 64px;
+  aspect-ratio: auto;
+  padding: 8px 12px;
+  line-height: 1.2;
+}
+.table-pin.table-pin-other small { font-size: 11px; font-weight: 600; }
+.table-pin.table-pin-other.selected { transform: scale(1.08); }
+@media (hover: hover) and (pointer: fine) {
+  .table-pin.table-pin-other.open:hover { transform: scale(1.05); }
+}
 .table-picker-legend {
   display: flex;
   flex-wrap: wrap;
