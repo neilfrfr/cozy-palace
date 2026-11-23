@@ -3415,20 +3415,9 @@ option {
   font-size: 13px;
 }
 .inventory-create-form input,
-.inventory-create-form select,
-.inventory-create-form textarea {
+.inventory-create-form select {
   min-height: 40px;
   margin: 0;
-}
-.inventory-create-form textarea {
-  box-sizing: border-box;
-  padding: 10px 12px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  background: #fff;
-  font: inherit;
-  font-size: 14px;
-  resize: vertical;
 }
 .inventory-create-form .button {
   min-height: 40px;
@@ -3981,9 +3970,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .rooms-main, .rooms-side { display:grid; gap:24px; align-content:start; min-width:0; }
 .rooms-main .section-card { margin:0; }
 .rooms-main .add-card { margin:0; }
-.room-type-create { grid-template-columns:minmax(0,2fr) minmax(0,.7fr) minmax(0,1fr); }
-.room-type-create .room-type-create-description { grid-column:1 / -1; }
-.room-type-create .button { grid-column:-2 / -1; justify-self:end; }
 .room-type-row label { display:grid; gap:4px; min-width:0; margin:0; }
 .room-type-row input, .room-type-row textarea { width:100%; min-width:0; margin:0; }
 .room-type-row textarea { min-height:44px; resize:vertical; }
@@ -4044,3 +4030,13 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .brand {
   font-family: var(--brand);
 }
+/* Photo crop dialog (#128): drag to move, slider or +/- to zoom. */
+.photo-crop-dialog { width:min(640px, calc(100vw - 32px)); }
+/* Shrinks on short screens so the buttons stay in view. */
+.photo-crop-frame { position:relative; overflow:hidden; width:min(100%, calc((100dvh - 320px) * var(--aspect))); aspect-ratio:var(--aspect); margin:18px auto 0; border-radius:8px; background:var(--stone); cursor:grab; touch-action:none; user-select:none; }
+.photo-crop-frame:active { cursor:grabbing; }
+.photo-crop-frame:focus-visible { outline:2px solid var(--navy); outline-offset:3px; }
+.photo-crop-frame img { position:absolute; top:50%; left:50%; max-width:none; pointer-events:none; }
+.photo-crop-zoom { display:grid; grid-template-columns:auto 1fr; align-items:center; gap:12px; margin-top:16px; font-size:13px; font-weight:500; }
+.photo-crop-zoom input { width:100%; min-height:0; margin:0; accent-color:var(--navy); }
+.photo-crop-dialog .field-error { margin:12px 0 0; color:var(--danger, #b7524b); font-size:13px; }

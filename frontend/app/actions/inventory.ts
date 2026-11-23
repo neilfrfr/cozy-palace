@@ -13,6 +13,8 @@ import {
   tableSchema,
 } from "@/lib/inventory/forms";
 import { extraSchema } from "@/lib/extras";
+import { itemPhotoKey } from "@/lib/site-content";
+import { readPhoto, storePhoto } from "@/lib/site-photos";
 
 type Page = "/admin/rooms" | "/admin/tables" | "/admin/extras";
 const page = (form: FormData): Page =>
@@ -108,12 +110,20 @@ export async function createRoomTypeAction(form: FormData) {
     rate: form.get("rate"),
   });
   if (!p.success) redirect("/admin/rooms?error=INVALID_INPUT");
-  const { error } = await db.rpc("create_room_type", {
+  // The add form may carry a photo; check it before the room type exists.
+  const file = form.get("photo");
+  const photo = file instanceof File && file.size ? await readPhoto(file) : null;
+  if (file instanceof File && file.size && !photo) redirect("/admin/rooms?error=INVALID_PHOTO");
+  const { data, error } = await db.rpc("create_room_type", {
     p_name: p.data.name,
     p_description: p.data.description,
     p_capacity: p.data.capacity,
     p_nightly_rate: p.data.rate,
   });
+  if (!error && photo) {
+    const failed = await storePhoto(db, itemPhotoKey("room", (data as { id: string }).id), photo);
+    if (failed) done("/admin/rooms", null, "roomTypeCreatedNoPhoto");
+  }
   done("/admin/rooms", error, "roomTypeCreated");
 }
 

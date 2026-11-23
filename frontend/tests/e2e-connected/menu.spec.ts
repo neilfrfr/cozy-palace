@@ -31,6 +31,11 @@ test("admin adds (with a photo), drags to reorder, archives, restores and delete
   await add.getByLabel("Section").selectOption("Dessert");
   await add.getByLabel("Price (₱)").fill("99");
   await add.locator('input[name="photo"]').setInputFiles("public/design/dining.jpg");
+  // The crop step opens first; zoom in a little, then keep the crop.
+  const crop = p.getByRole("dialog", { name: "Position your photo" });
+  await expect(crop.getByRole("img", { name: "Photo being cropped" })).toBeVisible();
+  await crop.getByRole("slider", { name: "Zoom" }).fill("1.4");
+  await crop.getByRole("button", { name: "Use photo" }).click();
   await expect(add.getByRole("img", { name: "Chosen photo" })).toBeVisible();
   await add.getByRole("button", { name: "Add item" }).click();
   await expect(p.getByText("Saved.")).toBeVisible();
