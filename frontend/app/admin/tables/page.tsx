@@ -1,7 +1,9 @@
 import {
   createTableAction,
+  deleteTableAction,
   saveTableAction,
 } from "@/app/actions/inventory";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
 import { requireStaff } from "@/lib/auth/authorize";
@@ -24,13 +26,13 @@ export default async function TableInventory({
       <p className="eyebrow">INVENTORY</p>
       <h1>Restaurant Tables</h1>
       <p className="intro">
-        Seats per table. Existing bookings are not changed, and every change is
-        recorded in the activity log.
+        Table numbers and seats. Existing bookings are not changed, and every
+        change is recorded in the activity log.
       </p>
       <InventoryNotice notice={notice} error={error} />
       <div className="admin-split">
         <section className="panel-card" aria-labelledby="seats">
-          <h2 id="seats">Seats per table</h2>
+          <h2 id="seats">Tables</h2>
           <form action={createTableAction} className="inventory-create-form">
             <label>
               Table number
@@ -55,11 +57,17 @@ export default async function TableInventory({
                 <li key={table.id}>
                   <form action={saveTableAction}>
                     <input type="hidden" name="id" value={table.id} />
-                    <span className="table-badge">{table.table_number}</span>
                     <label>
-                      <span className="hidden-label">
-                        Seats at table {table.table_number}
-                      </span>
+                      Table
+                      <input
+                        name="number"
+                        required
+                        maxLength={30}
+                        defaultValue={table.table_number}
+                      />
+                    </label>
+                    <label>
+                      Seats
                       <input
                         name="capacity"
                         type="number"
@@ -70,6 +78,11 @@ export default async function TableInventory({
                       />
                     </label>
                     <button className="button">Save</button>
+                    <ConfirmDeleteButton
+                      action={deleteTableAction}
+                      title={`Delete table ${table.table_number}?`}
+                      message="Tables with booking history are kept and cannot be deleted. Its closed dates are removed with it."
+                    />
                   </form>
                 </li>
               ))}

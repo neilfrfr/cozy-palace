@@ -91,14 +91,30 @@ export async function saveTableAction(form: FormData) {
   const { db } = await requireStaff(true);
   const p = tableSchema.safeParse({
     id: form.get("id"),
+    number: form.get("number"),
     capacity: form.get("capacity"),
   });
   if (!p.success) redirect("/admin/tables?error=INVALID_INPUT");
   const { error } = await db.rpc("save_table", {
     p_id: p.data.id,
     p_capacity: p.data.capacity,
+    p_table_number: p.data.number,
   });
   done("/admin/tables", error, "saved");
+}
+
+export async function deleteTableAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  const { error } = await db.rpc("delete_table", { p_id: id });
+  done("/admin/tables", error, "tableDeleted");
+}
+
+export async function deleteExtraAction(form: FormData) {
+  const { db } = await requireStaff(true);
+  const id = String(form.get("id") ?? "");
+  const { error } = await db.rpc("delete_extra", { p_id: id });
+  done("/admin/extras", error, "extraDeleted");
 }
 
 export async function createRoomTypeAction(form: FormData) {

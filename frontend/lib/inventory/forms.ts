@@ -49,7 +49,11 @@ export const roomSchema = z
   })
   .strict();
 export const tableSchema = z
-  .object({ id: z.uuid(), capacity: z.coerce.number().int().min(1).max(20) })
+  .object({
+    id: z.uuid(),
+    number: z.string().trim().min(1).max(30),
+    capacity: z.coerce.number().int().min(1).max(20),
+  })
   .strict();
 export const closureSchema = z
   .object({
@@ -79,6 +83,12 @@ export const inventoryMessages: Record<string, string> = {
   ROOM_TYPE_IN_USE:
     "This room type still has rooms. Remove or move those rooms first.",
   roomDeleted: "Room deleted.",
+  tableDeleted: "Table deleted.",
+  extraDeleted: "Deleted.",
+  TABLE_IN_USE:
+    "This table has booking history and cannot be deleted. Close its dates instead.",
+  EXTRA_IN_USE:
+    "Bookings already include this item, so it cannot be deleted. Untick Active to stop offering it.",
   roomTypeDeleted: "Room type deleted.",
   roomTypeCreated: "Room type added.",
   roomTypeCreatedNoPhoto:
