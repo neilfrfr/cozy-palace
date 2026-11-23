@@ -24,26 +24,8 @@ import {
   diningSlots,
   slotStart,
 } from "@/lib/dining";
+import { planSpot } from "@/lib/floor-plan";
 
-// Table centres on /design/dining/floor-plan.jpg, as % of width and height.
-const LAYOUT: Record<string, { x: number; y: number; area: string }> = {
-  T1: { x: 37.2, y: 48, area: "Booth" },
-  T2: { x: 37.2, y: 60.5, area: "Booth" },
-  T3: { x: 49.3, y: 48, area: "Booth" },
-  T4: { x: 49.3, y: 60.5, area: "Booth" },
-  T5: { x: 61.2, y: 43.6, area: "Indoor" },
-  T6: { x: 61.2, y: 56.4, area: "Indoor" },
-  T7: { x: 61.2, y: 69.1, area: "Indoor" },
-  T8: { x: 37.6, y: 78.6, area: "Window" },
-  T9: { x: 45.5, y: 78.6, area: "Window" },
-  T10: { x: 53.8, y: 78.6, area: "Window" },
-  P1: { x: 76.4, y: 22.5, area: "Patio" },
-  P2: { x: 77, y: 35.3, area: "Patio" },
-  P3: { x: 76.7, y: 48.3, area: "Patio" },
-  P4: { x: 86.4, y: 68.5, area: "Patio" },
-  P5: { x: 86.7, y: 25.2, area: "Patio umbrella" },
-  P6: { x: 87.6, y: 48, area: "Patio umbrella" },
-};
 
 export function TablePicker({
   tables,
@@ -116,13 +98,15 @@ export function TablePicker({
   const dateIsValid = /^\d{4}-\d{2}-\d{2}$/.test(date) &&
     !Number.isNaN(Date.parse(date)) &&
     new Date(`${date}T00:00:00Z`).toISOString().slice(0, 10) === date;
-  const placed = tables.filter((t) => LAYOUT[t.table_number]);
+  const placed = tables.filter((t) => planSpot(t.table_number));
+  const others = tables.filter((t) => !planSpot(t.table_number));
+  const areaOf = (t: DiningTable) => planSpot(t.table_number)?.area ?? "Other table";
   const fits = (t: DiningTable) =>
     t.operational_state === "available" &&
     typeof guests === "number" &&
     t.capacity >= guests &&
     !booked.has(t.id);
-  const selected = placed.find((t) => t.id === selectedId && fits(t));
+  const selected = tables.find((t) => t.id === selectedId && fits(t));
 
   useEffect(() => {
     if ((deferAvailability && !showPlan) || !time || date < today || date > lastDay) return;
@@ -134,6 +118,27 @@ export function TablePicker({
       live = false;
     };
   }, [date, time, today, lastDay, refresh, deferAvailability, showPlan]);
+
+  function pin(t: DiningTable, at?: { left: string; top: string }) {
+    const open = fits(t) && !!time;
+    const state =
+      t.id === selected?.id ? "selected" : open ? "open" : "closed";
+    return (
+      <button
+        key={t.id}
+        type="button"
+        className={"table-pin " + state + (at ? "" : " table-pin-other")}
+        style={at}
+        disabled={!open}
+        aria-pressed={t.id === selected?.id}
+        aria-label={`Table ${t.table_number}, ${areaOf(t)}, up to ${t.capacity} guests${open ? "" : booked.has(t.id) ? ", booked" : ", not available"}`}
+        onClick={() => setSelectedId(t.id)}
+      >
+        {t.table_number}
+        {!at && <small>{t.capacity} seats</small>}
+      </button>
+    );
+  }
 
   function checkAvailability() {
     if (!dateIsValid || date < today || date > lastDay || !time || typeof guests !== "number") return;
@@ -274,26 +279,16 @@ export function TablePicker({
           sizes="(max-width: 1100px) 100vw, 1000px"
         />
         {placed.map((t) => {
-          const { x, y, area } = LAYOUT[t.table_number];
-          const open = fits(t) && !!time;
-          const state =
-            t.id === selected?.id ? "selected" : open ? "open" : "closed";
-          return (
-            <button
-              key={t.id}
-              type="button"
-              className={"table-pin " + state}
-              style={{ left: x + "%", top: y + "%" }}
-              disabled={!open}
-              aria-pressed={t.id === selected?.id}
-              aria-label={`Table ${t.table_number}, ${area}, up to ${t.capacity} guests${open ? "" : booked.has(t.id) ? ", booked" : ", not available"}`}
-              onClick={() => setSelectedId(t.id)}
-            >
-              {t.table_number}
-            </button>
-          );
+          const spot = planSpot(t.table_number)!;
+          return pin(t, { left: spot.x + "%", top: spot.y + "%" });
         })}
       </div>
+      {others.length > 0 && (
+        <div className="table-picker-others">
+          <p>Other tables (not shown on the floor plan)</p>
+          <div>{others.map((t) => pin(t))}</div>
+        </div>
+      )}
       <ul className="table-picker-legend" aria-hidden="true">
         <li className="open">Available</li>
         <li className="selected">Selected</li>
@@ -301,10 +296,12 @@ export function TablePicker({
       </ul>
       <p className="table-picker-summary" aria-live="polite">
         {selected
-          ? `Table ${selected.table_number} · ${LAYOUT[selected.table_number].area} · up to ${selected.capacity} guests · ${date} at ${time}`
-          : placed.length
-            ? "Choose a table on the floor plan."
-            : "No tables are on the floor plan yet."}
+          ? `Table ${selected.table_number} · ${areaOf(selected)} · up to ${selected.capacity} guests · ${date} at ${time}`
+          : !tables.length
+            ? "No tables are listed yet."
+            : others.length
+              ? "Choose a table on the floor plan or below it."
+              : "Choose a table on the floor plan."}
       </p>
       {contact && (
         <div className="table-picker-fields contact">

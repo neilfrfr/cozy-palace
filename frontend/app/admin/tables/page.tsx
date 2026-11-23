@@ -6,6 +6,7 @@ import { ClosureSection } from "@/components/closure-section";
 import { InventoryNotice } from "@/components/inventory-notice";
 import { requireStaff } from "@/lib/auth/authorize";
 import { getClosures, getDiningTables } from "@/lib/inventory/service";
+import { planSpot } from "@/lib/floor-plan";
 export const dynamic = "force-dynamic";
 export default async function TableInventory({
   searchParams,
@@ -75,6 +76,17 @@ export default async function TableInventory({
             </ul>
           ) : (
             <p className="empty">No restaurant tables have been added.</p>
+          )}
+          {tables.some((t) => !planSpot(t.table_number)) && (
+            <p className="subtle">
+              Not on the guest floor plan:{" "}
+              {tables
+                .filter((t) => !planSpot(t.table_number))
+                .map((t) => t.table_number)
+                .join(", ")}
+              . Guests see these listed under the plan and can book them the
+              same way.
+            </p>
           )}
         </section>
         <ClosureSection

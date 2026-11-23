@@ -3225,6 +3225,7 @@ option {
   padding: 0;
   list-style: none;
 }
+.capacity-grid + .subtle { margin-top: 12px; }
 .capacity-grid form {
   display: grid;
   grid-template-columns: auto minmax(0, 1fr) auto;
