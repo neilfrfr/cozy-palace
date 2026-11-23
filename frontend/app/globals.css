@@ -3026,23 +3026,27 @@ option {
 }
 
 /* Contain long item summaries and keep totals in a stable separate column. */
-.orders-table table { width:100%; table-layout:fixed; }
+/* Below 880px the fixed columns squeeze the status pills, so the table scrolls in its box instead. */
+.orders-table { overflow-x:auto; }
+.orders-table table { width:100%; min-width:880px; table-layout:fixed; }
 .orders-table th:nth-child(1) { width:14%; }
 .orders-table th:nth-child(2) { width:13%; }
-.orders-table th:nth-child(3) { width:29%; }
+.orders-table th:nth-child(3) { width:28%; }
 .orders-table th:nth-child(4) { width:12%; }
-.orders-table th:nth-child(5) { width:12%; }
-.orders-table th:nth-child(6) { width:20%; }
+.orders-table th:nth-child(5) { width:14%; }
+.orders-table th:nth-child(6) { width:19%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(1) { width:12%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(2) { width:11%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(3) { width:24%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(3) { width:23%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(4) { width:10%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(5) { width:10%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(5) { width:14%; }
 .orders-table table:has(thead th:nth-child(7)) th:nth-child(6) { width:14%; }
-.orders-table table:has(thead th:nth-child(7)) th:nth-child(7) { width:19%; }
+.orders-table table:has(thead th:nth-child(7)) th:nth-child(7) { width:16%; }
 .orders-table td { min-width:0; overflow-wrap:anywhere; white-space:normal; vertical-align:top; }
 .orders-table td:nth-child(3) { padding-right:clamp(18px,2.5vw,34px); }
 .orders-table td:nth-child(4) { color:var(--navy); font-weight:650; white-space:nowrap; }
+/* Status words never break mid-word ("Complet / ed"). */
+.orders-table .status { white-space:nowrap; overflow-wrap:normal; }
 .order-items-details { min-width:0; }
 /* Top-aligned so opening the items list doesn't shift its toggle under the next click. */
 .order-items-details summary { display:-webkit-box; max-width:100%; overflow:hidden; overflow-wrap:anywhere; -webkit-box-orient:vertical; -webkit-line-clamp:2; }
@@ -3767,8 +3771,6 @@ input:focus-visible,select:focus-visible,textarea:focus-visible,button:focus-vis
 .section-card:has(.admin-menu-item) .admin-menu-item { grid-template-columns:var(--cols); }
 @media(max-width:760px) {
   .site-text-group-heading h2 { font-size:18px; }
-  .orders-table { overflow-x:auto; }
-  .orders-table table { min-width:760px; }
 }
 @media(max-width:1000px) { .section-card .edit-head { display:none; } .admin-menu-item .col-label { position:static; display:block; width:auto; height:auto; margin-bottom:4px; clip-path:none; } }
 /* When a menu card is narrower than its 990px row grid, stack each row instead of scrolling sideways. */
