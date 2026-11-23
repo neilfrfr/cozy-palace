@@ -3,6 +3,7 @@ import { peso } from "@/lib/orders";
 import { pick, readFilters, type ReportQuery } from "@/lib/report-filters";
 import { previousPeriod, totals, vatSplit } from "@/lib/reports";
 import { getReport } from "@/lib/reports-data";
+import { DatePicker } from "@/components/date-picker";
 import { PrintButton } from "@/components/print-button";
 import { ReportBars } from "@/components/report-bars";
 export const dynamic = "force-dynamic";
@@ -63,14 +64,8 @@ export default async function Reports({
         <PrintButton />
       </div>
       <form className="operations-filters">
-        <label>
-          From
-          <input name="from" type="date" required defaultValue={f.from} />
-        </label>
-        <label>
-          To
-          <input name="to" type="date" required defaultValue={f.to} />
-        </label>
+        <DatePicker name="from" label="From" required defaultValue={f.from} />
+        <DatePicker name="to" label="To" required defaultValue={f.to} />
         <label>
           Payment status
           <select name="status" defaultValue={f.status}>
