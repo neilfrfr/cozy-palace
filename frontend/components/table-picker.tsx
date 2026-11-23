@@ -22,6 +22,7 @@ import {
   SEATING_MS,
   diningError,
   diningSlots,
+  slotLabel,
   slotStart,
 } from "@/lib/dining";
 import { planSpot } from "@/lib/floor-plan";
@@ -187,12 +188,12 @@ export function TablePicker({
       setMessage({
         ok: true,
         text: walkIn ? (
-          `Table ${selected.table_number} booked for ${input.guestFullName} at ${time}. Reference ${result.data.reference}.`
+          `Table ${selected.table_number} booked for ${input.guestFullName} at ${slotLabel(time)}. Reference ${result.data.reference}.`
         ) : visitor ? (
-          `Table ${selected.table_number} requested for ${date} at ${time} (reference ${result.data.reference}). We have emailed the details to ${input.guestEmail}. It's held for you until our staff confirm it. To change or cancel, contact us and quote the reference.`
+          `Table ${selected.table_number} requested for ${date} at ${slotLabel(time)} (reference ${result.data.reference}). We have emailed the details to ${input.guestEmail}. It's held for you until our staff confirm it. To change or cancel, contact us and quote the reference.`
         ) : (
           <>
-            Table {selected.table_number} requested for {date} at {time}{" "}
+            Table {selected.table_number} requested for {date} at {slotLabel(time)}{" "}
             (reference {result.data.reference}). It&apos;s held for you until
             our staff confirm it. Track it in{" "}
             <Link href="/reservations">My Reservations</Link>.
@@ -235,9 +236,9 @@ export function TablePicker({
             onChange={(e) => setChosenTime(e.target.value)}
             className={!time ? "unselected" : undefined}
           >
-            <option value="">00:00</option>
+            <option value="">Select time</option>
             {diningSlots.map((t) => (
-              <option key={t} value={t} disabled={!!date && !slots.includes(t)}>{t}</option>
+              <option key={t} value={t} disabled={!!date && !slots.includes(t)}>{slotLabel(t)}</option>
             ))}
           </select>
         </label>
@@ -296,7 +297,7 @@ export function TablePicker({
       </ul>
       <p className="table-picker-summary" aria-live="polite">
         {selected
-          ? `Table ${selected.table_number} · ${areaOf(selected)} · up to ${selected.capacity} guests · ${date} at ${time}`
+          ? `Table ${selected.table_number} · ${areaOf(selected)} · up to ${selected.capacity} guests · ${date} at ${slotLabel(time)}`
           : !tables.length
             ? "No tables are listed yet."
             : others.length

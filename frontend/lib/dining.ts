@@ -9,6 +9,11 @@ const halfHours = (from: number, to: number) =>
   });
 /** Bookable start times (Manila). Keep in step with private.dining_slot. */
 export const diningSlots = [...halfHours(11, 14), ...halfHours(17, 21)];
+/** "17:30" -> "5:30 PM" for display; slot values stay 24-hour. */
+export const slotLabel = (time: string) => {
+  const [h, m] = time.split(":").map(Number);
+  return `${h % 12 || 12}:${String(m).padStart(2, "0")} ${h < 12 ? "AM" : "PM"}`;
+};
 export const SEATING_MS = 2 * 60 * 60 * 1000;
 /** Furthest ahead a table can be booked; the database enforces the same. */
 export const BOOKING_WINDOW_DAYS = 180;

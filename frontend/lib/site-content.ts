@@ -38,7 +38,7 @@ export const siteText = {
   // Display only: the bookable times come from diningSlots in lib/dining.ts.
   "dining.hours": [
     "Dining: table booking hours",
-    "Prototype seating records are fictional. Tables can be booked from 11:00 to 14:00 and 17:00 to 21:00.",
+    "Prototype seating records are fictional. Tables can be booked from 11:00 AM to 2:00 PM and 5:00 PM to 9:00 PM.",
   ],
   "about.title": ["About: banner heading", "A Palace Built on Care."],
   "about.intro": [
@@ -101,7 +101,7 @@ export const siteText = {
   ],
   "contact.hours": [
     "Contact: opening hours",
-    "Front desk: open 24 hours\nRestaurant: 11:00–14:00 and 17:00–21:00",
+    "Front desk: open 24 hours\nRestaurant: 11:00 AM–2:00 PM and 5:00 PM–9:00 PM",
   ],
   "footer.tagline": ["Footer: line under the hotel name", "Hotel and Restaurant"],
 } as const;

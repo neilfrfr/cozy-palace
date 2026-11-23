@@ -6,7 +6,12 @@ import { TablePicker } from "@/components/table-picker";
 import { getDiningTables } from "@/lib/inventory/service";
 import { isConfigured } from "@/lib/supabase/config";
 import { visitorBookingEnabled } from "@/lib/captcha";
-import { BOOKING_WINDOW_DAYS, diningSlots, slotStart } from "@/lib/dining";
+import {
+  BOOKING_WINDOW_DAYS,
+  diningSlots,
+  slotLabel,
+  slotStart,
+} from "@/lib/dining";
 import { addDays } from "@/lib/reservations/availability";
 import { businessDate } from "@/lib/operations/schema";
 import { createClient } from "@/lib/supabase/server";
@@ -70,7 +75,7 @@ export default async function DiningAvailability({
             <p className="eyebrow">Table reservations</p>
             <h2 id="available-tables-title">Available Tables</h2>
             <p className="intro">
-              {guests} {guests === 1 ? "guest" : "guests"} · {date} at {time}
+              {guests} {guests === 1 ? "guest" : "guests"} · {date} at {slotLabel(time)}
             </p>
           </div>
           <Link className="button secondary" href="/dining#table-reservations">
