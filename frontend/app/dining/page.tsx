@@ -29,13 +29,16 @@ export default async function Dining() {
         getDiningTables(),
         viewerRole(),
         getSiteContent(),
-        getMenu(),
-        getMenuSections(),
+        getMenu().catch(() => null),
+        getMenuSections().catch(() => null),
       ])
     : [[], null, {}, [], []];
-  const categories = configured
-    ? publicDiningMenu(menuRows, sections, content)
-    : diningMenu;
+  const menuFailed = !menuRows || !sections;
+  const categories = !configured
+    ? diningMenu
+    : menuFailed
+      ? []
+      : publicDiningMenu(menuRows, sections, content);
   return (
     <div className="public-page dining-page">
       <PageBanner
@@ -81,7 +84,11 @@ export default async function Dining() {
           <p className="eyebrow">A taste of Cozy Palace</p>
           <h2 id="menu-title">From Our Kitchen</h2>
         </div>
-        {categories.length ? (
+        {menuFailed ? (
+          <div className="notice error" role="alert">
+            We could not load the menu. Please refresh and try again.
+          </div>
+        ) : categories.length ? (
           <MenuCategories categories={categories} />
         ) : (
           <p className="empty">No menu items are currently available.</p>

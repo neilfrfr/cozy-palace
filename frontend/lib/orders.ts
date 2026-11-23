@@ -55,7 +55,7 @@ export const peso = (n: number) =>
 /** Active items in the admin's chosen order; pass true for the archived ones instead. */
 export async function getMenu(archived = false): Promise<MenuRow[]> {
   const db = await createClient();
-  const { data } = await db
+  const { data, error } = await db
     .from("menu_items")
     .select(
       "id,name,description,section,price,available,archived" +
@@ -64,17 +64,19 @@ export async function getMenu(archived = false): Promise<MenuRow[]> {
     .eq("archived", archived)
     .order("position")
     .order("name");
-  return (data ?? []) as unknown as MenuRow[];
+  if (error) throw Error("The menu could not be loaded.");
+  return data as unknown as MenuRow[];
 }
 
 export async function getMenuSections(): Promise<MenuSection[]> {
   const db = await createClient();
-  const { data } = await db
+  const { data, error } = await db
     .from("menu_sections")
     .select("id,name,description")
     .order("position")
     .order("name");
-  return (data ?? []) as MenuSection[];
+  if (error) throw Error("The menu could not be loaded.");
+  return data as MenuSection[];
 }
 
 const orderFields =

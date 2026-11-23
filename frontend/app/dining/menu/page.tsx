@@ -11,13 +11,15 @@ export const dynamic = "force-dynamic";
 
 export default async function DiningMenuPage() {
   let categories = diningMenu;
+  let failed = false;
   if (isConfigured()) {
-    const [rows, sections, content] = await Promise.all([
+    const loaded = await Promise.all([
       getMenu(),
       getMenuSections(),
       getSiteContent(),
-    ]);
-    categories = publicDiningMenu(rows, sections, content);
+    ]).catch(() => null);
+    categories = loaded ? publicDiningMenu(...loaded) : [];
+    failed = !loaded;
   }
   return (
     <div className="public-page dining-page dining-full-menu-page">
@@ -37,7 +39,11 @@ export default async function DiningMenuPage() {
             </a>
           ))}
         </nav>
-        {categories.length ? (
+        {failed ? (
+          <div className="notice error" role="alert">
+            We could not load the menu. Please refresh and try again.
+          </div>
+        ) : categories.length ? (
           <MenuSections categories={categories} />
         ) : (
           <p className="empty">No menu items are currently available.</p>
