@@ -24,7 +24,14 @@ async function signIn(form: FormData, portal: "guest" | "staff") {
     options: { captchaToken: captchaToken(form) },
   });
   if (error) return { message: authFailure(error) };
-  await db.rpc("accept_staff_invitation");
+  // A failed call here means the database is unreachable; stop now instead of waiting on the role check too.
+  const invite = await db.rpc("accept_staff_invitation");
+  if (invite.error) {
+    await db.auth.signOut({ scope: "local" });
+    return {
+      message: "Sign-in is unavailable right now. Please try again in a few minutes.",
+    };
+  }
   let role: Awaited<ReturnType<typeof readRole>>;
   try {
     role = await readRole(db, data.user.id);
