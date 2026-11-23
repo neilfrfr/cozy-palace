@@ -1,6 +1,7 @@
 import { describe, it, expect } from "vitest";
 import {
   diningSlots,
+  slotLabel,
   slotStart,
   tableBookingSchema,
   walkInSchema,
@@ -49,4 +50,9 @@ describe("table booking input", () => {
         .success,
     ).toBe(true);
   });
+});
+
+it("shows slot times in 12-hour format", () => {
+  expect(["11:00", "12:30", "17:30", "21:00"].map(slotLabel)).toEqual(["11:00 AM", "12:30 PM", "5:30 PM", "9:00 PM"]);
+  expect(slotLabel("00:30")).toBe("12:30 AM");
 });
