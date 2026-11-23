@@ -183,3 +183,14 @@ it("only admins manage extras, and every change is logged", async () => {
     ).rows.map((r) => r.action),
   ).toEqual(expect.arrayContaining(["extra_created", "extra_updated", "extra_deactivated"]));
 });
+
+it("admins delete extras that no booking has used", async () => {
+  const { e } = (await save(admin, [null, "Delete me", "", "extra", 300, "per_stay", 1, true])).rows[0] as { e: { id: string } };
+  await expect(as("authenticated", staff, "select delete_extra($1)", [e.id])).rejects.toThrow("FORBIDDEN");
+  await as("authenticated", admin, "select delete_extra($1)", [e.id]);
+  expect((await db.query("select count(*)::int as n from extras where id=$1", [e.id])).rows).toEqual([{ n: 0 }]);
+  const used = Object.keys(extra).find((name) => name !== "Delete me")!;
+  await db.query("update extras set active=true where id=$1", [extra[used]]);
+  await book(200, [[used, 1]]);
+  await expect(as("authenticated", admin, "select delete_extra($1)", [extra[used]])).rejects.toThrow("EXTRA_IN_USE");
+});

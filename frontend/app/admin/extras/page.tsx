@@ -1,5 +1,6 @@
 import { requireStaff } from "@/lib/auth/authorize";
-import { saveExtraAction } from "@/app/actions/inventory";
+import { deleteExtraAction, saveExtraAction } from "@/app/actions/inventory";
+import { ConfirmDeleteButton } from "@/components/confirm-delete-button";
 import { getExtras } from "@/lib/inventory/service";
 import { inventoryMessages } from "@/lib/inventory/forms";
 import { extraPricing, pricingLabel, type Extra } from "@/lib/extras";
@@ -83,7 +84,18 @@ function ExtraForm({ item }: { item?: Extra }) {
         />
         {colLabel("Active", compact)}
       </label>
-      <button className="button">{item ? "Save" : "Add item"}</button>
+      {item ? (
+        <div className="admin-item-actions">
+          <button className="button">Save</button>
+          <ConfirmDeleteButton
+            action={deleteExtraAction}
+            title={`Delete ${item.name}?`}
+            message="Items already in a booking are kept and cannot be deleted. Untick Active to stop offering them instead."
+          />
+        </div>
+      ) : (
+        <button className="button">Add item</button>
+      )}
     </form>
   );
 }

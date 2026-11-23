@@ -162,3 +162,29 @@ it("admins edit and delete rooms and room types, except ones with history", asyn
     "room_type_deleted",
   ]);
 });
+
+it("admins rename and delete tables, except ones with booking history", async () => {
+  await as(customer, "select book_table($1,$2::timestamptz,2,$3)", [table, `${day(40)}T12:00:00+08:00`, key()]);
+  const { t } = (await as(admin, "select create_table('X1',4) as t")).rows[0] as { t: { id: string } };
+  await expect(as(staff, "select save_table($1,4,'X2')", [t.id])).rejects.toThrow("FORBIDDEN");
+  await as(admin, "select save_table($1,5,' X2 ')", [t.id]);
+  expect((await db.query("select table_number,capacity from restaurant_tables where id=$1", [t.id])).rows).toEqual([
+    { table_number: "X2", capacity: 5 },
+  ]);
+  // Leaving the number out keeps it.
+  await as(admin, "select save_table($1,6)", [t.id]);
+  expect((await db.query("select table_number from restaurant_tables where id=$1", [t.id])).rows).toEqual([{ table_number: "X2" }]);
+  await expect(as(admin, "select save_table($1,4,' ')", [t.id])).rejects.toThrow("INVALID_INPUT");
+  const taken = ((await db.query("select table_number as n from restaurant_tables where id=$1", [table])).rows[0] as { n: string }).n;
+  await expect(as(admin, "select save_table($1,4,$2)", [t.id, taken])).rejects.toThrow("DUPLICATE_INVENTORY");
+
+  await expect(as(staff, "select delete_table($1)", [t.id])).rejects.toThrow("FORBIDDEN");
+  await expect(as(admin, "select delete_table($1)", [table])).rejects.toThrow("TABLE_IN_USE");
+  await close(admin, 50, 52, null, t.id);
+  await as(admin, "select delete_table($1)", [t.id]);
+  expect((await db.query("select count(*)::int as n from restaurant_tables where id=$1", [t.id])).rows).toEqual([{ n: 0 }]);
+  expect((await db.query("select count(*)::int as n from resource_blocks where table_id=$1", [t.id])).rows).toEqual([{ n: 0 }]);
+  const log = await db.query("select action from audit_logs where record_id=$1 order by occurred_at", [t.id]);
+  expect(log.rows.map((r) => (r as { action: string }).action)).toContain("table_deleted");
+  await expect(as(admin, "select delete_table($1)", [t.id])).rejects.toThrow("NOT_FOUND");
+});

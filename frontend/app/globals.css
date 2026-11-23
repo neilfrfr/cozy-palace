@@ -3228,7 +3228,7 @@ option {
 .capacity-grid + .subtle { margin-top: 12px; }
 .capacity-grid form {
   display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
+  grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
   gap: 8px;
   align-items: center;
   padding: 10px;

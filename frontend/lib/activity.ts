@@ -66,6 +66,7 @@ export const activityTypes = {
       "room_updated",
       "room_deleted",
       "table_created",
+      "table_deleted",
       "inventory_closed",
       "inventory_reopened",
       "menu_item_created",
@@ -80,6 +81,7 @@ export const activityTypes = {
       "extra_created",
       "extra_updated",
       "extra_deactivated",
+      "extra_deleted",
     ],
   },
   staff: {
