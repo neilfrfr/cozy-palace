@@ -19,6 +19,7 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await a.getByLabel("Email address").fill(adminEmail!);
     await a.getByLabel("Password", { exact: true }).fill(adminPassword!);
     await a.getByRole("button", { name: "Log in", exact: true }).click();
+    await a.waitForURL((u) => !u.pathname.endsWith("/login"));
     await a.goto("/admin/staff");
     const create = a.locator("form.staff-editor").filter({
       has: a.getByRole("button", { name: "Add staff member", exact: true }),
@@ -26,7 +27,9 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await create
       .getByLabel("Full name", { exact: true })
       .fill("Onboarding Test");
-    await create.getByLabel("Job title", { exact: true }).fill("Front desk");
+    await create
+      .locator('select[name="jobTitle"]')
+      .selectOption("Hotel Receptionist");
     await create
       .getByLabel("Employee email", { exact: true })
       .fill(workerEmail!);
@@ -37,14 +40,16 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
       a.getByText("Staff record created.", { exact: false }),
     ).toBeVisible();
     let row = a.locator("form.staff-editor").filter({ hasText: workerEmail! });
-    await row.getByLabel("Job title", { exact: true }).fill("Reservations");
+    await row
+      .locator('select[name="jobTitle"]')
+      .selectOption("Hotel Reservation Agent");
     await row
       .getByRole("button", { name: "Save staff details", exact: true })
       .click();
     await a.reload();
     row = a.locator("form.staff-editor").filter({ hasText: workerEmail! });
-    await expect(row.getByLabel("Job title", { exact: true })).toHaveValue(
-      "Reservations",
+    await expect(row.locator('select[name="jobTitle"]')).toHaveValue(
+      "Hotel Reservation Agent",
     );
     await w.goto("/staff/login");
     await w.getByLabel("Email address").fill(workerEmail!);
@@ -58,6 +63,8 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await w.goto("/staff/reservations/new");
     const guestName = `Guest lifecycle ${Date.now()}`;
     await w.getByLabel("Guest full name", { exact: true }).fill(guestName);
+    await w.getByLabel("Guest email", { exact: true }).fill("lifecycle@example.test");
+    await w.getByRole("textbox", { name: "Guest phone" }).fill("9171234567");
     await w.getByLabel("Check-in", { exact: true }).fill("2029-06-15");
     await w.getByLabel("Check-out", { exact: true }).fill("2029-06-17");
     await w.getByLabel("Guests", { exact: true }).fill("2");
