@@ -8,6 +8,7 @@ import { createClient } from "@/lib/supabase/server";
 import { isConfigured } from "@/lib/supabase/config";
 import { mutationSchema } from "@/lib/reservations/schema";
 import { publicError } from "@/lib/reservations/errors";
+import { ensureBookingPhone, takePhone } from "@/lib/accounts/booking-phone";
 import type { ActionResult } from "@/lib/reservations/types";
 import {
   diningSlots,
@@ -24,7 +25,7 @@ async function identity() {
   const db = await createClient();
   const { data, error } = await db.auth.getUser();
   if (error || !data.user) return null;
-  return { db, role: await readRole(db, data.user.id) };
+  return { db, userId: data.user.id, role: await readRole(db, data.user.id) };
 }
 function refresh() {
   for (const path of [
@@ -68,8 +69,13 @@ export async function bookTableAction(
   const who = await identity();
   if (!who) return { ok: false, code: "UNAUTHORIZED" };
   const guest = who.role !== "customer" ? walkInSchema.safeParse(input) : null;
-  const parsed = guest ?? tableBookingSchema.safeParse(input);
+  const [booking, guestPhone] = takePhone(input);
+  const parsed = guest ?? tableBookingSchema.safeParse(booking);
   if (!parsed.success) return { ok: false, code: "INVALID_INPUT" };
+  if (!guest) {
+    const missing = await ensureBookingPhone(who.db, who.userId, guestPhone);
+    if (missing) return { ok: false, code: missing };
+  }
   const p = parsed.data;
   return rpc(who.db, "book_table", {
     p_table_id: p.tableId,

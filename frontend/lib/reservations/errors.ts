@@ -40,6 +40,8 @@ export function publicError(error: unknown): string {
 }
 export const errorMessages: Record<string, string> = {
   UNAUTHORIZED: "Please sign in to continue.",
+  PHONE_REQUIRED:
+    "Add a valid mobile number so the hotel can reach you about your booking.",
   FORBIDDEN: "You do not have access to this reservation.",
   NOT_FOUND: "This reservation could not be found.",
   VERSION_CONFLICT:

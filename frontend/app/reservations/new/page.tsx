@@ -1,6 +1,7 @@
 import Link from "next/link";
 import { randomUUID } from "node:crypto";
 import { requireCustomer } from "@/lib/auth/authorize";
+import { viewerMissingPhone } from "@/lib/accounts/booking-phone";
 import { getBookedNightsByRoom, getRooms } from "@/lib/reservations/service";
 import { businessDate } from "@/lib/operations/schema";
 import { addDays } from "@/lib/reservations/availability";
@@ -58,7 +59,11 @@ export default async function NewReservation({
     );
   }
   await requireCustomer(next);
-  const [rooms, extras] = await Promise.all([getRooms(), getExtras()]);
+  const [rooms, extras, askPhone] = await Promise.all([
+    getRooms(),
+    getExtras(),
+    viewerMissingPhone(),
+  ]);
   const bookedNights = await getBookedNightsByRoom(rooms);
   return (
     <>
@@ -74,6 +79,7 @@ export default async function NewReservation({
         requestKey={randomUUID()}
         bookedNights={bookedNights}
         today={businessDate()}
+        askPhone={askPhone}
       />
     </>
   );

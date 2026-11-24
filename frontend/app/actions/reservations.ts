@@ -12,10 +12,12 @@ import {
   updateSchema,
 } from "@/lib/reservations/schema";
 import { publicError } from "@/lib/reservations/errors";
+import { ensureBookingPhone, takePhone } from "@/lib/accounts/booking-phone";
 import type { ActionResult, Reservation } from "@/lib/reservations/types";
 async function invoke(
   name: string,
   args: Record<string, unknown>,
+  phone?: { given: unknown },
 ): Promise<ActionResult<Reservation>> {
   if (!isConfigured()) return { ok: false, code: "SETUP_REQUIRED" };
   const db = await createClient();
@@ -28,6 +30,10 @@ async function invoke(
       : role !== "customer"
   )
     return { ok: false, code: "FORBIDDEN" };
+  if (phone) {
+    const missing = await ensureBookingPhone(db, user.user.id, phone.given);
+    if (missing) return { ok: false, code: missing };
+  }
   const { data, error } = await db.rpc(name, args);
   if (error) return { ok: false, code: publicError(error) };
   for (const path of [
@@ -45,7 +51,8 @@ async function invoke(
 export async function createReservationAction(
   input: unknown,
 ): Promise<ActionResult<Reservation>> {
-  const parsed = reservationSchema.safeParse(input);
+  const [booking, guestPhone] = takePhone(input);
+  const parsed = reservationSchema.safeParse(booking);
   if (!parsed.success)
     return {
       ok: false,
@@ -60,7 +67,7 @@ export async function createReservationAction(
     p_guests: p.guests,
     p_idempotency_key: p.idempotencyKey,
     p_extras: p.extras,
-  });
+  }, { given: guestPhone });
 }
 export async function updateReservationAction(
   input: unknown,

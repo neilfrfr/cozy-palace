@@ -40,6 +40,7 @@ export function TablePicker({
   initialDate,
   initialTime = "",
   initialGuests,
+  askPhone = false,
 }: {
   tables: DiningTable[];
   /** Manila business date, from the server. */
@@ -59,6 +60,8 @@ export function TablePicker({
   initialDate?: string;
   initialTime?: string;
   initialGuests?: number;
+  /** A signed-in customer with no phone on file: ask for one, saved to their account. */
+  askPhone?: boolean;
 }) {
   const [now] = useState(() => Date.now());
   // Guests book ahead; staff may seat a walk-in into a seating under way.
@@ -160,6 +163,7 @@ export function TablePicker({
       time,
       guests,
       idempotencyKey: requestKey.current,
+      ...(askPhone && !contact && { guestPhone: String(f.get("guestPhone") ?? "") }),
       ...(contact && {
         guestFullName: String(f.get("guestFullName") ?? ""),
         guestPhone: String(f.get("guestPhone") ?? ""),
@@ -315,6 +319,15 @@ export function TablePicker({
             Email
             <input name="guestEmail" type="email" maxLength={254} required />
           </label>
+        </div>
+      )}
+      {askPhone && !contact && (
+        <div className="table-picker-fields contact">
+          <PhoneField label="Mobile number" required />
+          <p className="subtle">
+            So the hotel can reach you about your booking. We save it to your
+            account.
+          </p>
         </div>
       )}
       {visitor && (

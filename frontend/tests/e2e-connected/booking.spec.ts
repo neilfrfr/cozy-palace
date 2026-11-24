@@ -18,6 +18,9 @@ test("real account saves, reloads, edits and deletes its draft", async ({
   await page.getByLabel("Check-in", { exact: true }).fill("2027-06-01");
   await page.getByLabel("Check-out", { exact: true }).fill("2027-06-03");
   await page.getByLabel("Guests", { exact: true }).fill("2");
+  // An account without a phone is asked for one; it's then saved to the account.
+  const phone = page.getByRole("textbox", { name: /Mobile number/ });
+  if (await phone.count()) await phone.fill("9171234567");
   await page.getByRole("button", { name: "Save reservation draft" }).click();
   await expect(
     page.getByRole("heading", { name: /^Reservation \S+$/ }),
