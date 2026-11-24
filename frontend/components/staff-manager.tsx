@@ -1,6 +1,7 @@
 "use client";
 import { useActionState } from "react";
 import { staffAction } from "@/app/admin/staff/actions";
+import { useConfirm } from "@/components/confirm-dialog";
 export type StaffMember = {
   id: string;
   employee_code: string;
@@ -26,6 +27,7 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
     message: "",
     success: false,
   });
+  const [ask, dialog] = useConfirm();
   return (
     <form
       action={submit}
@@ -115,19 +117,30 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
       </div>
       {member && (
         <div className="staff-removal">
-          <label>
-            <input type="checkbox" name="confirmDeletion" /> Confirm removal and
-            revoke employee access
-          </label>
           <button
             className="secondary"
             name="operation"
             value="delete"
             formNoValidate
             disabled={pending}
+            onClick={async (event) => {
+              event.preventDefault();
+              const button = event.currentTarget;
+              if (
+                await ask({
+                  title: `Revoke access for ${member.full_name}?`,
+                  message:
+                    "Are you sure? They are removed from the staff directory and can no longer sign in to the staff workspace.",
+                  confirmLabel: "Revoke access",
+                  danger: true,
+                })
+              )
+                button.form?.requestSubmit(button);
+            }}
           >
             Remove staff member
           </button>
+          {dialog}
         </div>
       )}
     </form>

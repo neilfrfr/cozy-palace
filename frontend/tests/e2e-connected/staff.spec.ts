@@ -113,11 +113,12 @@ test("admin staff CRUD grants verified access and revokes a live staff session",
     await a.goto("/admin/staff");
     row = a.locator("form.staff-editor").filter({ hasText: workerEmail! });
     await row
-      .getByLabel("Confirm removal and revoke employee access", { exact: true })
-      .check();
-    await row
       .getByRole("button", { name: "Remove staff member", exact: true })
       .click();
+    const revoke = a.getByRole("alertdialog");
+    await expect(revoke).toContainText("Are you sure?");
+    await revoke.getByRole("button", { name: "Revoke access", exact: true }).click();
+    await expect(revoke).toHaveCount(0);
     await a.reload();
     await expect(
       a.locator("form.staff-editor").filter({ hasText: workerEmail! }),

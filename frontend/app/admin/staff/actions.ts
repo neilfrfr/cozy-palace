@@ -68,11 +68,7 @@ export async function staffAction(
       };
     args = { p_id: p.data.id, p_version: p.data.version };
     if (operation === "delete") {
-      if (form.get("confirmDeletion") !== "on")
-        return {
-          message: "Confirm removal before revoking employee access.",
-          success: false,
-        };
+      // Confirmed in the browser with a "Revoke access?" dialog.
       name = "delete_staff_member";
     } else if (operation === "update") {
       const fields = z
