@@ -43,11 +43,19 @@ describe("table booking input", () => {
       false,
     ),
   );
-  it("requires a guest name for walk-ins", () => {
+  it("requires a guest name, email and phone for walk-ins", () => {
     expect(walkInSchema.safeParse(valid).success).toBe(false);
     expect(
       walkInSchema.safeParse({ ...valid, guestFullName: "Walk-in Party" })
         .success,
+    ).toBe(false);
+    expect(
+      walkInSchema.safeParse({
+        ...valid,
+        guestFullName: "Walk-in Party",
+        guestEmail: "party@example.test",
+        guestPhone: "+639171234567",
+      }).success,
     ).toBe(true);
   });
 });

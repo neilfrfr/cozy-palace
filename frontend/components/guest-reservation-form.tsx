@@ -108,9 +108,6 @@ export function GuestReservationForm({
   );
   // A customer's details live on their account; walk-in and visitor details are edited here.
   const online = existing?.booking_source === "customer_online";
-  // The email is the only way a visitor hears about their booking, so it can't be removed.
-  const contactRequired =
-    visitor || existing?.booking_source === "guest_online";
   function prepare(event: FormEvent<HTMLFormElement>) {
     event.preventDefault();
     const f = new FormData(event.currentTarget);
@@ -237,28 +234,18 @@ export function GuestReservationForm({
                   />
                 </label>
                 <label>
-                  {visitor
-                    ? "Email"
-                    : contactRequired
-                      ? "Guest email"
-                      : "Guest email (optional)"}
+                  {visitor ? "Email" : "Guest email"}
                   <input
                     name="guestEmail"
                     type="email"
-                    required={contactRequired}
+                    required
                     maxLength={254}
                     defaultValue={existing?.guest_email ?? ""}
                   />
                 </label>
                 <PhoneField
-                  label={
-                    visitor
-                      ? "Mobile number"
-                      : contactRequired
-                        ? "Guest phone"
-                        : "Guest phone (optional)"
-                  }
-                  required={contactRequired}
+                  label={visitor ? "Mobile number" : "Guest phone"}
+                  required
                   defaultValue={existing?.guest_phone ?? ""}
                 />
               </>

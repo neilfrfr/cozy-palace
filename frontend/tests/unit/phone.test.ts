@@ -42,10 +42,11 @@ describe("guest phone rules", () => {
       checkOut: "2027-06-03",
       guests: 2,
       guestFullName: "Guest",
+      guestEmail: "guest@example.test",
       idempotencyKey: "10000000-0000-4000-8000-0000000000aa",
     };
     expect(guestSchema.safeParse({ ...base, guestPhone: "+631435726378" }).success).toBe(false);
     expect(guestSchema.safeParse({ ...base, guestPhone: "+639171234567" }).success).toBe(true);
-    expect(guestSchema.safeParse({ ...base, guestPhone: "" }).success).toBe(true);
+    expect(guestSchema.safeParse({ ...base, guestPhone: "" }).success).toBe(false);
   });
 });

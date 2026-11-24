@@ -7,13 +7,19 @@ const optional = <T extends z.ZodType<string>>(schema: T) =>
     (v) => (typeof v === "string" && !v.trim() ? undefined : v),
     schema.optional(),
   );
+/** Guest contact staff take for a new booking: email and phone are required. */
 export const guestFields = {
   guestFullName: z.string().trim().min(1).max(100),
-  guestEmail: optional(z.email().trim().max(254)),
-  guestPhone: optional(z.string().trim().max(32).refine(isValidPhone)),
+  guestEmail: z.email().trim().max(254),
+  guestPhone: z.string().trim().max(32).refine(isValidPhone),
 };
 export const guestSchema = reservationSchema.extend(guestFields);
-export const guestUpdateSchema = updateSchema.extend(guestFields);
+// Edits stay optional: a customer's own booking keeps its contact on the account, so the form sends none.
+export const guestUpdateSchema = updateSchema.extend({
+  guestFullName: guestFields.guestFullName,
+  guestEmail: optional(guestFields.guestEmail),
+  guestPhone: optional(guestFields.guestPhone),
+});
 export const operationalStatuses = [
   "pending",
   "confirmed",
@@ -66,11 +72,7 @@ export function businessDate(now = new Date()) {
 export const guestCanCancel = (date: string, today = businessDate()) =>
   Date.parse(date) - Date.parse(today) >= 2 * 86_400_000;
 /** A visitor booking without an account: the email is the only way their booking reaches them. */
-export const visitorContact = {
-  guestFullName: guestFields.guestFullName,
-  guestEmail: z.email().trim().max(254),
-  guestPhone: z.string().trim().max(32).refine(isValidPhone),
-};
+export const visitorContact = guestFields;
 export const visitorSchema = reservationSchema.extend(visitorContact);
 /** Name and booking number a visitor gives to find, or pay for, a booking made without an account. */
 export const lookupSchema = z

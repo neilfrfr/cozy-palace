@@ -310,18 +310,10 @@ export function TablePicker({
             {visitor ? "Full name" : "Guest name"}
             <input name="guestFullName" required maxLength={100} />
           </label>
-          <PhoneField
-            label={visitor ? "Mobile number" : "Phone (optional)"}
-            required={visitor}
-          />
+          <PhoneField label={visitor ? "Mobile number" : "Phone"} required />
           <label>
-            {visitor ? "Email" : "Email (optional)"}
-            <input
-              name="guestEmail"
-              type="email"
-              maxLength={254}
-              required={visitor}
-            />
+            Email
+            <input name="guestEmail" type="email" maxLength={254} required />
           </label>
         </div>
       )}
