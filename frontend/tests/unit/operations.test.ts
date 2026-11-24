@@ -11,16 +11,18 @@ const valid = {
   guests: 2,
   idempotencyKey: "20000000-0000-4000-8000-000000000001",
   guestFullName: " Guest ",
-  guestEmail: "",
-  guestPhone: "",
+  guestEmail: "guest@example.test",
+  guestPhone: "+639171234567",
 };
 it("guest input validates identity/contact and refuses authority injection", () => {
   expect(guestSchema.parse(valid)).toMatchObject({
     guestFullName: "Guest",
-    guestEmail: undefined,
+    guestEmail: "guest@example.test",
   });
   for (const patch of [
     { guestFullName: "" },
+    { guestEmail: "" },
+    { guestPhone: "" },
     { guestEmail: "bad" },
     { guestPhone: "x".repeat(33) },
     { customerId: "staff" },

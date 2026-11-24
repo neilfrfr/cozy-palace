@@ -31,6 +31,16 @@ async function save(
   if (!p.success) return { ok: false, code: "INVALID_INPUT" };
   const { db } = await requireStaff();
   const v = p.data;
+  // Only a customer's own booking may be edited without guest contact; it lives on their account.
+  if ("id" in v && (!v.guestEmail || !v.guestPhone)) {
+    const { data: row } = await db
+      .from("reservations")
+      .select("booking_source")
+      .eq("id", v.id)
+      .maybeSingle();
+    if (row?.booking_source !== "customer_online")
+      return { ok: false, code: "INVALID_INPUT" };
+  }
   const args = {
     p_room_id: v.roomId,
     p_check_in: v.checkIn,
