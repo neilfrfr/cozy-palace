@@ -16,6 +16,7 @@ import { addDays } from "@/lib/reservations/availability";
 import { businessDate } from "@/lib/operations/schema";
 import { createClient } from "@/lib/supabase/server";
 import { readRole } from "@/lib/auth/authorize";
+import { viewerMissingPhone } from "@/lib/accounts/booking-phone";
 import { getSiteContent, text } from "@/lib/site-content";
 
 export const dynamic = "force-dynamic";
@@ -60,6 +61,7 @@ export default async function DiningAvailability({
   const [tables, role] = configured
     ? await Promise.all([getDiningTables(), viewerRole()])
     : [[], null];
+  const askPhone = role === "customer" && (await viewerMissingPhone());
 
   return (
     <div className="public-page dining-availability-page">
@@ -90,6 +92,7 @@ export default async function DiningAvailability({
           initialTime={time}
           initialGuests={guests}
           availabilityBar
+          askPhone={askPhone}
           draftFlow={role === null || role === "customer"}
           visitor={role === null && visitorBookingEnabled()}
           instead={

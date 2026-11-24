@@ -12,6 +12,7 @@ import { addDays } from "@/lib/reservations/availability";
 import { StayDates } from "@/components/stay-dates";
 import { ExtrasPicker } from "@/components/extras-picker";
 import { extrasFromForm, type Extra } from "@/lib/extras";
+import { PhoneField } from "@/components/phone-field";
 export function ReservationForm({
   rooms,
   existing,
@@ -20,6 +21,7 @@ export function ReservationForm({
   bookedNights,
   today,
   extras = [],
+  askPhone = false,
 }: {
   rooms: Room[];
   /** Active extras a new booking can add; an existing booking keeps the ones it has. */
@@ -36,6 +38,8 @@ export function ReservationForm({
     guests?: string;
   };
   requestKey: string;
+  /** The account has no phone yet: ask for one with the booking, saved to the account. */
+  askPhone?: boolean;
 }) {
   const router = useRouter();
   const [pending, start] = useTransition();
@@ -63,6 +67,7 @@ export function ReservationForm({
             ...input,
             idempotencyKey: requestKey,
             extras: extrasFromForm(form),
+            ...(askPhone && { guestPhone: String(form.get("guestPhone") ?? "") }),
           });
       if (!result.ok) {
         setError(
@@ -113,6 +118,9 @@ export function ReservationForm({
             required
           />
         </label>
+        {!existing && askPhone && (
+          <PhoneField label="Mobile number (saved to your account)" required />
+        )}
         {!existing && <ExtrasPicker extras={extras} />}
       </div>
       <p className="subtle">
