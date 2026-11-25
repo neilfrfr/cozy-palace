@@ -87,12 +87,30 @@ vi.mock("@/lib/operations/service", () => ({
       { name: "Pending table requests", count: 0, href: "/staff/tables" },
     ],
   }),
+  getOverviewInsights: async () => ({
+    today: "2026-10-19",
+    totalRooms: 12,
+    moves: { checkIns: 2, arrived: 1, checkOuts: 1, left: 0 },
+    rooms: { occupied: 3, reserved: 4, available: 4, closed: 1 },
+    money: {
+      months: ["05", "06", "07", "08", "09", "10"].map((m, i) => ({
+        month: "2026-" + m,
+        amount: 40000 + i * 9000,
+      })),
+      soFar: 85000,
+      change: 0.12,
+    },
+    bookings: Array.from({ length: 30 }, (_, i) => ({
+      date: new Date(Date.UTC(2026, 8, 20 + i)).toISOString().slice(0, 10),
+      rooms: i % 4,
+      tables: (i * 3) % 7,
+    })),
+  }),
   getManagementDashboard: async () => ({
     counts: [
       { name: "rooms", count: 12 },
       { name: "restaurant_tables", count: 8 },
       { name: "staff_members", count: 6 },
-      { name: "reservations", count: 42 },
     ],
     pendingStaff: 2,
     pendingTables: 3,
