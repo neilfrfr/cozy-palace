@@ -7,6 +7,13 @@ import {
   parseOperationsFilter,
   type OperationsFilter,
 } from "./schema";
+import { addDays } from "@/lib/reports";
+import {
+  bookingsByDay,
+  collectedByMonth,
+  movesToday,
+  roomsTonight,
+} from "./overview";
 export type OperationalReservation = Reservation & {
   customer_name: string | null;
   creator_name: string | null;
@@ -97,6 +104,67 @@ export async function getStaffDashboard() {
   };
 }
 
+/** Today's moves, tonight's rooms, money collected and new bookings, for the admin overview. */
+export async function getOverviewInsights() {
+  const { db } = await requireStaff(true);
+  const today = businessDate();
+  const midnight = (d: string) => d + "T00:00:00+08:00";
+  const sixMonths = addDays(today, -200).slice(0, 8) + "01";
+  const [rooms, stays, closures, payments, orders, made] = await Promise.all([
+    db.from("rooms").select("id,operational_state"),
+    db
+      .from("room_bookings")
+      .select("room_id,check_in,check_out,reservations!inner(status)")
+      .lte("check_in", today)
+      .gte("check_out", today),
+    db
+      .from("resource_blocks")
+      .select("room_id,starts_on,ends_on")
+      .not("room_id", "is", null)
+      .lte("starts_on", today)
+      .gt("ends_on", today),
+    db
+      .from("payments")
+      .select("amount_paid,paid_at")
+      .eq("status", "paid")
+      .gte("paid_at", midnight(sixMonths)),
+    db
+      .from("orders")
+      .select("total,paid_at")
+      .not("paid_at", "is", null)
+      .gte("paid_at", midnight(sixMonths)),
+    db
+      .from("reservations")
+      .select("kind,created_at")
+      .gte("created_at", midnight(addDays(today, -29))),
+  ]);
+  if ([rooms, stays, closures, payments, orders, made].some((r) => r.error))
+    throw Error("The overview figures could not be loaded.");
+  const stayRows = stays.data!.map((s) => {
+    const r = s.reservations as { status: string } | { status: string }[];
+    return { ...s, status: (Array.isArray(r) ? r[0] : r)?.status ?? "" };
+  });
+  // Six months ending this one: the fetch above starts early enough to cover them.
+  const money = collectedByMonth(today, 6, [
+    ...payments.data!.map((p) => ({
+      paid_at: p.paid_at!,
+      amount: Number(p.amount_paid ?? 0),
+    })),
+    ...orders.data!.map((o) => ({
+      paid_at: o.paid_at!,
+      amount: Number(o.total),
+    })),
+  ]);
+  return {
+    today,
+    totalRooms: rooms.data!.length,
+    moves: movesToday(today, stayRows),
+    rooms: roomsTonight(today, rooms.data!, stayRows, closures.data!),
+    money,
+    bookings: bookingsByDay(today, 30, made.data!),
+  };
+}
+
 /** Table requests still waiting for staff, from today onward. */
 async function pendingTableBookings(
   db: Awaited<ReturnType<typeof requireStaff>>["db"],
@@ -117,7 +185,6 @@ export async function getManagementDashboard() {
     "rooms",
     "restaurant_tables",
     "staff_members",
-    "reservations",
   ] as const;
   const [counts, pending, statuses, recent, pendingTables] = await Promise.all([
     Promise.all(
