@@ -1,4 +1,5 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
 import { useActionState } from "react";
 import { staffAction } from "@/app/admin/staff/actions";
 import { useConfirm } from "@/components/confirm-dialog";
@@ -89,7 +90,7 @@ export function StaffEditor({ member }: { member?: StaffMember }) {
         ) : (
           <label>
             Employee email
-            <input name="email" type="email" maxLength={254} required />
+            <EmailInput name="email" maxLength={254} required />
           </label>
         )}
       </div>

@@ -1,4 +1,5 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
 import {
   useEffect,
   useRef,
@@ -317,7 +318,7 @@ export function TablePicker({
           <PhoneField label={visitor ? "Mobile number" : "Phone"} required />
           <label>
             Email
-            <input name="guestEmail" type="email" maxLength={254} required />
+            <EmailInput name="guestEmail" maxLength={254} required />
           </label>
         </div>
       )}

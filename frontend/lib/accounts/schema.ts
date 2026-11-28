@@ -7,8 +7,8 @@ export const emailSchema = z
   .pipe(z.email().max(254));
 export const passwordSchema = z
   .object({
-    password: z.string().min(8).max(128),
-    confirmPassword: z.string().min(8).max(128),
+    password: z.string().min(8).max(25),
+    confirmPassword: z.string().min(8).max(25),
     currentPassword: z.string().max(128).optional(),
   })
   .strict()
@@ -20,8 +20,8 @@ export const signupSchema = z
   .object({
     fullName,
     email: emailSchema,
-    password: z.string().min(8).max(128),
-    confirmPassword: z.string().min(8).max(128),
+    password: z.string().min(8).max(25),
+    confirmPassword: z.string().min(8).max(25),
   })
   .strict()
   .refine((p) => p.password === p.confirmPassword, {

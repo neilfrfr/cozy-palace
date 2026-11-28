@@ -35,27 +35,31 @@ export function Turnstile({
   const box = useRef<HTMLDivElement>(null);
   const widget = useRef<string | null>(null);
   const siteKey = process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
-  useEffect(
-    () => () => {
+  const mount = () => {
+    if (!siteKey || !api() || !box.current || widget.current) return;
+    widget.current = api()!.render(box.current, {
+      sitekey: siteKey,
+      action,
+      callback: onToken,
+      "expired-callback": () => onToken(""),
+      "error-callback": () => onToken(""),
+    });
+  };
+  useEffect(() => {
+    // A remount after the script has loaded gets no onReady, so draw the widget here.
+    mount();
+    return () => {
       if (widget.current) api()?.remove(widget.current);
-    },
-    [],
-  );
+      widget.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once per key, as before
+  }, []);
   if (!siteKey) return null;
   return (
     <>
       <Script
         src="https://challenges.cloudflare.com/turnstile/v0/api.js?render=explicit"
-        onReady={() => {
-          if (!api() || !box.current || widget.current) return;
-          widget.current = api()!.render(box.current, {
-            sitekey: siteKey,
-            action,
-            callback: onToken,
-            "expired-callback": () => onToken(""),
-            "error-callback": () => onToken(""),
-          });
-        }}
+        onReady={mount}
       />
       <div ref={box} className="captcha" />
     </>
