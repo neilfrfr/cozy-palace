@@ -1,4 +1,5 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
 import Link from "next/link";
 import { useActionState, useState } from "react";
 import { ArrowRight } from "lucide-react";
@@ -21,25 +22,26 @@ export function LoginForm({
   const [accepted, setAccepted] = useState(false);
   // Supabase's CAPTCHA check; each token works once, so every submit gets a fresh widget.
   const [captcha, setCaptcha] = useState("");
-  const [round, setRound] = useState(0);
   const needsCaptcha = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  // React resets the form after the action; the submitted email becomes the reset value.
+  const [email, setEmail] = useState("");
   return (
     <form
       action={action}
-      onSubmit={() => {
+      onSubmit={(event) => {
+        setEmail(String(new FormData(event.currentTarget).get("email") ?? ""));
         setCaptcha("");
-        setRound((n) => n + 1);
       }}
-      className="form-panel"
+      className="form-panel account-form"
     >
       <input type="hidden" name="next" value={next} />
       <input type="hidden" name="captchaToken" value={captcha} />
       <div className="form-grid">
         <label className="full">
           Email address
-          <input
+          <EmailInput
             name="email"
-            type="email"
+            defaultValue={email}
             autoComplete="email"
             required
             maxLength={254}
@@ -72,7 +74,12 @@ export function LoginForm({
           </span>
         </label>
       )}
-      <Turnstile key={round} action="sign_in" onToken={setCaptcha} />
+      {/* Each token works once: a fresh widget mounts when the answer arrives, not while it is pending. */}
+      {needsCaptcha && pending ? (
+        <div className="captcha" />
+      ) : (
+        <Turnstile action="sign_in" onToken={setCaptcha} />
+      )}
       {state.message && (
         <p className="notice error" role="alert">
           {state.message}

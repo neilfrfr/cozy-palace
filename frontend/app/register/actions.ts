@@ -32,7 +32,7 @@ export async function registerAction(
   if (!p.success)
     return {
       message:
-        "Enter your name, a valid email, and matching passwords of 8–128 characters.",
+        "Enter your name, a valid email, and matching passwords of 8–25 characters.",
       success: false,
     };
   const origin = siteOrigin();
@@ -51,6 +51,17 @@ export async function registerAction(
       captchaToken: captchaToken(form),
     },
   });
+  // With email confirmation on, Supabase signals a taken email by returning a user with no identities.
+  if (
+    error?.code === "user_already_exists" ||
+    error?.code === "email_exists" ||
+    (!error && data.user?.identities?.length === 0)
+  )
+    return {
+      message:
+        "An account with this email already exists. Sign in instead, or use Forgot password if you can't remember it.",
+      success: false,
+    };
   if (error)
     return {
       message: authFailure(
@@ -118,7 +129,7 @@ export async function passwordAction(
   });
   if (!p.success)
     return {
-      message: "Use matching passwords of 8–128 characters.",
+      message: "Use matching passwords of 8–25 characters.",
       success: false,
     };
   if (await isPwned(p.data.password))

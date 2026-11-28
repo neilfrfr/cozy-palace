@@ -1,4 +1,6 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
+import { FieldInput } from "@/components/field-problem";
 import { useActionState, useState } from "react";
 import { PasswordInput } from "@/components/password-input";
 import { Turnstile } from "@/components/turnstile";
@@ -31,17 +33,34 @@ export function AccountAuthForm({
   });
   // Supabase's CAPTCHA check guards every form here that sends email; each token works once.
   const [captcha, setCaptcha] = useState("");
-  const [round, setRound] = useState(0);
   const needsCaptcha =
     mode !== "password" && !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
+  // React resets the form after the action; the submitted values become the reset values.
+  const [kept, setKept] = useState({ email: "", fullName: "" });
   return (
     <form
       action={submit}
-      onSubmit={() => {
+      onSubmit={(event) => {
+        const f = new FormData(event.currentTarget);
+        setKept({
+          email: String(f.get("email") ?? ""),
+          fullName: String(f.get("fullName") ?? ""),
+        });
         setCaptcha("");
-        setRound((n) => n + 1);
       }}
-      className="form-panel"
+      onInput={(event) => {
+        // Flag a mismatch before submitting, so it shows under the field like other problems.
+        const form = event.currentTarget;
+        const password = form.elements.namedItem("password");
+        const confirm = form.elements.namedItem("confirmPassword");
+        if (password instanceof HTMLInputElement && confirm instanceof HTMLInputElement)
+          confirm.setCustomValidity(
+            confirm.value && confirm.value !== password.value
+              ? "Passwords don't match."
+              : "",
+          );
+      }}
+      className="form-panel account-form"
     >
       <input type="hidden" name="mode" value={mode} />
       <input type="hidden" name="captchaToken" value={captcha} />
@@ -50,8 +69,9 @@ export function AccountAuthForm({
         {mode === "register" && (
           <label className="full">
             Full name
-            <input
+            <FieldInput
               name="fullName"
+              defaultValue={kept.fullName}
               autoComplete="name"
               required
               maxLength={100}
@@ -61,9 +81,9 @@ export function AccountAuthForm({
         {mode !== "password" && (
           <label className="full">
             Email address
-            <input
+            <EmailInput
               name="email"
-              type="email"
+              defaultValue={kept.email}
               autoComplete="email"
               required
               maxLength={254}
@@ -93,7 +113,7 @@ export function AccountAuthForm({
                 autoComplete="new-password"
                 required
                 minLength={8}
-                maxLength={128}
+                maxLength={25}
               />
             </div>
             <div className="full">
@@ -105,22 +125,25 @@ export function AccountAuthForm({
                 autoComplete="new-password"
                 required
                 minLength={8}
-                maxLength={128}
+                maxLength={25}
               />
             </div>
             <p className="subtle full">
-              Use 8–128 characters. A long, unique passphrase works well.
+              Use 8–25 characters.
             </p>
           </>
         )}
       </div>
-      {needsCaptcha && (
-        <Turnstile
-          key={round}
-          action={mode === "register" ? "sign_up" : "email_link"}
-          onToken={setCaptcha}
-        />
-      )}
+      {needsCaptcha &&
+        // Each token works once: a fresh widget mounts when the answer arrives, not while it is pending.
+        (pending ? (
+          <div className="captcha" />
+        ) : (
+          <Turnstile
+            action={mode === "register" ? "sign_up" : "email_link"}
+            onToken={setCaptcha}
+          />
+        ))}
       {state.message && (
         <p
           role={state.success ? "status" : "alert"}

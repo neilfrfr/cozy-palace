@@ -1,4 +1,5 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
 
 import { startTransition, useActionState, useState } from "react";
 import { Turnstile } from "@/components/turnstile";
@@ -12,9 +13,8 @@ export function InquiryForm() {
     message: "",
     success: false,
   });
-  // Each Turnstile token works once, so remount the widget on every submit.
+  // Each Turnstile token works once; a fresh widget mounts when the answer arrives, not while it is pending.
   const [captcha, setCaptcha] = useState("");
-  const [round, setRound] = useState(0);
   const needsCaptcha = !!process.env.NEXT_PUBLIC_TURNSTILE_SITE_KEY;
 
   return (
@@ -40,7 +40,6 @@ export function InquiryForm() {
             const data = new FormData(e.currentTarget);
             startTransition(() => submit(data));
             setCaptcha("");
-            setRound((n) => n + 1);
           }}
         >
           <input type="hidden" name="captchaToken" value={captcha} />
@@ -56,10 +55,9 @@ export function InquiryForm() {
           </label>
           <label className="full">
             Email Address
-            <input
+            <EmailInput
               className={fieldClassName}
               name="email"
-              type="email"
               autoComplete="email"
               required
             />
@@ -92,7 +90,11 @@ export function InquiryForm() {
           </label>
           {needsCaptcha && (
             <div className="full">
-              <Turnstile key={round} action="inquiry" onToken={setCaptcha} />
+              {pending ? (
+                <div className="captcha" />
+              ) : (
+                <Turnstile action="inquiry" onToken={setCaptcha} />
+              )}
             </div>
           )}
           {state.message && (

@@ -60,6 +60,36 @@ it("signup sends only validated customer metadata and a same-site callback", asy
   );
   expect(db.rpc).not.toHaveBeenCalled();
 });
+it("signup tells the guest when the email is already registered", async () => {
+  const f = new FormData();
+  for (const [k, v] of Object.entries({
+    fullName: "Guest",
+    email: "guest@example.test",
+    password: "A-long-password-123",
+    confirmPassword: "A-long-password-123",
+  }))
+    f.set(k, v);
+  // Confirmation on: placeholder user with no identities.
+  db.auth.signUp.mockResolvedValueOnce({
+    data: { user: { identities: [] }, session: null },
+    error: null,
+  });
+  const taken = await registerAction(initial, f);
+  expect(taken.success).toBe(false);
+  expect(taken.message).toMatch(/already exists/);
+  // Confirmation off: explicit error code.
+  db.auth.signUp.mockResolvedValueOnce({
+    data: { user: null, session: null },
+    error: { code: "user_already_exists" },
+  });
+  expect((await registerAction(initial, f)).message).toMatch(/already exists/);
+  // A fresh user still succeeds.
+  db.auth.signUp.mockResolvedValueOnce({
+    data: { user: { identities: [{}] }, session: null },
+    error: null,
+  });
+  expect((await registerAction(initial, f)).success).toBe(true);
+});
 it("recovery uses the configured origin and the password page", async () => {
   const f = new FormData();
   f.set("email", "guest@example.test");

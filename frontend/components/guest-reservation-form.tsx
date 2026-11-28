@@ -1,4 +1,5 @@
 "use client";
+import { EmailInput } from "@/components/email-input";
 import { useState, useTransition, type FormEvent } from "react";
 import { useRouter } from "next/navigation";
 import Link from "next/link";
@@ -235,9 +236,8 @@ export function GuestReservationForm({
                 </label>
                 <label>
                   {visitor ? "Email" : "Guest email"}
-                  <input
+                  <EmailInput
                     name="guestEmail"
-                    type="email"
                     required
                     maxLength={254}
                     defaultValue={existing?.guest_email ?? ""}
