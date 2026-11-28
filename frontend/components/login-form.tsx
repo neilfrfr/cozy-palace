@@ -66,7 +66,8 @@ export function LoginForm({
           <input
             type="checkbox"
             name="acceptTerms"
-            checked={accepted}
+            // Uncontrolled: React's post-action form reset restores defaultChecked, which tracks the choice.
+            defaultChecked={accepted}
             onChange={(event) => setAccepted(event.target.checked)}
           />
           <span>
