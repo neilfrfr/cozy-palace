@@ -4347,3 +4347,13 @@ form.account-form input[aria-invalid="true"]:focus-visible {
 .captcha {
   min-height: 65px;
 }
+/* Account forms: even breathing room between the terms line, the CAPTCHA, the notice and the button. */
+.account-form .terms-check {
+  margin-top: 22px;
+}
+.account-form .captcha {
+  margin-top: 20px;
+}
+.account-form .notice {
+  margin: 20px 0 0;
+}
